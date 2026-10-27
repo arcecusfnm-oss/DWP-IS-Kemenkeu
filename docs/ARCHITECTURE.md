@@ -48,3 +48,24 @@ Pengguna mengakses website melalui browser. Permintaan diproses oleh Laravel. Ji
 
 6. Status Dokumen
 Draft awal. Rancangan akan ditinjau oleh tim dan disesuaikan setelah keputusan teknis yang belum pasti dikonfirmasi.
+
+
+7. Rancangan Endpoint Autentikasi
+Rancangan endpoint berikut dibatasi pada kebutuhan login berdasarkan user story B-001. Endpoint merupakan rancangan awal dan perlu disesuaikan dengan implementasi Laravel serta keputusan tim.
+
+| Method | Endpoint | Fungsi                                                                                                  | Hak Akses                 |
+|--------|----------|---------------------------------------------------------------------------------------------------------|---------------------------|
+| GET    | /login   | Menampilkan halaman login                                                                               | Pengguna yang belum login |
+| POST   | /login   | Memvalidasi nama pengguna dan kata sandi, memeriksa status akun, serta membuat sesi jika login berhasil | Pengguna yang belum login |
+| POST   | /logout  | Mengakhiri sesi pengguna yang sedang login                                                              | Pengguna yang sudah login |
+	- 7.1 Ketentuan Endpoint Login
+		- Nama pengguna dan kata sandi harus diisi.
+		- Kredensial yang salah ditolak dengan pesan `Nama pengguna atau kata sandi salah`.
+		- Akun nonaktif ditolak dengan pesan `Akun tidak aktif`.
+		- Login berhasil mengarahkan pengguna ke halaman dasbor.
+		- Sistem membatasi percobaan login setelah lima kegagalan berturut-turut selama lima menit.
+		- Sistem tidak menampilkan kata sandi atau token pada pesan kesalahan maupun log.
+	- 7.2 Catatan Implementasi
+		- Endpoint di atas merupakan rancangan untuk aplikasi web Laravel. Jika tim menggunakan autentikasi berbasis sesi bawaan Laravel, halaman login dapat menggunakan route web dan session Laravel tanpa harus membuat REST API terpisah.
+		- Penggunaan endpoint logout dan metode HTTP-nya perlu mengikuti mekanisme autentikasi serta perlindungan CSRF yang diterapkan pada aplikasi.
+		- Daftar endpoint ini belum menjadi implementasi final dan perlu ditinjau oleh tim.
