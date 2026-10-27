@@ -6,13 +6,15 @@ Rancangan ini masih bersifat sementara dan dapat disesuaikan berdasarkan hasil d
 
 
 2. Teknologi yang Digunakan
-| Komponen                | Teknologi             | Fungsi |
-|-------------------------|-----------------------|---------------------------------------------------|
-| Backend                 | Laravel               | Mengelola logika aplikasi dan permintaan pengguna |
-| Database                | MySQL                 | Menyimpan data sistem                             |
-| Frontend                | HTML, CSS, JavaScript | Membuat tampilan dan interaksi website            |
-| UI Framework            | Bootstrap             | Membantu membuat tampilan website yang responsif  |
-| Lingkungan Pengembangan | Herd atau Laragon     | Menjalankan aplikasi di komputer pengembang       |
+
+| Komponen | Teknologi | Fungsi |
+| :--- | :--- | :--- |
+| Backend | Laravel | Mengelola logika aplikasi dan permintaan pengguna |
+| Database | MySQL | Menyimpan data sistem |
+| Frontend | HTML, CSS, JavaScript | Membuat tampilan dan interaksi website |
+| UI Framework | Bootstrap | Membantu membuat tampilan website yang responsif |
+| Lingkungan Pengembangan | Herd atau Laragon | Menjalankan aplikasi di komputer pengembang |
+
 Catatan: Tim perlu mengonfirmasi apakah akan menggunakan Herd atau Laragon sebagai lingkungan pengembangan utama.
 
 
