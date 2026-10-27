@@ -32,4 +32,4 @@ Variabel yang diperlukan untuk koneksi database Laravel:
 
 
 ### 5. Status
-Dokumen ini merupakan panduan awal. Konfigurasi aktual diterapkan setelah struktur proyek Laravel tersedia dan lingkungan database disiapkan.
+Struktur proyek Laravel telah disiapkan dan konfigurasi database MySQL telah diuji pada lingkungan pengembangan lokal. Setiap anggota tim tetap perlu menyiapkan file .env sesuai konfigurasi lokal masing-masing. File .env.example menjadi acuan variabel konfigurasi tanpa menyimpan informasi rahasia.
