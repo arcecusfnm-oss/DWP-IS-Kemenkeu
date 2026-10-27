@@ -58,7 +58,7 @@ Draft awal. Rancangan akan ditinjau oleh tim dan disesuaikan setelah keputusan t
 Rancangan endpoint berikut dibatasi pada kebutuhan login berdasarkan user story B-001. Endpoint merupakan rancangan awal dan perlu disesuaikan dengan implementasi Laravel serta keputusan tim.
 
 | Method | Endpoint | Fungsi | Hak Akses |
-|---|---|---|---|
+| :--- | :--- | :--- | :--- |
 | GET | /login | Menampilkan halaman login | Pengguna yang belum login |
 | POST | /login | Memvalidasi nama pengguna dan kata sandi, memeriksa status akun, serta membuat sesi jika login berhasil | Pengguna yang belum login |
 | POST | /logout | Mengakhiri sesi pengguna yang sedang login | Pengguna yang sudah login |
@@ -77,3 +77,62 @@ Rancangan endpoint berikut dibatasi pada kebutuhan login berdasarkan user story 
 - Endpoint di atas merupakan rancangan untuk aplikasi web Laravel. Jika tim menggunakan autentikasi berbasis sesi bawaan Laravel, halaman login dapat menggunakan route web dan session Laravel tanpa harus membuat REST API terpisah.
 - Penggunaan endpoint logout dan metode HTTP-nya perlu mengikuti mekanisme autentikasi serta perlindungan CSRF yang diterapkan pada aplikasi.
 - Daftar endpoint ini belum menjadi implementasi final dan perlu ditinjau oleh tim.
+
+
+### 8. Rancangan Request, Response, HTTP Status, dan Error
+Rancangan ini menggunakan pendekatan website Laravel dengan form login dan session. Contoh berikut merupakan rancangan perilaku aplikasi, bukan implementasi yang sudah berjalan.
+
+#### 8.1 Request Login
+Pengguna mengirimkan nama pengguna dan kata sandi melalui form login.
+- **Method:** `POST`
+- **Endpoint:** `/login`
+- **Content-Type:** `application/x-www-form-urlencoded`
+
+Contoh data yang dikirim:
+`username=fahira&password=contoh_password`
+
+*Catatan: Data di atas hanya contoh. Kata sandi asli tidak boleh dicatat ke log.*
+
+#### 8.2 Response Login Berhasil
+Jika nama pengguna dan kata sandi benar serta akun aktif, sistem membuat sesi pengguna dan mengarahkan pengguna ke halaman dasbor.
+- **HTTP Status:** `302 Found` (redirect)
+- **Tujuan redirect:** `/dashboard`
+
+#### 8.3 Response Login Gagal
+Jika nama pengguna tidak terdaftar atau kata sandi salah, sistem menolak login dan menampilkan pesan yang sama.
+- **HTTP Status:** Umumnya `302 Found` untuk form login berbasis session Laravel.
+- **Pesan:** `Nama pengguna atau kata sandi salah`
+
+Jika akun ditemukan tetapi berstatus nonaktif, sistem menolak login dengan pesan: `Akun tidak aktif`
+
+Untuk input yang kosong atau tidak valid, Laravel dapat mengembalikan pengguna ke halaman login beserta pesan validasi.
+
+#### 8.4 HTTP Status yang Digunakan
+
+| HTTP Status | Kegunaan |
+| :--- | :--- |
+| **200 OK** | Halaman berhasil ditampilkan |
+| **302 Found** | Mengarahkan pengguna ke halaman lain setelah proses form |
+| **419 Page Expired** | Sesi atau token CSRF tidak valid atau kedaluwarsa |
+| **422 Unprocessable Content** | Umumnya digunakan untuk kesalahan validasi pada request API |
+| **429 Too Many Requests** | Permintaan ditolak karena batas percobaan login terlampaui |
+| **500 Internal Server Error** | Terjadi kesalahan internal server |
+
+*Status yang benar-benar dikembalikan perlu mengikuti implementasi dan konfigurasi Laravel.*
+
+#### 8.5 Format Error Umum
+Untuk website berbasis form dan session, kesalahan ditampilkan melalui pesan pada halaman login.
+
+| Kondisi | Pesan yang Ditampilkan |
+| :--- | :--- |
+| Nama pengguna tidak terdaftar atau kata sandi salah | Nama pengguna atau kata sandi salah |
+| Akun nonaktif | Akun tidak aktif |
+| Nama pengguna atau kata sandi kosong | Nama pengguna dan kata sandi wajib diisi |
+| Percobaan login melewati batas | Pesan umum bahwa percobaan login terlalu banyak |
+| Kesalahan internal server | Pesan umum bahwa sistem mengalami gangguan |
+
+*Pesan kesalahan tidak boleh menampilkan kata sandi, token, query database, atau detail teknis internal.*
+
+#### 8.6 Catatan
+- Rancangan ini menggunakan pola respons website berbasis form dan session, sehingga tidak semua respons berupa JSON. Jika tim memutuskan menggunakan REST API yang mengembalikan JSON, format request, response, dan status HTTP perlu disesuaikan.
+- Pesan dan perilaku yang berkaitan dengan keamanan harus mengikuti acceptance criteria B-001.
