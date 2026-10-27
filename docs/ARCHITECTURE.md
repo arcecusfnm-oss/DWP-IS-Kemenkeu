@@ -59,6 +59,7 @@ Rancangan endpoint berikut dibatasi pada kebutuhan login berdasarkan user story 
 | GET    | /login   | Menampilkan halaman login                                                                               | Pengguna yang belum login |
 | POST   | /login   | Memvalidasi nama pengguna dan kata sandi, memeriksa status akun, serta membuat sesi jika login berhasil | Pengguna yang belum login |
 | POST   | /logout  | Mengakhiri sesi pengguna yang sedang login                                                              | Pengguna yang sudah login |
+
 	- 7.1 Ketentuan Endpoint Login
 		- Nama pengguna dan kata sandi harus diisi.
 		- Kredensial yang salah ditolak dengan pesan `Nama pengguna atau kata sandi salah`.
