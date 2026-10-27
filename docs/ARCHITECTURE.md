@@ -136,3 +136,55 @@ Untuk website berbasis form dan session, kesalahan ditampilkan melalui pesan pad
 #### 8.6 Catatan
 - Rancangan ini menggunakan pola respons website berbasis form dan session, sehingga tidak semua respons berupa JSON. Jika tim memutuskan menggunakan REST API yang mengembalikan JSON, format request, response, dan status HTTP perlu disesuaikan.
 - Pesan dan perilaku yang berkaitan dengan keamanan harus mengikuti acceptance criteria B-001.
+
+
+### 9. Kebutuhan Keamanan Login
+Kebutuhan keamanan berikut mengacu pada delapan *acceptance criteria* user story B-001.
+
+#### 9.1 Validasi Kredensial dan Status Akun
+- Login hanya berhasil apabila nama pengguna dan kata sandi benar serta akun berstatus aktif.
+- Apabila nama pengguna tidak terdaftar atau kata sandi salah, sistem menampilkan pesan yang sama: `Nama pengguna atau kata sandi salah`.
+- Apabila akun berstatus nonaktif, sistem menampilkan pesan `Akun tidak aktif`.
+- Input kosong dan karakter khusus harus ditangani dengan aman tanpa menyebabkan error server.
+
+#### 9.2 Penyimpanan Kata Sandi
+- Kata sandi disimpan dalam bentuk *hash*, bukan teks asli.
+- Proses verifikasi kata sandi menggunakan mekanisme verifikasi *hash* yang sesuai dengan Laravel.
+- Kata sandi tidak boleh ditulis ke *log*.
+
+#### 9.3 Keamanan Sesi
+- Cookie sesi harus memiliki atribut `Secure` dan `HttpOnly`.
+- Sesi berakhir otomatis setelah 30 menit tanpa aktivitas.
+- Sesi hanya dibuat setelah autentikasi berhasil.
+- Logout harus mengakhiri sesi pengguna.
+
+#### 9.4 Pembatasan Percobaan Login
+- Setelah lima kali gagal login berturut-turut, percobaan berikutnya ditolak selama lima menit.
+- Penolakan tersebut menampilkan pesan umum.
+- Pembatasan harus diterapkan di sisi server, bukan hanya melalui tampilan *frontend*.
+
+#### 9.5 Keamanan Pemrosesan Input
+- Query database menggunakan ORM Laravel atau *prepared statement*.
+- Input pengguna harus divalidasi sebelum diproses.
+- Kesalahan tidak boleh menampilkan query database, detail internal server, atau informasi sensitif.
+
+#### 9.6 Pencatatan Aktivitas Login
+- Login berhasil dan gagal harus dicatat ke *log*.
+- Log mencakup waktu kejadian dan nama pengguna sesuai *acceptance criteria*.
+- Log tidak boleh memuat kata sandi atau token.
+- Akses ke log perlu dibatasi kepada pihak yang berwenang.
+
+#### 9.7 Ringkasan Pemetaan Acceptance Criteria
+
+| AC B-001 | Kebutuhan Keamanan |
+| :--- | :--- |
+| **AC 1** | Login berhasil untuk kredensial benar dan akun aktif; diarahkan ke dasbor |
+| **AC 2** | Kredensial salah menghasilkan pesan umum yang sama |
+| **AC 3** | Akun nonaktif ditolak dengan pesan `Akun tidak aktif` |
+| **AC 4** | Kata sandi disimpan sebagai *hash* |
+| **AC 5** | Cookie `Secure` dan `HttpOnly`; sesi berakhir setelah 30 menit tidak aktif |
+| **AC 6** | Lima kegagalan berturut-turut menyebabkan penolakan selama lima menit |
+| **AC 7** | Input ditangani aman, menggunakan ORM atau *prepared statement*, dan tidak menimbulkan error server |
+| **AC 8** | Login berhasil dan gagal dicatat tanpa kata sandi atau token |
+
+*Catatan: Bagian ini mendokumentasikan persyaratan. Pemenuhan keamanan baru dapat dinyatakan setelah implementasi dan pengujian dilakukan.*
