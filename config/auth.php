@@ -66,11 +66,6 @@ return [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', Pengguna::class),
         ],
-
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
     ],
 
     /*
