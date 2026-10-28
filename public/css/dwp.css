@@ -1,0 +1,132 @@
+/* Gaya dasar DWP-IS Kemenkeu, mengikuti Panduan Gaya (T-03) */
+:root {
+    --peach: #F5BA98;
+    --peach-gelap: #E0AB8D;
+    --peach-muda: #F9DCCB;
+    --teks: #3A2A22;
+    --teks-kedua: #6E5B51;
+    --garis-isian: #F2C9B3;
+    --merah: #A8302A;
+    --navy: #1F2A5A;
+    --latar: #FFFAF9;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: 'Inter', system-ui, sans-serif;
+    color: var(--teks);
+    background: var(--latar);
+}
+
+/* ---------- Halaman masuk ---------- */
+.latar-batik {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 16px;
+    background:
+        linear-gradient(rgba(255, 250, 249, 0.72), rgba(255, 250, 249, 0.72)),
+        url('../images/batik.jpg') center / cover;
+}
+
+.kartu-masuk {
+    width: 100%;
+    max-width: 420px;
+    background: #FFFFFF;
+    border-radius: 16px;
+    padding: 36px 32px;
+    box-shadow: 0 20px 48px rgba(58, 42, 34, 0.16);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.kartu-kepala { text-align: center; }
+.logo-masuk { width: 40px; height: 40px; object-fit: cover; transform: scale(2.6); }
+.judul-masuk { margin: 10px 0 4px; font-size: 24px; font-weight: 700; }
+.subjudul-masuk { margin: 0; font-size: 13px; color: var(--teks-kedua); }
+
+.pesan {
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.5;
+}
+.pesan-error { background: #FFDADA; border: 1px solid #FFC4C4; color: var(--merah); }
+.pesan-peringatan { background: #FFFBDA; border: 1px solid #FFEFB1; color: #6B4A00; }
+
+#form-masuk { display: flex; flex-direction: column; gap: 16px; }
+
+.isian { display: flex; flex-direction: column; gap: 6px; }
+.isian label { font-size: 14px; font-weight: 600; }
+.isian input {
+    width: 100%;
+    height: 46px;
+    padding: 0 14px;
+    border: 1.5px solid var(--garis-isian);
+    border-radius: 8px;
+    font: 15px 'Inter', sans-serif;
+    color: var(--teks);
+    background: #FFFFFF;
+}
+.isian input:focus {
+    outline: none;
+    border-color: var(--navy);
+    box-shadow: 0 0 0 3px #E4E6FF;
+}
+.isian input.tidak-valid { border: 2px solid var(--merah); }
+
+.isian-sandi { position: relative; }
+.isian-sandi input { padding-right: 48px; }
+.tombol-lihat {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--teks-kedua);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.teks-error { margin: 0; font-size: 13px; font-weight: 500; color: var(--merah); }
+.teks-error:empty { display: none; }
+
+.tombol-utama {
+    height: 48px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--peach);
+    color: var(--teks);
+    font: 600 16px 'Inter', sans-serif;
+    cursor: pointer;
+}
+.tombol-utama:hover:not(:disabled) { background: var(--peach-gelap); }
+.tombol-utama:focus-visible { outline: 3px solid #9EA8E0; outline-offset: 2px; }
+.tombol-utama:disabled { background: #EEE4DF; color: #8A7A72; cursor: not-allowed; }
+
+.teks-bantuan { margin: 0; text-align: center; font-size: 13px; color: var(--teks-kedua); }
+.teks-bantuan strong { color: var(--merah); font-weight: 600; }
+
+.tautan-kembali {
+    align-self: center;
+    padding: 8px 12px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--navy);
+    text-decoration: none;
+}
+.tautan-kembali:hover { text-decoration: underline; }
+
+@media (max-width: 480px) {
+    .kartu-masuk { padding: 28px 20px; }
+}
