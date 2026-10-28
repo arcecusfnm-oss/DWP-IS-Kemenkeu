@@ -29,6 +29,12 @@ class SeedDataTest extends TestCase
 
     }
 
+    public function test_ada_akun_aktif_dan_nonaktif(): void
+    {
+        $this->assertTrue(Pengguna::where('status', 'aktif')->exists());
+        $this->assertTrue(Pengguna::where('status', 'nonaktif')->exists());
+    }
+
     public function test_admin_aktif_ada(): void
     {
         $admin = Pengguna::where('nama_pengguna', 'admin')->first();
