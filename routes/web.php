@@ -1,10 +1,19 @@
 <?php
 
+use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-// T-11: halaman masuk (tampilan). Proses POST /login dibuat di T-10.
+// T-11: Halaman masuk (tampilan).
 Route::view('/login', 'auth.login')->name('login');
+
+// T-10: Proses autentikasi login.
+Route::post('/login', [LoginController::class, 'login'])
+    ->name('login.process');
+
+// Logout.
+Route::post('/logout', [LoginController::class, 'logout'])
+    ->name('logout');
