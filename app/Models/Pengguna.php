@@ -51,6 +51,11 @@ class Pengguna extends Authenticatable
         return $this->kata_sandi_hash;
     }
 
+    public function getRememberTokenName()
+    {
+        return '';
+    }
+
     public function peran(): BelongsTo
     {
         return $this->belongsTo(Peran::class, 'id_peran', 'id_peran');
