@@ -12,6 +12,7 @@ Route::view('/login', 'auth.login')->name('login');
 
 // T-10: Proses autentikasi login.
 Route::post('/login', [LoginController::class, 'login'])
+    ->middleware('throttle:login')
     ->name('login.process');
 
 // Logout.

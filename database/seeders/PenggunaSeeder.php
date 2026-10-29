@@ -6,6 +6,7 @@ use App\Models\Pengguna;
 use App\Models\Bidang;
 use App\Models\Peran;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class PenggunaSeeder extends Seeder
 {
@@ -41,7 +42,7 @@ class PenggunaSeeder extends Seeder
                 ['nama_pengguna' => $namaPengguna],
                 [
                     'nama_lengkap' => $namaLengkap,
-                    'kata_sandi_hash' => $sandi,
+                    'kata_sandi_hash' => Hash::make($sandi),
                     'status' => $status,
                     'perlu_ganti_kata_sandi' => false,
                     'id_peran' => $peran[$namaPeran],
