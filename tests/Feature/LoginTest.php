@@ -162,7 +162,6 @@ class LoginTest extends TestCase
     // AC 6: penolakan berakhir setelah 5 menit
     public function test_penolakan_berakhir_setelah_lima_menit(): void
     {
-        $this->markTestSkipped('Menunggu perbaikan batas 5 menit di T-12 (AC B-001 no. 6).');
         $this->buatPengguna();
 
         for ($i = 0; $i < 5; $i++) {
