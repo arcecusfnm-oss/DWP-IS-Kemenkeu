@@ -3,18 +3,21 @@
 use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Halaman utama
+Route::view('/', 'landing')->name('beranda');
 
-// T-11: Halaman masuk (tampilan).
+// Halaman login
 Route::view('/login', 'auth.login')->name('login');
 
-// T-10: Proses autentikasi login.
+// Proses login
 Route::post('/login', [LoginController::class, 'login'])
     ->middleware('throttle:login')
     ->name('login.process');
 
-// Logout.
+// Logout
 Route::post('/logout', [LoginController::class, 'logout'])
     ->name('logout');
+
+// Dashboard admin
+Route::view('/admin/dashboard', 'admin.dashboard')
+    ->name('admin.dashboard');

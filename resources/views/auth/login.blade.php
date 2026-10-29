@@ -55,7 +55,7 @@
         <div class="pesan pesan-peringatan pesan-dengan-ikon" role="alert">
             <span class="pesan-teks">
                 Terlalu banyak percobaan masuk.
-                Silakan coba lagi dalam 30 menit.
+                Silakan coba lagi dalam 5 menit.
             </span>
 
             <svg
