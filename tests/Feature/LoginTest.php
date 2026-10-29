@@ -118,4 +118,67 @@ class LoginTest extends TestCase
 
         $this->assertGuest();
     }
+
+        public function test_karakter_khusus_ditangani_tanpa_error_server(): void
+    {
+        $this->buatPengguna();
+
+        $response = $this->from('/login')->post('/login', [
+            'username' => "' OR 1=1 --",
+            'password' => "' OR 1=1 --",
+        ]);
+
+        $response->assertRedirect('/login');
+        $response->assertSessionHasErrors([
+            'login' => 'Nama pengguna atau kata sandi salah.',
+        ]);
+
+        $this->assertGuest();
+    }
+
+        // AC 6: setelah 5 kali gagal, percobaan berikutnya ditolak
+    public function test_lima_kali_gagal_lalu_percobaan_berikutnya_ditolak(): void
+    {
+        $this->buatPengguna();
+
+        for ($i = 0; $i < 5; $i++) {
+            $this->from('/login')->post('/login', [
+                'username' => 'fahira',
+                'password' => 'salah123',
+            ])->assertSessionHasErrors('login');
+        }
+
+        // percobaan ke-6 memakai kata sandi BENAR, tetap harus ditolak
+        $response = $this->from('/login')->post('/login', [
+            'username' => 'fahira',
+            'password' => 'password123',
+        ]);
+
+        $response->assertRedirect('/login');
+        $response->assertSessionHasErrors('throttle');
+        $this->assertGuest();
+    }
+
+    // AC 6: penolakan berakhir setelah 5 menit
+    public function test_penolakan_berakhir_setelah_lima_menit(): void
+    {
+        $this->buatPengguna();
+
+        for ($i = 0; $i < 5; $i++) {
+            $this->post('/login', [
+                'username' => 'fahira',
+                'password' => 'salah123',
+            ]);
+        }
+
+        $this->travel(301)->seconds();
+
+        $this->post('/login', [
+            'username' => 'fahira',
+            'password' => 'password123',
+        ])->assertRedirect('/');
+
+        $this->assertAuthenticated();
+    }
+
 }
