@@ -42,7 +42,7 @@ class AppServiceProvider extends ServiceProvider
                         ->route('login')
                         ->withErrors([
                             'throttle' =>
-                            'Terlalu banyak percobaan masuk. Silakan coba lagi dalam 30 menit.',
+                            'Terlalu banyak percobaan masuk. Silakan coba lagi dalam 5 menit.',
                         ])
                         ->withInput(
                             $request->only('username')
@@ -58,7 +58,7 @@ class AppServiceProvider extends ServiceProvider
             $ipKey = 'login-ip|' . $request->ip();
 
             return [
-                Limit::perMinutes(30, 5)
+                Limit::perMinutes(5, 5)
                     ->by($usernameKey)
                     ->response($makeResponse($usernameKey)),
 
