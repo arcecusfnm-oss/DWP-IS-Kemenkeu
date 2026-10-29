@@ -130,3 +130,31 @@ body {
 @media (max-width: 480px) {
     .kartu-masuk { padding: 28px 20px; }
 }
+
+.pesan-dengan-ikon {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.pesan-teks {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.ikon-warning {
+    display: block;
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+}
+
+.ikon-warning-merah {
+    color: #ff3333;
+}
+
+.ikon-warning-kuning {
+    color: #eab308;
+}

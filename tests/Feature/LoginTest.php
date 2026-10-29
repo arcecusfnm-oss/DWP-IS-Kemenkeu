@@ -97,7 +97,7 @@ class LoginTest extends TestCase
 
         $response->assertRedirect('/login');
         $response->assertSessionHasErrors([
-            'login' => 'Nama pengguna atau kata sandi salah.',
+            'login' => 'Akun tidak aktif. Hubungi Admin Sekretariat.',
         ]);
 
         $this->assertGuest();

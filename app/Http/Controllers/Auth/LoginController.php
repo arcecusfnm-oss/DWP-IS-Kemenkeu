@@ -27,19 +27,27 @@ class LoginController extends Controller
         $pengguna = $this->penggunaRepository
             ->findByNamaPengguna($credentials['username']);
 
-        // Gunakan pesan umum agar tidak membocorkan status akun.
+        if ($pengguna && $pengguna->status !== 'aktif') {
+            throw ValidationException::withMessages([
+                'login' =>
+                    'Akun tidak aktif. Hubungi Admin Sekretariat.',
+            ]);
+        }
+
         if (
             !$pengguna ||
-            $pengguna->status !== 'aktif' ||
             !Hash::check(
                 $credentials['password'],
                 $pengguna->kata_sandi_hash
             )
         ) {
             throw ValidationException::withMessages([
-                'login' => 'Nama pengguna atau kata sandi salah.',
+                'login' =>
+                    'Nama pengguna atau kata sandi salah.',
             ]);
         }
+
+        $request->session()->forget('login_throttle_until');
 
         Auth::login($pengguna);
         $request->session()->regenerate();
