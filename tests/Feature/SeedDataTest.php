@@ -24,8 +24,8 @@ class SeedDataTest extends TestCase
 
     public function test_ada_lima_peran_dan_lima_bidang(): void
     {
-        $this->assertTrue(Pengguna::where('status', 'aktif')->exists());
-        $this->assertTrue(Pengguna::where('status', 'nonaktif')->exists());
+        $this->assertSame(5, Peran::count());
+        $this->assertSame(5, Bidang::count());
 
     }
 
@@ -42,7 +42,7 @@ class SeedDataTest extends TestCase
         $this->assertSame('Admin', $admin->peran->nama_peran);
         $this->assertSame('aktif', $admin->status);
     }
-
+    
     public function test_kata_sandi_tersimpan_dalam_bentuk_hash(): void
     {
         $admin = Pengguna::where('nama_pengguna', 'admin')->first();
