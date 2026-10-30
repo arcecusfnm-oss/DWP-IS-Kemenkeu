@@ -16,6 +16,7 @@ class AppServiceProvider extends ServiceProvider
     }
 
 
+
     public function boot(): void
     {
         RateLimiter::for('login', function (Request $request) {
@@ -23,14 +24,14 @@ class AppServiceProvider extends ServiceProvider
                 trim((string) $request->input('username'))
             );
 
-            $makeResponse = function (string $key) {
+            $makeResponse = function () {
                 return function (
                     Request $request,
                     array $headers
-                ) use ($key) {
+                ) {
                     $seconds = max(
                         1,
-                        RateLimiter::availableIn($key)
+                        (int) ($headers['Retry-After'] ?? 1)
                     );
 
                     $request->session()->put(
@@ -60,11 +61,11 @@ class AppServiceProvider extends ServiceProvider
             return [
                 Limit::perMinutes(5, 5)
                     ->by($usernameKey)
-                    ->response($makeResponse($usernameKey)),
+                    ->response($makeResponse()),
 
                 Limit::perMinutes(30, 30)
                     ->by($ipKey)
-                    ->response($makeResponse($ipKey)),
+                    ->response($makeResponse()),
             ];
         });
     }
