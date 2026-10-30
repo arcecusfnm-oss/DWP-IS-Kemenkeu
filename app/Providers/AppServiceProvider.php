@@ -63,7 +63,7 @@ class AppServiceProvider extends ServiceProvider
                     ->by($usernameKey)
                     ->response($makeResponse()),
 
-                Limit::perMinutes(30, 30)
+                Limit::perMinutes(5, 5)
                     ->by($ipKey)
                     ->response($makeResponse()),
             ];
