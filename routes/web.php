@@ -13,7 +13,7 @@ Route::view('/login', 'auth.login')
 
 // Proses login
 Route::post('/login', [LoginController::class, 'login'])
-    ->middleware(['guest', 'throttle:login'])
+    ->middleware('guest')
     ->name('login.process');
 
 // Logout
