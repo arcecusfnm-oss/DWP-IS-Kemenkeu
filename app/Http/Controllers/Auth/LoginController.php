@@ -17,8 +17,7 @@ class LoginController extends Controller
     public function __construct(
         private readonly PenggunaRepository $penggunaRepository,
         private readonly LogLoginRepository $logLoginRepository // T-13
-    ) {
-    }
+    ) {}
 
     public function login(Request $request): RedirectResponse
     {
@@ -41,7 +40,7 @@ class LoginController extends Controller
 
             throw ValidationException::withMessages([
                 'login' =>
-                    'Akun tidak aktif. Hubungi Admin Sekretariat.',
+                'Akun tidak aktif. Hubungi Admin Sekretariat.',
             ]);
         }
 
@@ -63,7 +62,7 @@ class LoginController extends Controller
 
             throw ValidationException::withMessages([
                 'login' =>
-                    'Nama pengguna atau kata sandi salah.',
+                'Nama pengguna atau kata sandi salah.',
             ]);
         }
 
@@ -86,7 +85,9 @@ class LoginController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login');
+        return redirect()
+            ->route('login')
+            ->withCookie(cookie()->forget(config('session.cookie')));
     }
 
     /**

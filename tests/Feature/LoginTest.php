@@ -119,7 +119,7 @@ class LoginTest extends TestCase
         $this->assertGuest();
     }
 
-        public function test_karakter_khusus_ditangani_tanpa_error_server(): void
+    public function test_karakter_khusus_ditangani_tanpa_error_server(): void
     {
         $this->buatPengguna();
 
@@ -136,7 +136,7 @@ class LoginTest extends TestCase
         $this->assertGuest();
     }
 
-        // AC 6: setelah 5 kali gagal, percobaan berikutnya ditolak
+    // AC 6: setelah 5 kali gagal, percobaan berikutnya ditolak
     public function test_lima_kali_gagal_lalu_percobaan_berikutnya_ditolak(): void
     {
         $this->buatPengguna();
@@ -180,5 +180,4 @@ class LoginTest extends TestCase
 
         $this->assertAuthenticated();
     }
-
 }
