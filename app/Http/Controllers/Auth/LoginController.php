@@ -10,6 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -27,10 +28,93 @@ class LoginController extends Controller
             'password' => ['required', 'string', 'max:100'],
         ]);
 
+        $username = mb_strtolower(trim($credentials['username']));
+        $ip = $request->ip();
+
+        // Key berdasarkan kombinasi username dan IP.
+        $key = 'login|' . $username . '|' . $ip;
+        $lockKey = $key . '|locked';
+
+        // Periksa apakah akun sedang dalam masa lockout.
+        $lockedUntil = Cache::get($lockKey);
+
+        if ($lockedUntil !== null) {
+            $remaining = max(0, (int) $lockedUntil - now()->timestamp);
+
+            if ($remaining > 0) {
+                $request->session()->put(
+                    'login_throttle_until',
+                    (int) $lockedUntil
+                );
+
+                return redirect()
+                    ->route('login')
+                    ->withErrors([
+                        'throttle' =>
+                        'Terlalu banyak percobaan masuk. Silakan coba lagi dalam 5 menit.',
+                    ])
+                    ->withInput($request->only('username'));
+            }
+
+            Cache::forget($lockKey);
+            Cache::forget($key);
+        }
+
         $pengguna = $this->penggunaRepository
             ->findByNamaPengguna($credentials['username']);
 
-        if ($pengguna && $pengguna->status !== 'aktif') {
+        // Periksa password terlebih dahulu.
+        if (
+            !$pengguna ||
+            !Hash::check(
+                $credentials['password'],
+                $pengguna->kata_sandi_hash
+            )
+        ) {
+            $this->catatLog(
+                $request,
+                $pengguna,
+                $credentials['username'],
+                false,
+                LogLoginRepository::ALASAN_KREDENSIAL_SALAH
+            );
+
+            // Tambahkan hitungan kegagalan.
+            Cache::add($key, 0, now()->addMinutes(5));
+
+            $attempts = Cache::increment($key);
+
+            // Kegagalan kelima langsung mengaktifkan lockout.
+            if ($attempts >= 5) {
+                $lockedUntil = now()->addMinutes(5)->timestamp;
+
+                Cache::put(
+                    $lockKey,
+                    $lockedUntil,
+                    now()->addMinutes(5)
+                );
+
+                $request->session()->put(
+                    'login_throttle_until',
+                    $lockedUntil
+                );
+
+                return redirect()
+                    ->route('login')
+                    ->withErrors([
+                        'throttle' =>
+                        'Terlalu banyak percobaan masuk. Silakan coba lagi dalam 5 menit.',
+                    ])
+                    ->withInput($request->only('username'));
+            }
+
+            throw ValidationException::withMessages([
+                'login' => 'Nama pengguna atau kata sandi salah.',
+            ]);
+        }
+
+        // Password benar, baru periksa status akun.
+        if ($pengguna->status !== 'aktif') {
             $this->catatLog(
                 $request,
                 $pengguna,
@@ -40,37 +124,25 @@ class LoginController extends Controller
             );
 
             throw ValidationException::withMessages([
-                'login' =>
-                'Akun tidak aktif. Hubungi Admin Sekretariat.',
+                'login' => 'Akun tidak aktif. Hubungi Admin Sekretariat.',
             ]);
         }
 
-        if (
-            !$pengguna ||
-            !Hash::check(
-                $credentials['password'],
-                $pengguna->kata_sandi_hash
-            )
-        ) {
-            // T-13
-            $this->catatLog(
-                $request,
-                $pengguna,
-                $credentials['username'],
-                false,
-                LogLoginRepository::ALASAN_KREDENSIAL_SALAH
-            );
-
-            throw ValidationException::withMessages([
-                'login' =>
-                'Nama pengguna atau kata sandi salah.',
-            ]);
-        }
+        // Login berhasil: hapus hitungan kegagalan.
+        Cache::forget($key);
+        Cache::forget($lockKey);
+        $request->session()->forget('login_throttle_until');
 
         Auth::login($pengguna);
         $request->session()->regenerate();
 
-        $this->catatLog($request, $pengguna, $credentials['username'], true, null);
+        $this->catatLog(
+            $request,
+            $pengguna,
+            $credentials['username'],
+            true,
+            null
+        );
 
         if ($pengguna->peran->nama_peran === 'Admin') {
             return redirect()->route('admin.dashboard');

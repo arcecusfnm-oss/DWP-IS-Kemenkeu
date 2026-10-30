@@ -82,21 +82,23 @@ class LoginTest extends TestCase
         $this->assertGuest();
     }
 
-    public function test_akun_nonaktif_tidak_dapat_login(): void
+    public function test_akun_nonaktif_diperiksa_setelah_password(): void
     {
-        $this->buatPengguna(
-            username: 'fahira',
-            password: 'password123',
-            status: 'nonaktif'
-        );
+        $this->buatPengguna(status: 'nonaktif');
 
-        $response = $this->from('/login')->post('/login', [
+        // Password salah harus menghasilkan pesan kredensial salah.
+        $this->from('/login')->post('/login', [
             'username' => 'fahira',
-            'password' => 'password123',
+            'password' => 'salah123',
+        ])->assertSessionHasErrors([
+            'login' => 'Nama pengguna atau kata sandi salah.',
         ]);
 
-        $response->assertRedirect('/login');
-        $response->assertSessionHasErrors([
+        // Password benar harus menghasilkan pesan akun nonaktif.
+        $this->from('/login')->post('/login', [
+            'username' => 'fahira',
+            'password' => 'password123',
+        ])->assertSessionHasErrors([
             'login' => 'Akun tidak aktif. Hubungi Admin Sekretariat.',
         ]);
 
@@ -141,21 +143,26 @@ class LoginTest extends TestCase
     {
         $this->buatPengguna();
 
-        for ($i = 0; $i < 5; $i++) {
+        // Empat percobaan pertama masih menampilkan kredensial salah.
+        for ($i = 0; $i < 4; $i++) {
             $this->from('/login')->post('/login', [
                 'username' => 'fahira',
                 'password' => 'salah123',
             ])->assertSessionHasErrors('login');
         }
 
-        // percobaan ke-6 memakai kata sandi BENAR, tetap harus ditolak
-        $response = $this->from('/login')->post('/login', [
+        // Percobaan kelima langsung mengaktifkan lockout.
+        $this->from('/login')->post('/login', [
+            'username' => 'fahira',
+            'password' => 'salah123',
+        ])->assertSessionHasErrors('throttle');
+
+        // Percobaan keenam dengan password benar tetap ditolak.
+        $this->from('/login')->post('/login', [
             'username' => 'fahira',
             'password' => 'password123',
-        ]);
+        ])->assertSessionHasErrors('throttle');
 
-        $response->assertRedirect('/login');
-        $response->assertSessionHasErrors('throttle');
         $this->assertGuest();
     }
 
@@ -179,5 +186,56 @@ class LoginTest extends TestCase
         ])->assertRedirect(route('admin.dashboard'));
 
         $this->assertAuthenticated();
+    }
+
+    public function test_login_logout_berulang_enam_kali_tidak_menyebabkan_lockout(): void
+    {
+        $this->buatPengguna();
+
+        for ($i = 0; $i < 6; $i++) {
+            $this->post('/login', [
+                'username' => 'fahira',
+                'password' => 'password123',
+            ])->assertRedirect(route('admin.dashboard'));
+
+            $this->assertAuthenticated();
+
+            $this->post('/logout')->assertRedirect('/login');
+
+            $this->assertGuest();
+        }
+    }
+
+    public function test_hitungan_kegagalan_direset_setelah_login_berhasil(): void
+    {
+        $this->buatPengguna();
+
+        // Empat kali gagal.
+        for ($i = 0; $i < 4; $i++) {
+            $this->from('/login')->post('/login', [
+                'username' => 'fahira',
+                'password' => 'salah123',
+            ])->assertSessionHasErrors('login');
+        }
+
+        // Login berhasil harus mereset hitungan kegagalan.
+        $this->post('/login', [
+            'username' => 'fahira',
+            'password' => 'password123',
+        ])->assertRedirect(route('admin.dashboard'));
+
+        $this->assertAuthenticated();
+
+        // Logout, lalu empat kegagalan baru seharusnya belum lockout.
+        $this->post('/logout')->assertRedirect('/login');
+
+        for ($i = 0; $i < 4; $i++) {
+            $this->from('/login')->post('/login', [
+                'username' => 'fahira',
+                'password' => 'salah123',
+            ])->assertSessionHasErrors('login');
+        }
+
+        $this->assertGuest();
     }
 }
