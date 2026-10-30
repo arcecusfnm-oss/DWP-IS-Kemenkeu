@@ -67,14 +67,16 @@ class LoginController extends Controller
             ]);
         }
 
-        $request->session()->forget('login_throttle_until');
-
         Auth::login($pengguna);
         $request->session()->regenerate();
 
         $this->catatLog($request, $pengguna, $credentials['username'], true, null);
 
-        return redirect()->route('admin.dashboard');
+        if ($pengguna->peran->nama_peran === 'Admin') {
+            return redirect()->route('admin.dashboard');
+        }
+
+        return redirect()->route('beranda');
     }
 
     public function logout(Request $request): RedirectResponse
