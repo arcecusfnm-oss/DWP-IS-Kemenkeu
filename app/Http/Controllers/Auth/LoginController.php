@@ -74,7 +74,7 @@ class LoginController extends Controller
 
         $this->catatLog($request, $pengguna, $credentials['username'], true, null);
 
-        return redirect()->intended('/');
+        return redirect()->route('admin.dashboard');
     }
 
     public function logout(Request $request): RedirectResponse
