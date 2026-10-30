@@ -31,6 +31,7 @@ jobs:
       DB_DATABASE: dwp_is_kemenkeu_test
       DB_USERNAME: root
       DB_PASSWORD: root
+      SESSION_LIFETIME: 30
       SEED_ADMIN_PASSWORD: ${{ secrets.SEED_ADMIN_PASSWORD }}
       SEED_USER_PASSWORD: ${{ secrets.SEED_USER_PASSWORD }}
 

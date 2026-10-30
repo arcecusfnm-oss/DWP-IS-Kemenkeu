@@ -9,6 +9,7 @@ use App\Repositories\PenggunaRepository;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -85,9 +86,11 @@ class LoginController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()
-            ->route('login')
-            ->withCookie(cookie()->forget(config('session.cookie')));
+        Cookie::queue(
+            Cookie::forget(config('session.cookie'))
+        );
+
+        return redirect()->route('login');
     }
 
     /**
