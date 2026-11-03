@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\ChangePasswordController;
 use Illuminate\Support\Facades\Route;
 
 // Halaman utama (publik)
@@ -25,3 +26,8 @@ Route::post('/logout', [LoginController::class, 'logout'])
 Route::view('/admin/dashboard', 'admin.dashboard')
     ->middleware('auth')
     ->name('admin.dashboard');
+
+// Proses ubah kata sandi
+Route::post('/ubah-kata-sandi', [ChangePasswordController::class, 'update'])
+    ->middleware('auth')
+    ->name('password.update');
