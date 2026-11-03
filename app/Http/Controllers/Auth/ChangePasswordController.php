@@ -55,7 +55,7 @@ class ChangePasswordController extends Controller
 
         return back()->with(
             'success',
-            'Kata sandi berhasil diubah. Gunakan kata sandi baru saat masuk berikutnya.'
+            'Kata sandi berhasil diubah!'
         );
     }
 }

@@ -11,23 +11,21 @@
     <link rel="stylesheet" href="{{ asset('css/admin.css') }}">
 </head>
 @php
-    // TODO: ganti dengan data dari controller / auth()->user()
     $adminNama = $adminNama ?? 'Admin Utama';
     $adminUnit = $adminUnit ?? 'Sekretariat DWP Pusat';
 
     $menu = [
-        ['label' => 'Dasbor',               'icon' => 'dashboard', 'href' => '#', 'route' => 'admin.dashboard'],
-        ['label' => 'Struktur Organisasi',  'icon' => 'org',       'href' => '#', 'route' => 'admin.struktur.*'],
-        ['label' => 'Kelola Akun',          'icon' => 'users',     'href' => '#', 'route' => 'admin.akun.*'],
-        ['label' => 'Kelola Bidang',        'icon' => 'shapes',    'href' => '#', 'route' => 'admin.bidang.*'],
-        ['label' => 'Kelola Program Kerja', 'icon' => 'clipboard', 'href' => '#', 'route' => 'admin.proker.*'],
-        ['label' => 'Laporan Kegiatan',     'icon' => 'file',      'href' => '#', 'route' => 'admin.laporan.*'],
-        ['label' => 'Surat Masuk/Keluar',   'icon' => 'mail',      'href' => '#', 'route' => 'admin.surat.*'],
+        ['label' => 'Dasbor',               'icon' => 'dashboard', 'href' => 'admin.dashboard', 'route' => 'admin.dashboard'],
+        ['label' => 'Struktur Organisasi',  'icon' => 'org',       'href' => null, 'route' => 'admin.struktur.*'],
+        ['label' => 'Kelola Akun',          'icon' => 'users',     'href' => null, 'route' => 'admin.akun.*'],
+        ['label' => 'Kelola Bidang',        'icon' => 'shapes',    'href' => null, 'route' => 'admin.bidang.*'],
+        ['label' => 'Kelola Program Kerja', 'icon' => 'clipboard', 'href' => null, 'route' => 'admin.proker.*'],
+        ['label' => 'Laporan Kegiatan',     'icon' => 'file',      'href' => null, 'route' => 'admin.laporan.*'],
+        ['label' => 'Surat Masuk/Keluar',   'icon' => 'mail',      'href' => null, 'route' => 'admin.surat.*'],
     ];
 @endphp
 <body>
 
-    {{-- HEADER --}}
     <header class="topbar">
         <div class="topbar-left">
             <button id="menuBtn" class="menu-btn" type="button" aria-label="Buka menu">
@@ -44,15 +42,17 @@
             <button class="icon-btn" type="button" aria-label="Notifikasi">
                 <x-icon name="bell" :size="24" />
             </button>
-            <div class="profile">
-                <span class="avatar"><x-icon name="user" :size="24" /></span>
+            <a href="{{ route('admin.profil') }}" class="profile">
+                <span class="avatar">
+                    <x-icon name="user" :size="24" />
+                </span>
                 <div class="profile-text">
                     <strong>{{ $adminNama }}</strong>
                     <span>{{ $adminUnit }}</span>
                 </div>
-            </div>
+            </a>
 
-             <form method="POST" action="{{ Route::has('logout') ? route('logout') : '#' }}">
+            <form method="POST" action="{{ Route::has('logout') ? route('logout') : '#' }}">
                 @csrf
                 <button type="submit" class="logout-top" aria-label="Keluar">
                     <x-icon name="logout" :size="20" />
@@ -62,7 +62,6 @@
         </div>
     </header>
 
-    {{-- SIDEBAR --}}
     <aside id="sidebar" class="sidebar">
         <div class="side-brand">
             <span class="side-brand-icon"><x-icon name="landmark" :size="16" /></span>
@@ -74,16 +73,18 @@
 
         <nav class="side-nav">
             @foreach ($menu as $item)
-                @php $aktif = request()->routeIs($item['route']); @endphp
-                <a href="{{ $item['href'] }}" class="side-link {{ $aktif ? 'active' : '' }}">
-                    <x-icon :name="$item['icon']" :size="24" />
+                @php
+                    $aktif = request()->routeIs($item['route']);
+                    $url = ($item['href'] && Route::has($item['href'])) ? route($item['href']) : '#';
+                @endphp
+                <a href="{{ $url }}" class="side-link {{ $aktif ? 'active' : '' }}">
+                    <x-icon :name="$item['icon']" :size="26" />
                     <span>{{ $item['label'] }}</span>
                 </a>
             @endforeach
         </nav>
     </aside>
 
-    {{-- KONTEN --}}
     <main class="main">
         @yield('content')
     </main>

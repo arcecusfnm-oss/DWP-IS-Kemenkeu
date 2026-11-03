@@ -28,6 +28,11 @@ Route::view('/admin/dashboard', 'admin.dashboard')
     ->middleware(['auth', NoCache::class])
     ->name('admin.dashboard');
 
+// Halaman profil admin (tambahan)
+Route::view('/admin/profil', 'admin.profil')
+    ->middleware(['auth', NoCache::class])
+    ->name('admin.profil');
+
 // Proses ubah kata sandi
 Route::post('/ubah-kata-sandi', [ChangePasswordController::class, 'update'])
     ->middleware('auth')

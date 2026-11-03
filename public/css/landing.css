@@ -12,6 +12,7 @@
 html { scroll-behavior: smooth; scroll-padding-top: 70px; }
 
 body.halaman-landing {
+    width: 100%;
     margin: 0;
     font-family: 'Lexend', 'Inter', sans-serif;
     color: #2b2b2b;
@@ -24,14 +25,34 @@ body.halaman-landing {
 
 /* ===== HEADER ===== */
 .lp-header {
-    position: sticky; top: 0; z-index: 50;
-    display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
-    padding: 6px 16px;
-    background: var(--hijau); color: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    grid-template-rows: 64px;
+    align-items: center;
+    height: 64px;
+    padding: 0 16px;
+    background: var(--hijau);
+    color: #fff;
     box-shadow: 0 2px 6px rgba(0,0,0,.25);
 }
-.lp-brand { display: flex; align-items: center; gap: 10px; }
-.lp-brand img { width: 46px; height: 46px; object-fit: contain; }
+
+.lp-brand {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    height: 64px;
+}
+
+.lp-brand img {
+    width: 85px;
+    height: 85px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
 .lp-brand strong { display: block; font-family: var(--serif); font-size: 20px; line-height: 1.1; }
 .lp-brand small  { display: block; font-family: var(--serif); font-size: 14px; }
 
@@ -45,28 +66,63 @@ body.halaman-landing {
 
 .lp-aksi { justify-self: end; }
 .lp-masuk {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 6px 14px; border-radius: 8px;
-    background: #fbeedd; color: var(--cokelat);
-    font-family: var(--serif); font-size: 14px;
-    border: 1px solid #c9a98a; cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0,0,0,.3);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border-radius: 7px;
+    background: #fff1df;
+    color: #28552b !important;
+    font-family: var(--serif);
+    font-size: 14px;
+    font-weight: bold;
+    border: 1px solid #d5b995;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,.2);
     transition: transform .2s ease, box-shadow .2s ease;
 }
-.lp-masuk:hover { transform: translateY(-2px); box-shadow: 0 5px 10px rgba(0,0,0,.35); }
+
+.lp-masuk i {
+    color: #28552b !important;
+    font-size: 14px;
+}
+
+.lp-masuk:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 10px rgba(0,0,0,.25);
+}
 
 /* ===== HERO ===== */
 .lp-hero {
-    padding: 14px 46px 30px;
-    background: #fbf8f2 url('../images/batik.jpg') center / cover;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 14px clamp(16px, 3.5vw, 48px) 20px;
+
+    background:
+        linear-gradient(
+            rgba(255, 255, 255, 0.75),
+            rgba(255, 255, 255, 0.75)
+        ),
+        url('../images/batik.jpg') center / cover;
 }
+
 .lp-hero-foto {
-    display: block; width: 100%; height: auto;
-    border-radius: 14px; border: 3px solid rgba(255,255,255,.8);
-    box-shadow: 0 10px 22px rgba(0,0,0,.4);
+    display: block;
+    width: 92%;
+    max-width: 1200px;
+    height: auto;
+    max-height: none;
+    object-fit: initial;
+    border-radius: 12px;
+    border: 3px solid rgba(255,255,255,.8);
+    box-shadow: 0 8px 18px rgba(0,0,0,.3);
 }
+
 .lp-strip {
-    height: 36px;
+    width: 100%;
+    height: 28px;
     background: var(--hijau) url('../images/batik-hijau.jpg') center / cover;
 }
 
@@ -104,13 +160,33 @@ body.halaman-landing {
 .lp-visimisi .kutip-buka  { position: absolute; top: 4px; left: 4px; font-size: 56px; color: var(--oranye); }
 .lp-visimisi .kutip-tutup { position: absolute; bottom: -8px; right: 4px; font-size: 56px; color: var(--oranye); transform: rotate(180deg); }
 
-/* ===== INSTAGRAM (embed resmi) ===== */
-.lp-ig { padding: 30px 28px 32px; background: linear-gradient(var(--krem), #fff 30%); }
-.lp-ig-bingkai {
-    max-width: 640px; margin: 0 auto; padding: 14px;
-    background: #fff; border: 2px solid #111; border-radius: 18px;
-    box-shadow: 0 6px 14px rgba(0,0,0,.35); overflow: hidden;
+/* ===== INSTAGRAM ===== */
+.lp-ig {
+    padding: 30px 28px 0;
+    background: linear-gradient(
+        to bottom,
+        var(--krem) 0%,
+        #fff7f3 35%,
+        #fce5d9 75%,
+        var(--salmon) 100%
+    );
 }
+
+.lp-ig-bingkai {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 14px;
+    background: #fff;
+    border: 2px solid #111;
+    border-radius: 18px;
+    box-shadow: 0 6px 14px rgba(0,0,0,.35);
+    overflow: hidden;
+
+    position: relative;
+    z-index: 1;
+    transform: translateY(-35px);
+}
+
 .lp-ig-bingkai .instagram-media {
     margin: 0 auto !important;
     min-width: 0 !important;
@@ -119,18 +195,80 @@ body.halaman-landing {
 }
 
 /* ===== FOOTER ===== */
-.lp-footer { background: var(--salmon); }
-.lp-footer-isi {
-    max-width: 1100px; margin: 0 auto; padding: 22px 16px;
-    display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: center;
+.lp-footer {
+    background: var(--salmon);
+    margin-top: 0;
 }
-.lp-alamat h4 { margin: 0 0 6px; font-family: var(--serif); font-size: 18px; color: var(--navy); line-height: 1.3; }
-.lp-alamat p  { margin: 0; font-family: var(--serif); font-size: 9px; color: var(--navy); line-height: 1.5; }
-.lp-kontak h4 { margin: 0 0 8px; text-align: center; font-family: var(--serif); font-size: 15px; color: var(--navy); }
-.lp-kontak a  { display: block; margin: 6px 0; font-size: 13px; text-decoration: underline; color: var(--navy); }
-.lp-kontak a i { margin-right: 6px; font-size: 16px; }
-.lp-kontak a:hover { opacity: .75; }
-.lp-hakcipta { background: var(--hijau-tua); color: #fff; text-align: center; font-size: 11px; padding: 8px; }
+
+.lp-footer-isi {
+    width: 100%;
+    max-width: none;
+    margin: 0 auto;
+    padding: 14px clamp(24px, 4vw, 64px);
+
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    align-items: center;
+}
+
+.lp-alamat {
+    justify-self: start;
+}
+
+.lp-alamat h4 {
+    margin: 0 0 5px;
+    font-family: var(--serif);
+    font-size: 18px;
+    color: var(--navy);
+    line-height: 1.3;
+}
+
+.lp-alamat p {
+    margin: 0;
+    font-family: var(--serif);
+    font-size: 9px;
+    color: var(--navy);
+    line-height: 1.5;
+}
+
+.lp-kontak {
+    justify-self: end;
+    min-width: 42%;
+}
+
+.lp-kontak h4 {
+    margin: 0 0 6px;
+    text-align: center;
+    font-family: var(--serif);
+    font-size: 15px;
+    color: var(--navy);
+}
+
+.lp-kontak a {
+    display: block;
+    margin: 5px 0;
+    font-size: 13px;
+    text-decoration: underline;
+    color: var(--navy);
+}
+
+.lp-kontak a i {
+    margin-right: 6px;
+    font-size: 16px;
+}
+
+.lp-kontak a:hover {
+    opacity: .75;
+}
+
+.lp-hakcipta {
+    background: var(--hijau-tua);
+    color: #fff;
+    text-align: center;
+    font-size: 11px;
+    padding: 8px;
+}
 
 /* ===== EFEK MUNCUL SAAT SCROLL ===== */
 .reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s ease; }
@@ -138,9 +276,118 @@ body.halaman-landing {
 
 /* ===== RESPONSIF ===== */
 @media (max-width: 800px) {
-    .lp-header { grid-template-columns: 1fr auto; }
-    .lp-nav { display: none; }
-    .lp-hero { padding: 10px 14px 20px; }
-    .lp-grid, .lp-footer-isi { grid-template-columns: 1fr; }
-    .lp-ig-bingkai { padding: 8px; }
+    body.halaman-landing {
+        width: 100%;
+    }
+
+    .lp-header {
+        grid-template-columns: 1fr auto;
+        padding: 6px 12px;
+    }
+
+    .lp-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .lp-brand img {
+        width: 45px;
+        height: 45px;
+        object-fit: contain;
+        flex-shrink: 0;
+        transform: translateY(-4px);
+    }
+
+    .lp-brand strong {
+        font-size: 16px;
+    }
+
+    .lp-brand small {
+        font-size: 11px;
+    }
+
+    .lp-nav {
+        display: none;
+    }
+
+    .lp-masuk {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+
+    .lp-hero {
+        padding: 10px 10px 14px;
+    }
+
+    .lp-hero-foto {
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        max-height: none;
+        border-radius: 8px;
+    }
+
+    .lp-strip {
+        height: 20px;
+    }
+
+    .lp-selamat {
+        padding: 24px 16px 36px;
+    }
+
+    .lp-judul h1 {
+        font-size: clamp(22px, 5vw, 32px);
+    }
+
+    .lp-grid,
+    .lp-footer-isi {
+        grid-template-columns: 1fr;
+        gap: 18px;
+        padding: 18px 20px;
+    }
+
+    .lp-grid {
+        gap: 20px;
+    }
+
+    .lp-ketua figcaption {
+        margin-top: -40px;
+        padding-left: 12px;
+    }
+
+    .lp-ketua strong {
+        font-size: 19px;
+    }
+
+    .lp-visimisi {
+        padding: 36px 20px;
+        font-size: 14px;
+    }
+
+    .lp-ig {
+        padding: 20px 12px;
+    }
+
+    .lp-ig-bingkai {
+        padding: 8px;
+    }
+
+    .lp-footer-isi {
+        gap: 18px;
+        padding: 20px 16px;
+    }
+
+    .lp-alamat p {
+        font-size: 10px;
+    }
+
+    .lp-kontak {
+        justify-self: start;
+        min-width: 0;
+    }
+
+    .lp-kontak h4 {
+        text-align: left;
+    }
 }
