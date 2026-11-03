@@ -51,6 +51,14 @@
                     <span>{{ $adminUnit }}</span>
                 </div>
             </div>
+
+             <form method="POST" action="{{ Route::has('logout') ? route('logout') : '#' }}">
+                @csrf
+                <button type="submit" class="logout-top" aria-label="Keluar">
+                    <x-icon name="logout" :size="20" />
+                    <span>Keluar</span>
+                </button>
+            </form>
         </div>
     </header>
 
@@ -73,14 +81,6 @@
                 </a>
             @endforeach
         </nav>
-
-        <form class="side-logout" method="POST" action="{{ Route::has('logout') ? route('logout') : '#' }}">
-            @csrf
-            <button type="submit" class="logout-btn">
-                <x-icon name="logout" :size="20" />
-                Keluar
-            </button>
-        </form>
     </aside>
 
     {{-- KONTEN --}}

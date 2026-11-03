@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\ChangePasswordController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Middleware\NoCache;
 
 // Halaman utama (publik)
 Route::view('/', 'landing')->name('beranda');
@@ -24,7 +25,7 @@ Route::post('/logout', [LoginController::class, 'logout'])
 
 // Dashboard admin
 Route::view('/admin/dashboard', 'admin.dashboard')
-    ->middleware('auth')
+    ->middleware(['auth', NoCache::class])
     ->name('admin.dashboard');
 
 // Proses ubah kata sandi

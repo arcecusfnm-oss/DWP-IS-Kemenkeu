@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('nama_lengkap');
             $table->string('nama_pengguna')->unique();
             $table->string('kata_sandi_hash');
-            $table->string('status')->default('aktif');
+            $table->enum('status', ['aktif', 'nonaktif'])->default('aktif');
             $table->boolean('perlu_ganti_kata_sandi')->default(false);
             $table->timestamp('dihapus_pada')->nullable();
             $table->foreignId('id_peran')->constrained('peran', 'id_peran');
