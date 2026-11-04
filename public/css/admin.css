@@ -794,3 +794,315 @@ body::before {
     .profil-avatar { width: 112px; height: 112px; }
     .profil-form { padding: 36px 20px 24px; }
 }
+
+
+/* ==============================
+   KELOLA BIDANG
+============================== */
+
+.bidang-page {
+    gap: 12px;
+}
+
+.bidang-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.bidang-header h1 {
+    margin: 0;
+    color: var(--coklat-tua);
+    font-family: 'Gelasio', serif;
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.bidang-header p {
+    margin: 8px 0 0;
+    color: var(--coklat);
+    font-size: 14px;
+}
+
+.bidang-btn-tambah,
+.bidang-btn-simpan {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 10px;
+    background: var(--coklat-tua);
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.bidang-btn-tambah:hover,
+.bidang-btn-simpan:hover {
+    background: var(--coklat);
+}
+
+.bidang-btn-tambah span {
+    font-size: 20px;
+    line-height: 1;
+}
+
+.bidang-card,
+.bidang-form-card {
+    padding: 28px;
+    border: 1px solid #f0ded4;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 4px 16px rgba(90, 45, 28, 0.04);
+}
+
+.bidang-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.bidang-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.bidang-table th {
+    padding: 16px;
+    border-bottom: 1px solid #eadbd3;
+    color: var(--coklat);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.bidang-table td {
+    padding: 18px 16px;
+    border-bottom: 1px solid #f2e8e3;
+    color: var(--ink);
+    font-size: 14px;
+}
+
+.bidang-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.bidang-table th:first-child,
+.bidang-table td:first-child {
+    width: 80px;
+    text-align: center;
+}
+
+.bidang-table th:last-child,
+.bidang-table td:last-child {
+    width: 180px;
+}
+
+.bidang-aksi {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.bidang-aksi a,
+.bidang-aksi button {
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--coklat-tua);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.bidang-aksi button {
+    color: #b94b3c;
+}
+
+.bidang-aksi a:hover,
+.bidang-aksi button:hover {
+    text-decoration: underline;
+}
+
+.bidang-kosong {
+    padding: 32px !important;
+    color: #927d74 !important;
+    text-align: center;
+}
+
+.bidang-alert {
+    padding: 14px 18px;
+    border-radius: 9px;
+    font-size: 14px;
+}
+
+.bidang-alert-sukses {
+    border: 1px solid #b8dfc5;
+    background: #edf8f0;
+    color: #287744;
+}
+
+/* FORM TAMBAH BIDANG */
+
+.bidang-form-card {
+    max-width: 760px;
+}
+
+.bidang-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.bidang-form-group label {
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.bidang-form-group label span {
+    color: #c94b3b;
+}
+
+.bidang-form-group input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid #dfcec5;
+    border-radius: 9px;
+    outline: none;
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    transition: 0.2s ease;
+}
+
+.bidang-form-group input::placeholder {
+    color: #b5a39a;
+}
+
+.bidang-form-group input:focus {
+    border-color: var(--peach);
+    box-shadow: 0 0 0 3px rgba(244, 185, 154, 0.2);
+}
+
+.bidang-form-group input.is-invalid {
+    border-color: #c94b3b;
+}
+
+.bidang-error {
+    color: #c94b3b;
+    font-size: 12px;
+}
+
+.bidang-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 32px;
+}
+
+.bidang-btn-batal {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 22px;
+    border: 1px solid #dfcec5;
+    border-radius: 10px;
+    background: #fff;
+    color: var(--coklat);
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: 0.2s ease;
+}
+
+.bidang-btn-batal:hover {
+    background: #fdf6f3;
+}
+
+@media (max-width: 768px) {
+    .bidang-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .bidang-card,
+    .bidang-form-card {
+        padding: 18px;
+    }
+
+    .bidang-table th,
+    .bidang-table td {
+        padding: 13px 10px;
+    }
+
+    .bidang-form-actions {
+        flex-direction: column-reverse;
+    }
+
+    .bidang-btn-batal,
+    .bidang-btn-simpan {
+        width: 100%;
+    }
+}
+
+.bidang-header-card {
+    background: #fff;
+    border: 1px solid #f1dfd5;
+    border-radius: 20px;
+    padding: 28px 30px;
+    margin-bottom: 10px;
+}
+
+/* Notifikasi validasi form bidang */
+.pesan {
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+.pesan-peringatan {
+    background: #FFFBDA;
+    border: 1px solid #FFEFB1;
+    color: #6B4A00;
+}
+
+/* Notifikasi */
+.pesan {
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.5;
+    margin-bottom: 16px;
+}
+
+/* Pesan error - merah */
+.pesan-error {
+    background: #FFDADA;
+    border: 1px solid #FFC4C4;
+    color: #B42318;
+}
+
+/* Pesan sukses - hijau */
+.pesan-sukses {
+    background: #DCFCE7;
+    border: 1px solid #BBF7D0;
+    color: #166534;
+}
+
+/* Jarak notifikasi pada halaman Kelola Bidang */
+.bidang-page > .pesan {
+    margin-bottom: 0;
+}

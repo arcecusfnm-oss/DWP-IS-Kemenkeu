@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\ChangePasswordController;
+use App\Http\Controllers\Admin\BidangController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\NoCache;
 
@@ -27,6 +28,18 @@ Route::post('/logout', [LoginController::class, 'logout'])
 Route::view('/admin/dashboard', 'admin.dashboard')
     ->middleware(['auth', 'role:Admin', NoCache::class])
     ->name('admin.dashboard');
+
+// Kelola Bidang
+Route::middleware(['auth', 'role:Admin', NoCache::class])
+    ->prefix('admin/bidang')
+    ->name('admin.bidang.')
+    ->group(function () {
+        Route::get('/', [BidangController::class, 'index'])->name('index');
+        Route::get('/tambah', [BidangController::class, 'create'])->name('create');
+        Route::post('/', [BidangController::class, 'store'])->name('store');
+        Route::get('/{id}/edit', [BidangController::class, 'edit'])->name('edit');
+        Route::delete('/{id}', [BidangController::class, 'destroy'])->name('destroy');
+    });
 
 // Halaman profil admin (tambahan)
 Route::view('/admin/profil', 'admin.profil')

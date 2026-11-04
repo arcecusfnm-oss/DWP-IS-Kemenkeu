@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,23 +8,27 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Gelasio:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Gelasio:wght@500;600;700&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/admin.css') }}">
+    @stack('styles')
 </head>
 @php
     $adminNama = $adminNama ?? 'Admin Utama';
     $adminUnit = $adminUnit ?? 'Sekretariat DWP Pusat';
 
     $menu = [
-        ['label' => 'Dasbor',               'icon' => 'dashboard', 'href' => 'admin.dashboard', 'route' => 'admin.dashboard'],
-        ['label' => 'Struktur Organisasi',  'icon' => 'org',       'href' => null, 'route' => 'admin.struktur.*'],
-        ['label' => 'Kelola Akun',          'icon' => 'users',     'href' => null, 'route' => 'admin.akun.*'],
-        ['label' => 'Kelola Bidang',        'icon' => 'shapes',    'href' => null, 'route' => 'admin.bidang.*'],
+        ['label' => 'Dasbor', 'icon' => 'dashboard', 'href' => 'admin.dashboard', 'route' => 'admin.dashboard'],
+        ['label' => 'Struktur Organisasi', 'icon' => 'org', 'href' => null, 'route' => 'admin.struktur.*'],
+        ['label' => 'Kelola Akun', 'icon' => 'users', 'href' => null, 'route' => 'admin.akun.*'],
+        ['label' => 'Kelola Bidang', 'icon' => 'shapes', 'href' => 'admin.bidang.index', 'route' => 'admin.bidang.*'],
         ['label' => 'Kelola Program Kerja', 'icon' => 'clipboard', 'href' => null, 'route' => 'admin.proker.*'],
-        ['label' => 'Laporan Kegiatan',     'icon' => 'file',      'href' => null, 'route' => 'admin.laporan.*'],
-        ['label' => 'Surat Masuk/Keluar',   'icon' => 'mail',      'href' => null, 'route' => 'admin.surat.*'],
+        ['label' => 'Laporan Kegiatan', 'icon' => 'file', 'href' => null, 'route' => 'admin.laporan.*'],
+        ['label' => 'Surat Masuk/Keluar', 'icon' => 'mail', 'href' => null, 'route' => 'admin.surat.*'],
     ];
 @endphp
+
 <body>
 
     <header class="topbar">
@@ -75,7 +80,7 @@
             @foreach ($menu as $item)
                 @php
                     $aktif = request()->routeIs($item['route']);
-                    $url = ($item['href'] && Route::has($item['href'])) ? route($item['href']) : '#';
+                    $url = $item['href'] && Route::has($item['href']) ? route($item['href']) : '#';
                 @endphp
                 <a href="{{ $url }}" class="side-link {{ $aktif ? 'active' : '' }}">
                     <x-icon :name="$item['icon']" :size="26" />
@@ -90,5 +95,7 @@
     </main>
 
     <script src="{{ asset('js/admin.js') }}"></script>
+    @stack('scripts')
 </body>
+
 </html>
