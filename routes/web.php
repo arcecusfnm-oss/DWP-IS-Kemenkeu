@@ -3,6 +3,8 @@
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\Admin\BidangController;
+use App\Http\Controllers\Admin\AkunController;
+use App\Http\Controllers\Admin\DashboardController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\NoCache;
 
@@ -25,7 +27,7 @@ Route::post('/logout', [LoginController::class, 'logout'])
     ->name('logout');
 
 // Dashboard admin
-Route::view('/admin/dashboard', 'admin.dashboard')
+Route::get('/admin/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'role:Admin', NoCache::class])
     ->name('admin.dashboard');
 
@@ -50,3 +52,13 @@ Route::view('/admin/profil', 'admin.profil')
 Route::post('/ubah-kata-sandi', [ChangePasswordController::class, 'update'])
     ->middleware('auth')
     ->name('password.update');
+
+// Kelola Akun
+Route::middleware(['auth', 'role:Admin', NoCache::class])
+    ->prefix('admin/akun')
+    ->name('admin.akun.')
+    ->group(function () {
+        Route::get('/', [AkunController::class, 'index'])->name('index');
+        Route::get('/tambah', [AkunController::class, 'create'])->name('create');
+        Route::post('/', [AkunController::class, 'store'])->name('store');
+    });

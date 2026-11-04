@@ -47,10 +47,12 @@ body.halaman-landing {
 }
 
 .lp-brand img {
-    width: 85px;
-    height: 85px;
-    object-fit: contain;
+    width: 52px;
+    height: 52px;
     flex-shrink: 0;
+    object-fit: contain;
+    transform: none;
+    margin: 0;
 }
 
 .lp-brand strong { display: block; font-family: var(--serif); font-size: 20px; line-height: 1.1; }

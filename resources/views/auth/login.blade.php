@@ -123,19 +123,7 @@
                         class="tombol-lihat"
                         id="tombol-lihat"
                         aria-label="Tampilkan kata sandi">
-                        <svg
-                            width="20"
-                            height="20"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            aria-hidden="true">
-                            <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"></path>
-                            <circle cx="12" cy="12" r="3"></circle>
-                        </svg>
+                        @include('admin.partials.ikon-mata')
                     </button>
                 </div>
 
@@ -166,6 +154,14 @@
     </main>
 </div>
 @endsection
+
+@push('styles')
+<style>
+    .isian-sandi .tombol-lihat svg.mata-buka { display: none !important; }
+    .isian-sandi input[type="text"] + .tombol-lihat svg.mata-tutup { display: none !important; }
+    .isian-sandi input[type="text"] + .tombol-lihat svg.mata-buka { display: block !important; }
+</style>
+@endpush
 
 @push('scripts')
 <script src="{{ asset('js/masuk.js') }}"></script>

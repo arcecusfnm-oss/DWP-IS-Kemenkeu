@@ -5,18 +5,11 @@
 @section('content')
 @php
     // ===== DATA SEMENTARA, nanti diganti dari controller / auth()->user() =====
-    $adminNama = $adminNama ?? 'Admin Utama';
+    $adminNama = auth()->user()->nama_lengkap;
 
-    // ===== PREVIEW FRONT END (hapus kalau backend sudah jalan) =====
-    // /admin/profil?state=sukses  -> tampilan berhasil ganti kata sandi
-    // /admin/profil?state=error   -> tampilan kata sandi salah
-    $demo = request('state');
-
-    $pesanSukses = session('success') ?? ($demo === 'sukses' ? 'Kata sandi berhasil diubah.' : null);
-
-    $errLama = $errors->first('kata_sandi_lama') ?: ($demo === 'error' ? 'Kata sandi lama salah' : '');
-    $errBaru = $errors->first('kata_sandi_baru') ?: ($demo === 'error' ? 'Kata sandi baru minimal 8 karakter' : '');
-    // ================================================================
+    $pesanSukses = session('success');
+    $errLama = $errors->first('kata_sandi_lama');
+    $errBaru = $errors->first('kata_sandi_baru');
 @endphp
 
 <div class="content">
@@ -53,10 +46,9 @@
                 </div>
             @endif
 
-                <form method="POST" action="{{ route('password.update') }}"
+            <form method="POST" action="{{ route('password.update') }}"
                   class="profil-form {{ ($errLama || $errBaru) ? 'ada-error' : '' }}" id="formSandi" novalidate>
                 @csrf
-                
 
                 {{-- Kata sandi lama --}}
                 <div class="isian {{ $errLama ? 'has-error' : '' }}" data-field="lama">
@@ -65,7 +57,6 @@
                         <input id="kata_sandi_lama" name="kata_sandi_lama" type="password"
                                placeholder="Masukkan kata sandi lama Anda" autocomplete="current-password"
                                maxlength="100" required
-                               value="{{ $demo === 'error' ? 'xxxxxxxxxxxx' : '' }}"
                                aria-describedby="err-lama" aria-invalid="{{ $errLama ? 'true' : 'false' }}">
                         <button type="button" class="tombol-lihat" data-target="kata_sandi_lama" aria-label="Tampilkan kata sandi">
                             @include('admin.partials.ikon-mata')
@@ -84,7 +75,6 @@
                         <input id="kata_sandi_baru" name="kata_sandi_baru" type="password"
                                placeholder="Masukkan kata sandi baru" autocomplete="new-password"
                                maxlength="100" required minlength="8"
-                               value="{{ $demo === 'error' ? 'xxxxx' : '' }}"
                                aria-describedby="err-baru hint-baru" aria-invalid="{{ $errBaru ? 'true' : 'false' }}">
                         <button type="button" class="tombol-lihat" data-target="kata_sandi_baru" aria-label="Tampilkan kata sandi">
                             @include('admin.partials.ikon-mata')
@@ -138,15 +128,17 @@
         form.classList.toggle('ada-error', !!form.querySelector('.has-error'));
     }
 
-    // Validasi sisi klien (sama dengan teks di desain)
+    // Validasi sisi klien (teks sesuai AC B-003)
     form.addEventListener('submit', function (e) {
         const lama = form.kata_sandi_lama.value;
         const baru = form.kata_sandi_baru.value;
         let valid = true;
 
-        if (!lama) { setError('lama', 'Kata sandi lama wajib diisi'); valid = false; }
+        // AC 1: sandi lama kosong atau salah -> "Kata sandi lama salah"
+        if (!lama) { setError('lama', 'Kata sandi lama salah'); valid = false; }
         else setError('lama', '');
 
+        // AC 2: sandi baru < 8 karakter
         if (baru.length < 8) { setError('baru', 'Kata sandi baru minimal 8 karakter'); valid = false; }
         else setError('baru', '');
 
