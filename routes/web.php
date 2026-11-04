@@ -25,12 +25,12 @@ Route::post('/logout', [LoginController::class, 'logout'])
 
 // Dashboard admin
 Route::view('/admin/dashboard', 'admin.dashboard')
-    ->middleware(['auth', NoCache::class])
+    ->middleware(['auth', 'role:Admin', NoCache::class])
     ->name('admin.dashboard');
 
 // Halaman profil admin (tambahan)
 Route::view('/admin/profil', 'admin.profil')
-    ->middleware(['auth', NoCache::class])
+    ->middleware(['auth', 'role:Admin', NoCache::class])
     ->name('admin.profil');
 
 // Proses ubah kata sandi
