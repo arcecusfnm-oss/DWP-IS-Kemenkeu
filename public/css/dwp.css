@@ -158,3 +158,8 @@ body {
 .ikon-warning-kuning {
     color: #eab308;
 }
+
+/* Ikon mata: password = mata silang, text = mata biasa */
+.tombol-lihat .mata-buka { display: none; }
+.isian-sandi input[type="text"] + .tombol-lihat .mata-tutup { display: none; }
+.isian-sandi input[type="text"] + .tombol-lihat .mata-buka { display: block; }

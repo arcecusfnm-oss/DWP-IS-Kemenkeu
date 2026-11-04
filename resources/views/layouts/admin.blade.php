@@ -15,13 +15,13 @@
     @stack('styles')
 </head>
 @php
-    $adminNama = $adminNama ?? 'Admin Utama';
-    $adminUnit = $adminUnit ?? 'Sekretariat DWP Pusat';
+    $adminNama = $adminNama ?? auth()->user()->nama_lengkap;
+    $adminUnit = $adminUnit ?? \Illuminate\Support\Facades\DB::table('peran')->where('id_peran', auth()->user()->id_peran)->value('nama_peran');
 
     $menu = [
         ['label' => 'Dasbor', 'icon' => 'dashboard', 'href' => 'admin.dashboard', 'route' => 'admin.dashboard'],
         ['label' => 'Struktur Organisasi', 'icon' => 'org', 'href' => null, 'route' => 'admin.struktur.*'],
-        ['label' => 'Kelola Akun', 'icon' => 'users', 'href' => null, 'route' => 'admin.akun.*'],
+        ['label' => 'Kelola Akun', 'icon' => 'users', 'href' => 'admin.akun.index', 'route' => 'admin.akun.*'],
         ['label' => 'Kelola Bidang', 'icon' => 'shapes', 'href' => 'admin.bidang.index', 'route' => 'admin.bidang.*'],
         ['label' => 'Kelola Program Kerja', 'icon' => 'clipboard', 'href' => null, 'route' => 'admin.proker.*'],
         ['label' => 'Laporan Kegiatan', 'icon' => 'file', 'href' => null, 'route' => 'admin.laporan.*'],

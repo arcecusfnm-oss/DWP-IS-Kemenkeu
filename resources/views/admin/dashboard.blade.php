@@ -10,7 +10,8 @@
     $stats = [
         [
             'label' => 'Total Anggota',
-            'angka' => '1.423',
+            'angka' => number_format($totalAnggota ?? 0, 0, ',', '.'),
+            'href' => route('admin.akun.index'),
             'satuan' => '',
             'icon' => 'users',
             'badge' => 'Aktif Terverifikasi',
@@ -67,7 +68,7 @@
             Selamat Datang, {{ $namaUser }}
         </h1>
 
-        <p>Anda masuk sebagai Admin</p>
+        <p>Anda masuk sebagai {{ $peranUser ?? 'Admin' }}</p>
 
         <p class="masa">
             Masa Bakti: {{ $masaBakti }}
@@ -76,7 +77,9 @@
 
     <section class="stats">
         @foreach ($stats as $s)
-            <div class="stat">
+            @php $tag = !empty($s['href']) ? 'a' : 'div'; @endphp
+            <{{ $tag }} class="stat"
+                @if (!empty($s['href'])) href="{{ $s['href'] }}" style="text-decoration:none; color:inherit; display:block;" @endif>
 
                 <div class="stat-label">
                     {{ $s['label'] }}
@@ -112,7 +115,7 @@
                     </span>
                 </div>
 
-            </div>
+            </{{ $tag }}>
         @endforeach
     </section>
 
