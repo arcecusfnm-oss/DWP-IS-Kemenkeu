@@ -164,13 +164,22 @@
                                         <a href="{{ route('admin.akun.edit', $a->id_pengguna) }}" title="Edit">
                                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
                                         </a>
-                                        <a href="#" title="Ubah peran">
-                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4"/><circle cx="18" cy="18" r="2"/><path d="M18 14v1M18 21v1M21.5 16l-.9.5M15.4 19.5l-.9.5M21.5 20l-.9-.5M15.4 16.5l-.9-.5"/></svg>
-                                        </a>
+                                        @if (auth()->id() == $a->id_pengguna)
+                                            <button type="button" class="hapus" title="Tidak bisa mengubah peran akun sendiri" disabled>
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4"/><circle cx="18" cy="18" r="2"/><path d="M18 14v1M18 21v1M21.5 16l-.9.5M15.4 19.5l-.9.5M21.5 20l-.9-.5M15.4 16.5l-.9-.5"/></svg>
+                                            </button>
+                                        @else
+                                            <a href="{{ route('admin.akun.peran.edit', $a->id_pengguna) }}" title="Ubah peran">
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4"/><circle cx="18" cy="18" r="2"/><path d="M18 14v1M18 21v1M21.5 16l-.9.5M15.4 19.5l-.9.5M21.5 20l-.9-.5M15.4 16.5l-.9-.5"/></svg>
+                                            </a>
+                                        @endif
                                         <a href="#" title="Reset kata sandi">
                                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.3-9.3M17 6l3 3M14 9l2 2"/></svg>
                                         </a>
-                                        <button type="button" title="Hapus" class="hapus">
+                                        <button type="button" title="{{ auth()->id() == $a->id_pengguna ? 'Tidak bisa menghapus akun sendiri' : 'Hapus' }}" class="hapus"
+                                            data-hapus-url="{{ route('admin.akun.destroy', $a->id_pengguna) }}"
+                                            data-hapus-nama="{{ $a->nama_lengkap }}"
+                                            @disabled(auth()->id() == $a->id_pengguna)>
                                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg>
                                         </button>
                                     </div>
@@ -208,4 +217,62 @@
         </div>
     </div>
 </div>
+{{-- Dialog konfirmasi hapus --}}
+<div class="hapus-overlay" id="hapusOverlay" hidden>
+    <div class="hapus-dialog" role="dialog" aria-modal="true" aria-labelledby="hapusJudul">
+        <div class="hapus-ikon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg>
+        </div>
+        <h3 id="hapusJudul">Hapus akun ini?</h3>
+        <p>Akun <b id="hapusNama"></b> akan dihapus dan tidak bisa masuk lagi. Data yang pernah dibuatnya tetap tersimpan.</p>
+        <form method="POST" id="hapusForm" action="">
+            @csrf
+            @method('DELETE')
+            <div class="hapus-aksi">
+                <button type="button" class="hapus-batal" id="hapusBatal">Batal</button>
+                <button type="submit" class="hapus-ya">Ya, Hapus</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@push('styles')
+<style>
+    .hapus-overlay { position: fixed; inset: 0; background: rgba(40, 20, 10, .5); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 16px; }
+    .hapus-overlay[hidden] { display: none; }
+    .hapus-dialog { background: #fff; border-radius: 16px; padding: 28px; max-width: 420px; width: 100%; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,.25); }
+    .hapus-ikon { width: 56px; height: 56px; margin: 0 auto 14px; border-radius: 50%; background: #fde8e6; color: #c0392b; display: flex; align-items: center; justify-content: center; }
+    .hapus-dialog h3 { margin: 0 0 8px; font-size: 20px; }
+    .hapus-dialog p { margin: 0 0 22px; color: #5b4a42; font-size: 14px; line-height: 1.5; }
+    .hapus-aksi { display: flex; gap: 10px; justify-content: center; }
+    .hapus-batal, .hapus-ya { padding: 10px 22px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; border: 1px solid transparent; }
+    .hapus-batal { background: #fff; border-color: #d9c9c0; color: #5b4a42; }
+    .hapus-ya { background: #c0392b; color: #fff; }
+    .akun-aksi button.hapus:disabled { opacity: .35; cursor: not-allowed; }
+</style>
+@endpush
+
+<script>
+(function () {
+    const overlay = document.getElementById('hapusOverlay');
+    const form    = document.getElementById('hapusForm');
+    const nama    = document.getElementById('hapusNama');
+    if (!overlay) return;
+
+    function tutup() { overlay.hidden = true; }
+
+    document.querySelectorAll('button.hapus[data-hapus-url]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            if (btn.disabled) return;
+            form.action = btn.dataset.hapusUrl;
+            nama.textContent = btn.dataset.hapusNama;
+            overlay.hidden = false;
+        });
+    });
+
+    document.getElementById('hapusBatal').addEventListener('click', tutup);
+    overlay.addEventListener('click', function (e) { if (e.target === overlay) tutup(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') tutup(); });
+})();
+</script>
 @endsection
