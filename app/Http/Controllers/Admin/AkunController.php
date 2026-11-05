@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class AkunController extends Controller
@@ -17,7 +16,14 @@ class AkunController extends Controller
             ->join('peran', 'pengguna.id_peran', '=', 'peran.id_peran')
             ->join('bidang', 'pengguna.id_bidang', '=', 'bidang.id_bidang')
             ->whereNull('pengguna.dihapus_pada')
-            ->select('pengguna.*', 'peran.nama_peran', 'bidang.nama_bidang');
+            ->select(
+                'pengguna.id_pengguna',
+                'pengguna.nama_lengkap',
+                'pengguna.nama_pengguna',
+                'pengguna.status',
+                'peran.nama_peran',
+                'bidang.nama_bidang'
+            );
 
         if ($request->filled('peran')) {
             $query->where('peran.nama_peran', $request->peran);
@@ -62,33 +68,89 @@ class AkunController extends Controller
         return view('admin.akun.create', compact('daftarPeran', 'daftarBidang'));
     }
 
-    public function store(Request $request)
-    {
+    public function edit($id){
+        $akun = DB::table('pengguna')
+            ->join('peran', 'pengguna.id_peran', '=', 'peran.id_peran')
+            ->join('bidang', 'pengguna.id_bidang', '=', 'bidang.id_bidang')
+            ->whereNull('pengguna.dihapus_pada')
+            ->where('pengguna.id_pengguna', $id)
+            ->select(
+                'pengguna.id_pengguna',
+                'pengguna.nama_lengkap',
+                'pengguna.nama_pengguna',
+                'peran.nama_peran',
+                'bidang.nama_bidang'
+            )
+            ->first();
+
+        abort_if(!$akun, 404);
+
+        $daftarBidang = DB::table('bidang')->orderBy('nama_bidang')->pluck('nama_bidang');
+
+        return view('admin.akun.edit', compact('akun', 'daftarBidang'));
+    }
+
+    public function update(Request $request, $id){
+        $ada = DB::table('pengguna')
+            ->where('id_pengguna', $id)
+            ->whereNull('dihapus_pada')
+            ->exists();
+
+        abort_if(!$ada, 404);
+
         $request->validate([
             'nama'     => 'required|string|max:255',
             'username' => ['required', 'string', 'max:50',
-                Rule::unique('pengguna', 'nama_pengguna')->whereNull('dihapus_pada')],
-            'peran'    => ['required', Rule::exists('peran', 'nama_peran')],
+                Rule::unique('pengguna', 'nama_pengguna')->ignore($id, 'id_pengguna')],
             'bidang'   => ['required', Rule::exists('bidang', 'nama_bidang')],
         ], [
             'nama.required'     => 'Nama lengkap wajib diisi',
             'username.required' => 'Nama pengguna wajib diisi',
             'username.unique'   => 'Nama pengguna sudah digunakan',
-            'peran.required'    => 'Peran wajib dipilih',
-            'peran.exists'      => 'Peran tidak valid',
             'bidang.required'   => 'Bidang wajib dipilih',
             'bidang.exists'     => 'Bidang tidak valid',
+        ]);
+
+        $idBidang = DB::table('bidang')->where('nama_bidang', $request->bidang)->value('id_bidang');
+
+        DB::table('pengguna')->where('id_pengguna', $id)->update([
+            'nama_lengkap'  => $request->nama,
+            'nama_pengguna' => $request->username,
+            'id_bidang'     => $idBidang,
+            'updated_at'    => now(),
+        ]);
+
+        return redirect()->route('admin.akun.index')
+            ->with('sukses', 'Data akun berhasil diubah.');
+    }
+
+    public function store(Request $request){
+        $request->validate([
+            'nama'       => 'required|string|max:255',
+            'username'   => ['required', 'string', 'max:50',
+                Rule::unique('pengguna', 'nama_pengguna')],
+            'peran'      => ['required', Rule::exists('peran', 'nama_peran')],
+            'bidang'     => ['required', Rule::exists('bidang', 'nama_bidang')],
+            'kata_sandi' => ['required', 'string', 'min:8', 'max:100'],
+        ], [
+            'nama.required'       => 'Nama lengkap wajib diisi',
+            'username.required'   => 'Nama pengguna wajib diisi',
+            'username.unique'     => 'Nama pengguna sudah digunakan',
+            'peran.required'      => 'Peran wajib dipilih',
+            'peran.exists'        => 'Peran tidak valid',
+            'bidang.required'     => 'Bidang wajib dipilih',
+            'bidang.exists'       => 'Bidang tidak valid',
+            'kata_sandi.required' => 'Kata sandi awal wajib diisi',
+            'kata_sandi.min'      => 'Kata sandi awal minimal 8 karakter',
         ]);
 
         $idPeran  = DB::table('peran')->where('nama_peran', $request->peran)->value('id_peran');
         $idBidang = DB::table('bidang')->where('nama_bidang', $request->bidang)->value('id_bidang');
 
-        $sandiAwal = Str::random(10);
-
         DB::table('pengguna')->insert([
             'nama_lengkap'           => $request->nama,
             'nama_pengguna'          => $request->username,
-            'kata_sandi_hash'        => Hash::make($sandiAwal),
+            'kata_sandi_hash'        => Hash::make($request->kata_sandi),
             'status'                 => 'aktif',
             'perlu_ganti_kata_sandi' => 1,
             'id_peran'               => $idPeran,
@@ -98,6 +160,6 @@ class AkunController extends Controller
         ]);
 
         return redirect()->route('admin.akun.index')
-            ->with('sukses', "Akun berhasil dibuat. Kata sandi awal: {$sandiAwal} (catat sekarang, tidak ditampilkan lagi)");
+            ->with('sukses', 'Akun berhasil dibuat.');
     }
 }

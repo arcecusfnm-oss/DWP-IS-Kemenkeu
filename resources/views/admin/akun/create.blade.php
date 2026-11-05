@@ -46,7 +46,7 @@
             </div>
 
             {{-- Nama lengkap --}}
-            <div class="akun-field">
+            <div class="akun-field {{ isset($err['nama']) ? 'has-error' : '' }}">
                 <label for="nama">Nama Lengkap <em>*</em></label>
                 <div class="akun-input {{ $demoError ? 'valid' : '' }}">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M15 9h3M15 13h3M6 17c.5-2 5.5-2 6 0"/></svg>
@@ -55,6 +55,9 @@
                         <svg class="status ok" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="m8 12 3 3 5-6"/></svg>
                     @endif
                 </div>
+                @isset($err['nama'])
+                    <p class="akun-error">{!! $ikonSalah !!} {{ $err['nama'] }}</p>
+                @endisset
                 @if ($demoError)
                     <p class="akun-hint">Format nama sesuai dengan kartu identitas pegawai/anggota DWP.</p>
                 @endif
@@ -110,12 +113,22 @@
                 </div>
             </div>
 
-            @if ($demoError)
-                <div class="akun-info-box kecil">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-                    Kata sandi awal akan digenerate otomatis oleh sistem dan dikirimkan ke surel resmi Kemenkeu yang terdaftar setelah data disimpan.
+            {{-- Kata sandi awal --}}
+            <div class="akun-field {{ isset($err['kata_sandi']) ? 'has-error' : '' }}">
+                <label for="kata_sandi">Kata Sandi Awal <em>*</em></label>
+                <div class="akun-input">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+                    <input type="password" id="kata_sandi" name="kata_sandi" placeholder="Masukkan kata sandi awal" autocomplete="new-password" maxlength="100">
+                    @isset($err['kata_sandi'])
+                        <svg class="status" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+                    @endisset
                 </div>
-            @endif
+                @isset($err['kata_sandi'])
+                    <p class="akun-error">{!! $ikonSalah !!} {{ $err['kata_sandi'] }}</p>
+                @else
+                    <p class="akun-hint">Minimal 8 karakter.</p>
+                @endisset
+            </div>
 
             <div class="akun-form-aksi">
                 <a href="{{ route('admin.akun.index') }}" class="akun-btn-batal">← Batal</a>
