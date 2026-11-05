@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class AkunController extends Controller
@@ -260,5 +261,35 @@ class AkunController extends Controller
 
         return redirect()->route('admin.akun.index')
             ->with('sukses', 'Akun berhasil dibuat.');
+    }
+
+    public function resetPassword($id)
+    {
+        $akun = DB::table('pengguna')
+            ->where('id_pengguna', $id)
+            ->whereNull('dihapus_pada')
+            ->first();
+
+        abort_if(!$akun, 404);
+
+        $kataSandiSementara = Str::password(12);
+
+        DB::table('pengguna')
+            ->where('id_pengguna', $id)
+            ->update([
+                'kata_sandi_hash'        => Hash::make($kataSandiSementara),
+                'perlu_ganti_kata_sandi' => 1,
+                'updated_at'             => now(),
+            ]);
+
+        Log::info('Admin mereset kata sandi akun', [
+            'admin_id'     => Auth::id(),
+            'akun_id'      => $id,
+            'dicatat_pada' => now()->toDateTimeString(),
+        ]);
+
+        return redirect()->route('admin.akun.index')
+            ->with('sukses', 'Kata sandi berhasil direset.')
+            ->with('kata_sandi_sementara', $kataSandiSementara);
     }
 }
