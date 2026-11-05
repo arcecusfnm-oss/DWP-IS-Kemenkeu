@@ -114,17 +114,21 @@
             </div>
 
             {{-- Kata sandi awal --}}
-            <div class="akun-field {{ isset($err['kata_sandi']) ? 'has-error' : '' }}">
-                <label for="kata_sandi">Kata Sandi Awal <em>*</em></label>
+            <div class="akun-field {{ isset($err['password']) ? 'has-error' : '' }}">
+                <label for="password">Kata Sandi Awal <em>*</em></label>
                 <div class="akun-input">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
-                    <input type="password" id="kata_sandi" name="kata_sandi" placeholder="Masukkan kata sandi awal" autocomplete="new-password" maxlength="100">
-                    @isset($err['kata_sandi'])
-                        <svg class="status" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+                    <input type="password" id="password" name="password" placeholder="Masukkan kata sandi awal" autocomplete="new-password" maxlength="100">
+                    <button type="button" id="togglePassword" aria-label="Tampilkan kata sandi"
+                        style="position:absolute; top:0; right:0; width:46px; height:46px; display:grid; place-items:center; padding:0; color:#7a5c52; opacity:.7;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                    @isset($err['password'])
+                        <svg class="status" style="right:50px" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
                     @endisset
                 </div>
-                @isset($err['kata_sandi'])
-                    <p class="akun-error">{!! $ikonSalah !!} {{ $err['kata_sandi'] }}</p>
+                @isset($err['password'])
+                    <p class="akun-error">{!! $ikonSalah !!} {{ $err['password'] }}</p>
                 @else
                     <p class="akun-hint">Minimal 8 karakter.</p>
                 @endisset
@@ -140,4 +144,12 @@
         </form>
     </div>
 </div>
+<script>
+    document.getElementById('togglePassword').addEventListener('click', function () {
+        const input = document.getElementById('password');
+        const tampil = input.type === 'password';
+        input.type = tampil ? 'text' : 'password';
+        this.setAttribute('aria-label', tampil ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi');
+    });
+</script>
 @endsection

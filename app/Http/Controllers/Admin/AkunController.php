@@ -128,6 +128,93 @@ class AkunController extends Controller
             ->with('sukses', 'Data akun berhasil diubah.');
     }
 
+    public function editPeran($id)
+    {
+        $akun = DB::table('pengguna')
+            ->join('peran', 'pengguna.id_peran', '=', 'peran.id_peran')
+            ->whereNull('pengguna.dihapus_pada')
+            ->where('pengguna.id_pengguna', $id)
+            ->select(
+                'pengguna.id_pengguna',
+                'pengguna.nama_lengkap',
+                'pengguna.nama_pengguna',
+                'peran.nama_peran'
+            )
+            ->first();
+
+        abort_if((int) $id === (int) Auth::id(), 403);
+        abort_if(!$akun, 404);
+
+        $daftarPeran = DB::table('peran')->orderBy('id_peran')->pluck('nama_peran');
+
+        return view('admin.akun.peran', compact('akun', 'daftarPeran'));
+    }
+
+    public function updatePeran(Request $request, $id)
+    {
+        // Admin tidak boleh mengubah peran akunnya sendiri
+        abort_if((int) $id === (int) Auth::id(), 403);
+
+        $ada = DB::table('pengguna')
+            ->where('id_pengguna', $id)
+            ->whereNull('dihapus_pada')
+            ->exists();
+
+        abort_if(!$ada, 404);
+
+        $request->validate([
+            'peran' => ['required', Rule::exists('peran', 'nama_peran')],
+        ], [
+            'peran.required' => 'Peran wajib dipilih',
+            'peran.exists'   => 'Peran tidak valid',
+        ]);
+
+        $idPeran     = DB::table('peran')->where('nama_peran', $request->peran)->value('id_peran');
+        $idPeranLama = DB::table('pengguna')->where('id_pengguna', $id)->value('id_peran');
+
+        if ((int) $idPeran === (int) $idPeranLama) {
+            return back()
+                ->withErrors(['peran' => 'Peran baru tidak boleh sama dengan peran saat ini'])
+                ->withInput();
+        }
+
+        DB::table('pengguna')->where('id_pengguna', $id)->update([
+            'id_peran'   => $idPeran,
+            'updated_at' => now(),
+        ]);
+
+        Log::info('Admin mengubah peran akun', [
+            'admin_id'     => Auth::id(),
+            'akun_id'      => $id,
+            'peran_lama'   => $idPeranLama,
+            'peran_baru'   => $idPeran,
+            'dicatat_pada' => now()->toDateTimeString(),
+        ]);
+
+        return redirect()->route('admin.akun.index')
+            ->with('sukses', 'Peran akun berhasil diubah.');
+    }
+
+    public function destroy($id)
+    {
+        abort_if((int) $id === (int) Auth::id(), 403);
+
+        $ada = DB::table('pengguna')
+            ->where('id_pengguna', $id)
+            ->whereNull('dihapus_pada')
+            ->exists();
+
+        abort_if(!$ada, 404);
+
+        DB::table('pengguna')->where('id_pengguna', $id)->update([
+            'dihapus_pada' => now(),
+            'updated_at'   => now(),
+        ]);
+
+        return redirect()->route('admin.akun.index')
+            ->with('sukses', 'Akun berhasil dihapus.');
+    }
+
     public function store(Request $request)
     {
         $request->validate([
