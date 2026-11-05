@@ -4,9 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 
 class AkunController extends Controller
@@ -29,7 +30,7 @@ class AkunController extends Controller
             $q = $request->q;
             $query->where(function ($w) use ($q) {
                 $w->where('pengguna.nama_lengkap', 'like', "%{$q}%")
-                  ->orWhere('pengguna.nama_pengguna', 'like', "%{$q}%");
+                    ->orWhere('pengguna.nama_pengguna', 'like', "%{$q}%");
             });
         }
 
@@ -66,10 +67,15 @@ class AkunController extends Controller
     {
         $request->validate([
             'nama'     => 'required|string|max:255',
-            'username' => ['required', 'string', 'max:50',
-                Rule::unique('pengguna', 'nama_pengguna')->whereNull('dihapus_pada')],
+            'username' => [
+                'required',
+                'string',
+                'max:50',
+                Rule::unique('pengguna', 'nama_pengguna')
+            ],
             'peran'    => ['required', Rule::exists('peran', 'nama_peran')],
             'bidang'   => ['required', Rule::exists('bidang', 'nama_bidang')],
+            'password' => ['required', 'string', 'min:8', 'max:100'],
         ], [
             'nama.required'     => 'Nama lengkap wajib diisi',
             'username.required' => 'Nama pengguna wajib diisi',
@@ -78,17 +84,17 @@ class AkunController extends Controller
             'peran.exists'      => 'Peran tidak valid',
             'bidang.required'   => 'Bidang wajib dipilih',
             'bidang.exists'     => 'Bidang tidak valid',
+            'password.required' => 'Kata sandi awal wajib diisi',
+            'password.min'      => 'Kata sandi awal minimal 8 karakter',
         ]);
 
         $idPeran  = DB::table('peran')->where('nama_peran', $request->peran)->value('id_peran');
         $idBidang = DB::table('bidang')->where('nama_bidang', $request->bidang)->value('id_bidang');
 
-        $sandiAwal = Str::random(10);
-
         DB::table('pengguna')->insert([
             'nama_lengkap'           => $request->nama,
             'nama_pengguna'          => $request->username,
-            'kata_sandi_hash'        => Hash::make($sandiAwal),
+            'kata_sandi_hash'        => Hash::make($request->password),
             'status'                 => 'aktif',
             'perlu_ganti_kata_sandi' => 1,
             'id_peran'               => $idPeran,
@@ -97,7 +103,14 @@ class AkunController extends Controller
             'updated_at'             => now(),
         ]);
 
+        Log::info('Admin membuat akun baru', [
+            'admin_id' => Auth::id(),
+            'admin_username' => Auth::user()->nama_pengguna,
+            'akun_baru' => $request->username,
+            'dicatat_pada' => now()->toDateTimeString(),
+        ]);
+
         return redirect()->route('admin.akun.index')
-            ->with('sukses', "Akun berhasil dibuat. Kata sandi awal: {$sandiAwal} (catat sekarang, tidak ditampilkan lagi)");
+            ->with('sukses', 'Akun berhasil dibuat.');
     }
 }
