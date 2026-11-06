@@ -1682,3 +1682,56 @@ body::before {
         display: none;
     }
 }
+
+/* HEADER FORM TAMBAH BIDANG - MENGIKUTI FORM BUAT AKUN */
+
+.bidang-form-card {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 16px;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.bidang-form-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    background: #fdf1ea;
+    border-radius: 12px;
+}
+
+.bidang-form-head h1 {
+    margin: 0;
+    font-family: "Gelasio", Georgia, serif;
+    font-size: 36px;
+    color: #000;
+    line-height: 1.2;
+}
+
+.bidang-form-head p {
+    margin: 4px 0 0;
+    font-size: 14px;
+    color: var(--coklat);
+}
+
+.bidang-chip {
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: var(--peach-kartu);
+    color: var(--coklat-tua);
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .bidang-form-head h1 {
+        font-size: 28px;
+    }
+}
