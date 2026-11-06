@@ -209,20 +209,30 @@ class AkunController extends Controller
             ->with('sukses', 'Peran akun berhasil diubah.');
     }
 
-    public function destroy($id)
-    {
-        abort_if((int) $id === (int) Auth::id(), 403);
+    public function destroy($id){
+        // Admin tidak boleh menghapus akunnya sendiri
+        if ((int) $id === (int) Auth::id()) {
+            abort(403, 'Anda tidak dapat menghapus akun Anda sendiri.');
+        }
 
-        $ada = DB::table('pengguna')
+        $akun = DB::table('pengguna')
             ->where('id_pengguna', $id)
             ->whereNull('dihapus_pada')
-            ->exists();
+            ->first(['id_pengguna', 'nama_pengguna']);
 
-        abort_if(!$ada, 404);
+        abort_if(!$akun, 404);
 
         DB::table('pengguna')->where('id_pengguna', $id)->update([
             'dihapus_pada' => now(),
             'updated_at'   => now(),
+        ]);
+
+        Log::info('Admin menghapus akun', [
+            'admin_id'       => Auth::id(),
+            'admin_username' => Auth::user()->nama_pengguna,
+            'akun_id'        => $akun->id_pengguna,
+            'akun_username'  => $akun->nama_pengguna,
+            'dicatat_pada'   => now()->toDateTimeString(),
         ]);
 
         return redirect()->route('admin.akun.index')

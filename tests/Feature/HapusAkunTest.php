@@ -90,4 +90,26 @@ class HapusAkunTest extends TestCase
             'dihapus_pada' => null,
         ]);
     }
+
+    public function test_akun_yang_sudah_dihapus_tidak_bisa_masuk(): void
+    {
+        $admin = $this->buatAdmin();
+        $pengguna = $this->buatPengguna();
+
+        // Admin menghapus akun pengguna (Soft Delete)
+        $this->actingAs($admin)
+            ->delete(route('admin.akun.destroy', $pengguna->id_pengguna));
+
+        // Bersihkan sesi admin agar target bisa mencoba masuk
+        \Illuminate\Support\Facades\Auth::logout();
+
+        // Target mencoba login
+        $loginBerhasil = \Illuminate\Support\Facades\Auth::attempt([
+            'nama_pengguna' => 'anggota_test',
+            'password'      => 'password123'
+        ]);
+
+        // Ekspektasi: Gagal login karena akun sudah terhapus
+        $this->assertFalse($loginBerhasil);
+    }
 }
