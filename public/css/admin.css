@@ -2311,3 +2311,4 @@ body::before {
         width: 100%;
     }
 }
+.akun-alert.akun-alert-galat { background: #fde8e6; border-color: #e8b4ae; color: #c0392b; }

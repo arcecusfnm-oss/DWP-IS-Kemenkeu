@@ -25,12 +25,23 @@
         </div>
     </div>
 
-    {{-- Alert sukses (demo: /admin/akun?sukses=1) --}}
-    @if (request('sukses') || session('sukses'))
+    {{-- Alert sukses --}}
+    @if (session('sukses'))
         <div class="akun-alert" id="akunAlert">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m8 12 3 3 5-6"/></svg>
             <strong>{{ session('sukses', 'Data berhasil disimpan.') }}</strong>
             <button type="button" class="akun-alert-tutup" onclick="document.getElementById('akunAlert').remove()" aria-label="Tutup">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            </button>
+        </div>
+    @endif
+
+    {{-- Alert galat --}}
+    @if (session('galat'))
+        <div class="akun-alert akun-alert-galat" id="akunGalat" role="alert">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+            <strong>{{ session('galat') }}</strong>
+            <button type="button" class="akun-alert-tutup" onclick="document.getElementById('akunGalat').remove()" aria-label="Tutup">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
             </button>
         </div>
@@ -228,37 +239,26 @@
         </div>
     </div>
 </div>
-{{-- Dialog konfirmasi reset kata sandi --}}
-<div class="reset-overlay" id="resetOverlay" hidden>
-    <div class="reset-dialog" role="dialog" aria-modal="true" aria-labelledby="resetJudul">
-
-        <div class="reset-ikon">
-            <svg width="28" height="28" viewBox="0 0 24 24"
-                fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="7.5" cy="15.5" r="4.5"/>
-                <path d="m10.7 12.3 9.3-9.3M17 6l3 3M14 9l2 2"/>
-            </svg>
+{{-- Dialog konfirmasi hapus akun --}}
+<div class="hapus-overlay" id="hapusOverlay" hidden>
+    <div class="hapus-dialog" role="dialog" aria-modal="true" aria-labelledby="hapusJudul">
+        <div class="hapus-ikon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg>
         </div>
-
-        <h3 id="resetJudul">Reset kata sandi?</h3>
-
+        <h3 id="hapusJudul">Hapus Akun Pengguna?</h3>
         <p>
-            Kata sandi akun <b id="resetNama"></b> akan diatur ulang.
-            Sistem akan membuat kata sandi sementara yang baru.
-            Kata sandi lama tidak dapat digunakan lagi.
+            Akun <b id="hapusNama"></b> akan dihapus dari sistem.
+            Pengguna ini tidak akan dapat masuk ke sistem lagi.
         </p>
-
-        <form method="POST" id="resetForm" action="">
+        <form method="POST" id="hapusForm" action="">
             @csrf
-
-            <div class="reset-aksi">
-                <button type="button" class="reset-batal" id="resetBatal">
+            @method('DELETE')
+            <div class="hapus-aksi">
+                <button type="button" class="hapus-batal" id="hapusBatal">
                     Batal
                 </button>
-
-                <button type="submit" class="reset-ya">
-                    Ya, Reset Kata Sandi
+                <button type="submit" class="hapus-ya">
+                    Ya, Hapus Akun
                 </button>
             </div>
         </form>
