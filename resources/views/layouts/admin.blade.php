@@ -57,7 +57,7 @@
                 </div>
             </a>
 
-            <form method="POST" action="{{ Route::has('logout') ? route('logout') : '#' }}">
+            <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit" class="logout-top" aria-label="Keluar">
                     <x-icon name="logout" :size="20" />
