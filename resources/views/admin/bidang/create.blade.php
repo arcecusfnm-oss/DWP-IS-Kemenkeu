@@ -4,14 +4,12 @@
 
 @section('content')
     <div class="content bidang-page">
-        <div class="bidang-header">
-            <div>
-                <h1>Tambah Bidang</h1>
-                <p>Isi nama bidang baru agar bisa dipilih saat membuat akun.</p>
-            </div>
-        </div>
-
         <div class="bidang-form-card">
+            <div style="background: #fbf5f0; border: 1px solid #f1e3dc; border-radius: 14px; padding: 20px 24px; margin-bottom: 24px;">
+                <h1 style="margin: 0 0 6px 0; font-family: 'Gelasio', serif; font-size: 27px; color: var(--coklat-tua); font-weight: 700;">Tambah Bidang</h1>
+                <p style="margin: 0; color: #78665d; font-size: 14px;">Isi nama bidang baru agar bisa dipilih saat membuat akun.</p>
+            </div>
+            
             <form method="POST" action="{{ route('admin.bidang.store') }}">
                 @csrf
 
