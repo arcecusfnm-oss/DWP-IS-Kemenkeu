@@ -238,4 +238,21 @@ class LoginTest extends TestCase
 
         $this->assertGuest();
     }
+
+    public function test_akun_yang_sudah_dihapus_tidak_dapat_login(): void
+    {
+        $pengguna = $this->buatPengguna();
+
+        $pengguna->delete();
+
+        $this->from('/login')->post('/login', [
+            'username' => 'fahira',
+            'password' => 'password123',
+        ])->assertRedirect('/login')
+            ->assertSessionHasErrors([
+                'login' => 'Nama pengguna atau kata sandi salah.',
+            ]);
+
+        $this->assertGuest();
+    }
 }
