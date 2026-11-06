@@ -173,9 +173,20 @@
                                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4"/><circle cx="18" cy="18" r="2"/><path d="M18 14v1M18 21v1M21.5 16l-.9.5M15.4 19.5l-.9.5M21.5 20l-.9-.5M15.4 16.5l-.9-.5"/></svg>
                                             </a>
                                         @endif
-                                        <a href="#" title="Reset kata sandi">
-                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.3-9.3M17 6l3 3M14 9l2 2"/></svg>
-                                        </a>
+                                        <button
+                                            type="button"
+                                            class="reset-password"
+                                            title="Reset kata sandi"
+                                            data-reset-url="{{ route('admin.akun.reset-password', $a->id_pengguna) }}"
+                                            data-reset-nama="{{ $a->nama_lengkap }}"
+                                        >
+                                            <svg width="18" height="18" viewBox="0 0 24 24"
+                                                fill="none" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round">
+                                                <circle cx="7.5" cy="15.5" r="4.5"/>
+                                                <path d="m10.7 12.3 9.3-9.3M17 6l3 3M14 9l2 2"/>
+                                            </svg>
+                                        </button>
                                         <button type="button" title="{{ auth()->id() == $a->id_pengguna ? 'Tidak bisa menghapus akun sendiri' : 'Hapus' }}" class="hapus"
                                             data-hapus-url="{{ route('admin.akun.destroy', $a->id_pengguna) }}"
                                             data-hapus-nama="{{ $a->nama_lengkap }}"
@@ -217,24 +228,105 @@
         </div>
     </div>
 </div>
-{{-- Dialog konfirmasi hapus --}}
-<div class="hapus-overlay" id="hapusOverlay" hidden>
-    <div class="hapus-dialog" role="dialog" aria-modal="true" aria-labelledby="hapusJudul">
-        <div class="hapus-ikon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg>
+{{-- Dialog konfirmasi reset kata sandi --}}
+<div class="reset-overlay" id="resetOverlay" hidden>
+    <div class="reset-dialog" role="dialog" aria-modal="true" aria-labelledby="resetJudul">
+
+        <div class="reset-ikon">
+            <svg width="28" height="28" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="7.5" cy="15.5" r="4.5"/>
+                <path d="m10.7 12.3 9.3-9.3M17 6l3 3M14 9l2 2"/>
+            </svg>
         </div>
-        <h3 id="hapusJudul">Hapus akun ini?</h3>
-        <p>Akun <b id="hapusNama"></b> akan dihapus dan tidak bisa masuk lagi. Data yang pernah dibuatnya tetap tersimpan.</p>
-        <form method="POST" id="hapusForm" action="">
+
+        <h3 id="resetJudul">Reset kata sandi?</h3>
+
+        <p>
+            Kata sandi akun <b id="resetNama"></b> akan diatur ulang.
+            Sistem akan membuat kata sandi sementara yang baru.
+            Kata sandi lama tidak dapat digunakan lagi.
+        </p>
+
+        <form method="POST" id="resetForm" action="">
             @csrf
-            @method('DELETE')
-            <div class="hapus-aksi">
-                <button type="button" class="hapus-batal" id="hapusBatal">Batal</button>
-                <button type="submit" class="hapus-ya">Ya, Hapus</button>
+
+            <div class="reset-aksi">
+                <button type="button" class="reset-batal" id="resetBatal">
+                    Batal
+                </button>
+
+                <button type="submit" class="reset-ya">
+                    Ya, Reset Kata Sandi
+                </button>
             </div>
         </form>
     </div>
 </div>
+
+{{-- Modal kata sandi sementara --}}
+@if (session()->has('kata_sandi_sementara'))
+<div class="password-overlay" id="passwordOverlay">
+    <div class="password-dialog" role="dialog" aria-modal="true"
+        aria-labelledby="passwordJudul">
+
+        <div class="password-berhasil">
+            <svg width="28" height="28" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="m5 12 4 4L19 6"/>
+            </svg>
+        </div>
+
+        <span class="password-label">RESET BERHASIL</span>
+
+        <h3 id="passwordJudul">Kata Sandi Sementara</h3>
+
+        <p>
+            Kata sandi akun berhasil direset. Salin dan berikan
+            kata sandi sementara ini kepada pengguna terkait.
+        </p>
+
+        <div class="password-info">
+            <span>KATA SANDI SEMENTARA</span>
+
+            <div class="password-value">
+                <code id="passwordSementara">{{ session('kata_sandi_sementara') }}</code>
+
+                <button type="button" id="salinPassword" title="Salin kata sandi">
+                    <svg width="18" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="8" y="8" width="13" height="13" rx="2"/>
+                        <path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="password-peringatan">
+            <svg width="18" height="18" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 8v4M12 16h.01"/>
+            </svg>
+
+            <span>
+                Kata sandi ini hanya ditampilkan satu kali.
+                Pastikan sudah disalin sebelum menutup jendela ini.
+            </span>
+        </div>
+
+        <button type="button" class="password-tutup" id="tutupPassword">
+            Saya Mengerti
+        </button>
+
+        <span class="password-copy-status" id="copyStatus" aria-live="polite"></span>
+    </div>
+</div>
+@endif
 
 @push('styles')
 <style>
@@ -273,6 +365,75 @@
     document.getElementById('hapusBatal').addEventListener('click', tutup);
     overlay.addEventListener('click', function (e) { if (e.target === overlay) tutup(); });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') tutup(); });
+})();
+</script>
+
+<script>
+(function () {
+    // ================================
+    // DIALOG KONFIRMASI RESET
+    // ================================
+
+    const overlay = document.getElementById('resetOverlay');
+    const form = document.getElementById('resetForm');
+    const nama = document.getElementById('resetNama');
+    const batal = document.getElementById('resetBatal');
+
+    if (overlay && form) {
+        function tutupReset() {
+            overlay.hidden = true;
+        }
+
+        document.querySelectorAll('.reset-password').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                form.action = btn.dataset.resetUrl;
+                nama.textContent = btn.dataset.resetNama;
+                overlay.hidden = false;
+            });
+        });
+
+        batal.addEventListener('click', tutupReset);
+
+        overlay.addEventListener('click', function (e) {
+            if (e.target === overlay) tutupReset();
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') tutupReset();
+        });
+    }
+
+    // ================================
+    // MODAL PASSWORD SEMENTARA
+    // ================================
+
+    const passwordOverlay = document.getElementById('passwordOverlay');
+    const salin = document.getElementById('salinPassword');
+    const password = document.getElementById('passwordSementara');
+    const tutup = document.getElementById('tutupPassword');
+    const status = document.getElementById('copyStatus');
+
+    if (passwordOverlay) {
+        tutup.addEventListener('click', function () {
+            passwordOverlay.remove();
+        });
+
+        passwordOverlay.addEventListener('click', function (e) {
+            if (e.target === passwordOverlay) {
+                passwordOverlay.remove();
+            }
+        });
+
+        salin.addEventListener('click', async function () {
+            try {
+                await navigator.clipboard.writeText(password.textContent.trim());
+                status.textContent = 'Kata sandi berhasil disalin!';
+                salin.innerHTML = '✓';
+            } catch (error) {
+                status.textContent = 'Gagal menyalin. Silakan salin secara manual.';
+            }
+        });
+    }
 })();
 </script>
 @endsection

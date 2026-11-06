@@ -263,8 +263,7 @@ class AkunController extends Controller
             ->with('sukses', 'Akun berhasil dibuat.');
     }
 
-    public function resetPassword($id)
-    {
+    public function resetPassword($id){
         $akun = DB::table('pengguna')
             ->where('id_pengguna', $id)
             ->whereNull('dihapus_pada')

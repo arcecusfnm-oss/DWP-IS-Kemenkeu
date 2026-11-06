@@ -1682,3 +1682,246 @@ body::before {
         display: none;
     }
 }
+/* ================================
+   DIALOG RESET KATA SANDI
+================================ */
+
+.reset-overlay,
+.password-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(40, 20, 10, .5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1100;
+    padding: 16px;
+}
+
+.reset-overlay[hidden] {
+    display: none;
+}
+
+.reset-dialog,
+.password-dialog {
+    background: #fff;
+    border-radius: 18px;
+    padding: 30px;
+    max-width: 440px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0,0,0,.2);
+    animation: resetMuncul .2s ease;
+}
+
+@keyframes resetMuncul {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.reset-ikon {
+    width: 58px;
+    height: 58px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    background: #fff1e6;
+    color: #bd7b45;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.reset-dialog h3,
+.password-dialog h3 {
+    margin: 0 0 10px;
+    font-size: 21px;
+    color: #44332c;
+}
+
+.reset-dialog p,
+.password-dialog p {
+    margin: 0 0 22px;
+    color: #78665d;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.reset-aksi {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.reset-batal,
+.reset-ya {
+    padding: 11px 18px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+
+.reset-batal {
+    background: #fff;
+    border-color: #dfd2ca;
+    color: #68564d;
+}
+
+.reset-ya {
+    background: #a87962;
+    color: #fff;
+}
+
+/* ================================
+   MODAL PASSWORD SEMENTARA
+================================ */
+
+.password-berhasil {
+    width: 58px;
+    height: 58px;
+    margin: 0 auto 12px;
+    border-radius: 50%;
+    background: #e7f5e9;
+    color: #39834c;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.password-label {
+    display: inline-block;
+    color: #39834c;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    margin-bottom: 10px;
+}
+
+.password-info {
+    text-align: left;
+    padding: 16px;
+    border-radius: 12px;
+    background: #f8f4f1;
+    border: 1px solid #eaded6;
+    margin-bottom: 16px;
+}
+
+.password-info > span {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #917d71;
+    margin-bottom: 10px;
+}
+
+.password-value {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.password-value code {
+    font-size: 18px;
+    font-weight: 700;
+    color: #563e32;
+    letter-spacing: 1px;
+    overflow-wrap: anywhere;
+}
+
+.password-value button {
+    flex-shrink: 0;
+    border: none;
+    background: #fff;
+    color: #80604e;
+    border-radius: 8px;
+    padding: 9px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.password-peringatan {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    text-align: left;
+    padding: 12px;
+    border-radius: 10px;
+    background: #fff8e9;
+    color: #96713a;
+    font-size: 12px;
+    line-height: 1.5;
+    margin-bottom: 20px;
+}
+
+.password-peringatan svg {
+    flex-shrink: 0;
+}
+
+.password-tutup {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    background: #a87962;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.password-copy-status {
+    display: block;
+    margin-top: 10px;
+    font-size: 12px;
+    color: #39834c;
+}
+
+.akun-aksi .reset-password {
+    border: none;
+    background: transparent;
+    color: #a87962;
+    padding: 5px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.akun-aksi .reset-password:hover {
+    color: #76503d;
+}
+
+.reset-batal:hover {
+    background: #f8f3ef;
+}
+
+.reset-ya:hover,
+.password-tutup:hover {
+    background: #8d634e;
+}
+
+@media (max-width: 480px) {
+    .reset-dialog,
+    .password-dialog {
+        padding: 24px 20px;
+    }
+
+    .reset-aksi {
+        flex-direction: column-reverse;
+    }
+
+    .reset-aksi button {
+        width: 100%;
+    }
+}
