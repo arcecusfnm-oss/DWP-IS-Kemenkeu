@@ -170,8 +170,19 @@ class AkunController extends Controller
             'peran.exists'   => 'Peran tidak valid',
         ]);
 
-        $idPeran     = DB::table('peran')->where('nama_peran', $request->peran)->value('id_peran');
-        $idPeranLama = DB::table('pengguna')->where('id_pengguna', $id)->value('id_peran');
+        $idPeran = DB::table('peran')
+            ->where('nama_peran', $request->peran)
+            ->value('id_peran');
+
+        $idPeranLama = DB::table('pengguna')
+            ->where('id_pengguna', $id)
+            ->value('id_peran');
+
+        $namaPeranLama = DB::table('peran')
+            ->where('id_peran', $idPeranLama)
+            ->value('nama_peran');
+
+        $namaPeranBaru = $request->peran;
 
         if ((int) $idPeran === (int) $idPeranLama) {
             return back()
@@ -185,11 +196,13 @@ class AkunController extends Controller
         ]);
 
         Log::info('Admin mengubah peran akun', [
-            'admin_id'     => Auth::id(),
-            'akun_id'      => $id,
-            'peran_lama'   => $idPeranLama,
-            'peran_baru'   => $idPeran,
-            'dicatat_pada' => now()->toDateTimeString(),
+            'admin_id'       => Auth::id(),
+            'akun_id'        => $id,
+            'peran_lama_id'  => $idPeranLama,
+            'peran_lama'     => $namaPeranLama,
+            'peran_baru_id'  => $idPeran,
+            'peran_baru'     => $namaPeranBaru,
+            'dicatat_pada'   => now()->toDateTimeString(),
         ]);
 
         return redirect()->route('admin.akun.index')
@@ -220,8 +233,12 @@ class AkunController extends Controller
     {
         $request->validate([
             'nama'     => 'required|string|max:255',
-            'username' => ['required', 'string', 'max:50',
-                Rule::unique('pengguna', 'nama_pengguna')],
+            'username' => [
+                'required',
+                'string',
+                'max:50',
+                Rule::unique('pengguna', 'nama_pengguna')
+            ],
             'peran'    => ['required', Rule::exists('peran', 'nama_peran')],
             'bidang'   => ['required', Rule::exists('bidang', 'nama_bidang')],
             'password' => ['required', 'string', 'min:8', 'max:100'],
