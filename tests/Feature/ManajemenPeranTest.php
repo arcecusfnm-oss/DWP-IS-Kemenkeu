@@ -13,108 +13,90 @@ class ManajemenPeranTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $seed = true;
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        foreach (['Admin', 'Penasihat', 'Anggota Bidang'] as $peran) {
+            Peran::firstOrCreate(['nama_peran' => $peran]);
+        }
+
+        foreach (['Ekonomi', 'Sosial Budaya', 'Pendidikan', 'Sekretariat', 'Bendahara'] as $nama) {
+            Bidang::firstOrCreate(['nama_bidang' => $nama]);
+        }
+    }
+
+    private function idPeran(string $nama): int
+    {
+        return Peran::where('nama_peran', $nama)->value('id_peran');
+    }
+
+    private function idBidang(string $nama): int
+    {
+        return Bidang::where('nama_bidang', $nama)->value('id_bidang');
+    }
+
+    private function buatAkun(string $username, string $peran, string $bidang): Pengguna
+    {
+        return Pengguna::create([
+            'nama_lengkap' => ucfirst($username),
+            'nama_pengguna' => $username,
+            'kata_sandi_hash' => Hash::make('password123'),
+            'status' => 'aktif',
+            'perlu_ganti_kata_sandi' => false,
+            'id_peran' => $this->idPeran($peran),
+            'id_bidang' => $this->idBidang($bidang),
+        ]);
+    }
 
     public function test_admin_dapat_mengubah_peran_pengguna_dengan_peran_valid()
     {
-        // Ambil ID peran pertama dan kedua yang ada di database secara aman
-        $perans = Peran::pluck('id_peran');
-        $idAdminPeran = $perans[0] ?? Peran::create(['nama_peran' => 'Admin'])->id_peran;
-        $idTargetPeran = $perans[1] ?? Peran::create(['nama_peran' => 'Anggota'])->id_peran;
-        $idBidang = Bidang::value('id_bidang') ?? Bidang::create(['nama_bidang' => 'Umum'])->id_bidang;
+        $admin = $this->buatAkun('admin_test', 'Admin', 'Sekretariat');
+        $target = $this->buatAkun('target_user', 'Penasihat', 'Ekonomi');
 
-        $admin = Pengguna::create([
-            'nama_lengkap' => 'Admin Test',
-            'nama_pengguna' => 'admin_test',
-            'kata_sandi_hash' => Hash::make('password123'),
-            'status' => 'aktif',
-            'perlu_ganti_kata_sandi' => false,
-            'id_peran' => $idAdminPeran,
-            'id_bidang' => $idBidang,
-        ]);
+        $this->actingAs($admin)
+            ->put(route('admin.akun.peran.update', $target->id_pengguna), [
+                'peran' => 'Anggota Bidang',
+            ])
+            ->assertRedirect(route('admin.akun.index'));
 
-        $target = Pengguna::create([
-            'nama_lengkap' => 'Target User',
-            'nama_pengguna' => 'target_user',
-            'kata_sandi_hash' => Hash::make('password123'),
-            'status' => 'aktif',
-            'perlu_ganti_kata_sandi' => false,
-            'id_peran' => $idTargetPeran,
-            'id_bidang' => $idBidang,
-        ]);
-
-        // Ambil nama peran tujuan secara dinamis biar validasinya tembus
-        $namaPeranAdmin = Peran::find($idAdminPeran)->nama_peran;
-
-        $response = $this->actingAs($admin)
-                         ->put(route('admin.akun.peran.update', $target->id_pengguna), [
-                             'peran' => $namaPeranAdmin
-                         ]);
-
-        $response->assertRedirect(route('admin.akun.index'));
         $this->assertDatabaseHas('pengguna', [
             'id_pengguna' => $target->id_pengguna,
-            'id_peran' => $idAdminPeran,
+            'id_peran' => $this->idPeran('Anggota Bidang'),
+            'id_bidang' => $this->idBidang('Ekonomi'), // bidang lama dipertahankan
         ]);
     }
 
     public function test_gagal_mengubah_peran_jika_peran_di_luar_daftar()
     {
-        $perans = Peran::pluck('id_peran');
-        $idAdminPeran = $perans[0] ?? Peran::create(['nama_peran' => 'Admin'])->id_peran;
-        $idTargetPeran = $perans[1] ?? Peran::create(['nama_peran' => 'Anggota'])->id_peran;
-        $idBidang = Bidang::value('id_bidang') ?? Bidang::create(['nama_bidang' => 'Umum'])->id_bidang;
+        $admin = $this->buatAkun('admin_test', 'Admin', 'Sekretariat');
+        $target = $this->buatAkun('target_user', 'Anggota Bidang', 'Ekonomi');
 
-        $admin = Pengguna::create([
-            'nama_lengkap' => 'Admin Test',
-            'nama_pengguna' => 'admin_test',
-            'kata_sandi_hash' => Hash::make('password123'),
-            'status' => 'aktif',
-            'perlu_ganti_kata_sandi' => false,
-            'id_peran' => $idAdminPeran,
-            'id_bidang' => $idBidang,
+        $this->actingAs($admin)
+            ->put(route('admin.akun.peran.update', $target->id_pengguna), [
+                'peran' => 'PeranHantu',
+            ])
+            ->assertSessionHasErrors('peran');
+
+        $this->assertDatabaseHas('pengguna', [
+            'id_pengguna' => $target->id_pengguna,
+            'id_peran' => $this->idPeran('Anggota Bidang'),
         ]);
-
-        $target = Pengguna::create([
-            'nama_lengkap' => 'Target User',
-            'nama_pengguna' => 'target_user',
-            'kata_sandi_hash' => Hash::make('password123'),
-            'status' => 'aktif',
-            'perlu_ganti_kata_sandi' => false,
-            'id_peran' => $idTargetPeran,
-            'id_bidang' => $idBidang,
-        ]);
-
-        $response = $this->actingAs($admin)
-                         ->put(route('admin.akun.peran.update', $target->id_pengguna), [
-                             'peran' => 'PeranHantu'
-                         ]);
-
-        $response->assertSessionHasErrors('peran');
     }
 
     public function test_admin_tidak_dapat_mengubah_peran_akun_sendiri()
     {
-        $idAdminPeran = Peran::value('id_peran') ?? Peran::create(['nama_peran' => 'Admin'])->id_peran;
-        $idBidang = Bidang::value('id_bidang') ?? Bidang::create(['nama_bidang' => 'Umum'])->id_bidang;
+        $admin = $this->buatAkun('admin_test', 'Admin', 'Sekretariat');
 
-        $admin = Pengguna::create([
-            'nama_lengkap' => 'Admin Test',
-            'nama_pengguna' => 'admin_test',
-            'kata_sandi_hash' => Hash::make('password123'),
-            'status' => 'aktif',
-            'perlu_ganti_kata_sandi' => false,
-            'id_peran' => $idAdminPeran,
-            'id_bidang' => $idBidang,
+        $this->actingAs($admin)
+            ->put(route('admin.akun.peran.update', $admin->id_pengguna), [
+                'peran' => 'Anggota Bidang',
+            ])
+            ->assertStatus(403);
+
+        $this->assertDatabaseHas('pengguna', [
+            'id_pengguna' => $admin->id_pengguna,
+            'id_peran' => $this->idPeran('Admin'),
         ]);
-
-        $namaPeranLain = Peran::where('id_peran', '!=', $idAdminPeran)->value('nama_peran') ?? 'Anggota';
-
-        $response = $this->actingAs($admin)
-                         ->put(route('admin.akun.peran.update', $admin->id_pengguna), [
-                             'peran' => $namaPeranLain
-                         ]);
-
-        $response->assertStatus(403);
     }
 }
