@@ -101,10 +101,7 @@
                     <div class="akun-input">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="12" height="18" rx="1"/><path d="M16 9h4v12h-4M8 7h4M8 11h4M8 15h4"/></svg>
                         <select id="bidang" name="bidang">
-                            <option value="">Pilih Bidang</option>
-                            @foreach ($daftarBidang as $b)
-                                <option value="{{ $b }}" @selected(old('bidang') === $b)>{{ $b }}</option>
-                            @endforeach
+                            <option value="">Pilih peran dulu</option>
                         </select>
                     </div>
                     @isset($err['bidang'])
@@ -151,5 +148,51 @@
         input.type = tampil ? 'text' : 'password';
         this.setAttribute('aria-label', tampil ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi');
     });
+</script>
+<div id="dwpData" hidden
+     data-peta="{{ json_encode($petaBidang) }}"
+     data-penuh="{{ json_encode($penuh) }}"
+     data-lama="{{ old('bidang') }}">
+</div>
+<script>
+(function () {
+    const data   = document.getElementById('dwpData').dataset;
+    const peta   = JSON.parse(data.peta);
+    const penuh  = JSON.parse(data.penuh);
+    const lama   = data.lama;
+    const peran  = document.getElementById('peran');
+    const bidang = document.getElementById('bidang');
+
+    if (!peran || !bidang) {
+        console.error('Select #peran atau #bidang tidak ditemukan');
+        return;
+    }
+
+    function isiBidang() {
+        const boleh  = peran.value ? (peta[peran.value] || []) : [];
+        const terisi = penuh[peran.value] || [];
+        bidang.innerHTML = '';
+
+        const kosong = document.createElement('option');
+        kosong.value = '';
+        kosong.textContent = peran.value ? 'Pilih Bidang' : 'Pilih peran dulu';
+        bidang.appendChild(kosong);
+
+        boleh.forEach(function (b) {
+            const o = document.createElement('option');
+            const isi = terisi.includes(b);
+            o.value = b;
+            o.textContent = isi ? b + ' (sudah terisi)' : b;
+            o.disabled = isi;
+            bidang.appendChild(o);
+        });
+
+        if (boleh.length === 1) bidang.value = boleh[0];
+        else if (lama && boleh.includes(lama) && !terisi.includes(lama)) bidang.value = lama;
+    }
+
+    peran.addEventListener('change', isiBidang);
+    isiBidang();
+})();
 </script>
 @endsection

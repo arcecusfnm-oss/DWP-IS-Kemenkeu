@@ -2312,3 +2312,20 @@ body::before {
     }
 }
 .akun-alert.akun-alert-galat { background: #fde8e6; border-color: #e8b4ae; color: #c0392b; }
+
+/* Sembunyikan tombol reveal/clear bawaan Edge, pakai tombol custom aja */
+.isian-sandi input[type="password"]::-ms-reveal,
+.isian-sandi input[type="password"]::-ms-clear {
+    display: none;
+}
+
+/* Opsional: cegah ikon autofill bawaan browser lain nimpa tombol custom */
+.isian-sandi input::-webkit-credentials-auto-fill-button {
+    visibility: hidden;
+    pointer-events: none;
+    position: absolute;
+    right: 0;
+}
+.isian-sandi input {
+    padding-right: 44px; /* sesuaikan dengan lebar .tombol-lihat */
+}

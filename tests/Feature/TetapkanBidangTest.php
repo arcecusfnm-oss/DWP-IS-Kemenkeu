@@ -24,8 +24,6 @@ class TetapkanBidangTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $seed = true;
-
     private const NAMA_BIDANG = [
         'Ekonomi',
         'Sosial Budaya',
@@ -36,20 +34,25 @@ class TetapkanBidangTest extends TestCase
 
     private Pengguna $admin;
     private Pengguna $target;
+    private int $idPeranAnggota;
 
     protected function setUp(): void
     {
         parent::setUp();
 
         $peranAdmin = Peran::firstOrCreate(['nama_peran' => 'Admin']);
+        $peranAnggota = Peran::firstOrCreate(['nama_peran' => 'Anggota Bidang']);
+        $this->idPeranAnggota = $peranAnggota->id_peran;
 
         foreach (self::NAMA_BIDANG as $nama) {
             Bidang::firstOrCreate(['nama_bidang' => $nama]);
         }
 
         // Kolom pengguna.id_bidang NOT NULL, jadi setiap akun harus punya bidang awal.
+        // Admin hanya boleh bidang Sekretariat; target berperan Anggota Bidang
+        // supaya boleh ditetapkan ke kelima bidang (sesuai config/dwp.php).
         $this->admin  = $this->buatPengguna('admin_t70', $peranAdmin->id_peran, $this->idBidang('Sekretariat'));
-        $this->target = $this->buatPengguna('target_t70', $peranAdmin->id_peran, $this->idBidang('Sosial Budaya'));
+        $this->target = $this->buatPengguna('target_t70', $this->idPeranAnggota, $this->idBidang('Sosial Budaya'));
     }
 
     // ---------- Helper ----------
@@ -188,7 +191,7 @@ class TetapkanBidangTest extends TestCase
         $idA = $this->idBidang('Pendidikan');
         $idB = $this->idBidang('Bendahara');
 
-        $akunLain = $this->buatPengguna('akun_lain_t70', $this->admin->id_peran, $idA);
+        $akunLain = $this->buatPengguna('akun_lain_t70', $this->idPeranAnggota, $idA);
 
         $this->tetapkan($this->target, $idB)->assertSessionHasNoErrors();
 
