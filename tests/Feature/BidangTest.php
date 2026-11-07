@@ -112,4 +112,38 @@ class BidangTest extends TestCase
 
         $this->assertDatabaseMissing('bidang', ['nama_bidang' => 'Pendidikan']);
     }
+
+    // Tipe data bukan string
+    public function test_nama_bidang_bukan_string_ditolak(): void
+    {
+        $this->actingAs($this->buatAdmin())
+            ->post(route('admin.bidang.store'), [
+                'nama_bidang' => ['Pendidikan'],
+            ])
+            ->assertSessionHasErrors([
+                'nama_bidang' => 'Nama bidang harus berupa teks.',
+            ]);
+
+        $this->assertDatabaseMissing('bidang', [
+            'nama_bidang' => 'Pendidikan',
+        ]);
+    }
+
+    // Nama bidang melebihi 255 karakter
+    public function test_nama_bidang_lebih_dari_255_karakter_ditolak(): void
+    {
+        $namaBidang = str_repeat('A', 256);
+
+        $this->actingAs($this->buatAdmin())
+            ->post(route('admin.bidang.store'), [
+                'nama_bidang' => $namaBidang,
+            ])
+            ->assertSessionHasErrors([
+                'nama_bidang' => 'Nama bidang maksimal 255 karakter.',
+            ]);
+
+        $this->assertDatabaseMissing('bidang', [
+            'nama_bidang' => $namaBidang,
+        ]);
+    }
 }
