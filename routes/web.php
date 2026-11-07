@@ -9,7 +9,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\NoCache;
 
 // Halaman utama (publik)
-Route::view('/', 'landing')->name('beranda');
+Route::view('/', 'landing')
+    ->middleware(NoCache::class)
+    ->name('beranda');
 
 // Halaman login
 Route::view('/login', 'auth.login')
@@ -68,3 +70,7 @@ Route::middleware(['auth', 'role:Admin', NoCache::class])
         Route::put('/{id}/peran', [AkunController::class, 'updatePeran'])->whereNumber('id')->name('peran.update');
         Route::post('/{id}/reset-password', [AkunController::class, 'resetPassword'])->whereNumber('id')->name('reset-password');
     });
+
+    Route::post('/ubah-kata-sandi', [ChangePasswordController::class, 'update'])
+    ->middleware(['auth', NoCache::class])
+    ->name('password.update');
