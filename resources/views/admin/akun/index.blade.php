@@ -265,6 +265,42 @@
     </div>
 </div>
 
+
+{{-- Dialog konfirmasi reset kata sandi --}}
+<div class="hapus-overlay" id="resetOverlay" hidden>
+    <div class="hapus-dialog" role="dialog" aria-modal="true"
+        aria-labelledby="resetJudul">
+
+        <div class="hapus-ikon">
+            <svg width="28" height="28" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="7.5" cy="15.5" r="4.5"/>
+                <path d="m10.7 12.3 9.3-9.3M17 6l3 3M14 9l2 2"/>
+            </svg>
+        </div>
+
+        <h3 id="resetJudul">Reset Kata Sandi?</h3>
+
+        <p>
+            Kata sandi akun <b id="resetNama"></b> akan direset.
+            Sistem akan membuat kata sandi sementara yang baru.
+        </p>
+
+        <form method="POST" id="resetForm" action="">
+            @csrf
+            <div class="hapus-aksi">
+                <button type="button" class="hapus-batal" id="resetBatal">
+                    Batal
+                </button>
+                <button type="submit" class="hapus-ya">
+                    Ya, Reset Kata Sandi
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 {{-- Modal kata sandi sementara --}}
 @if (session()->has('kata_sandi_sementara'))
 <div class="password-overlay" id="passwordOverlay">
