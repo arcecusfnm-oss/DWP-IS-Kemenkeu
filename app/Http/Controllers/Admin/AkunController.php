@@ -105,8 +105,12 @@ class AkunController extends Controller
 
         $request->validate([
             'nama'     => 'required|string|max:255',
-            'username' => ['required', 'string', 'max:50',
-                Rule::unique('pengguna', 'nama_pengguna')->ignore($id, 'id_pengguna')],
+            'username' => [
+                'required',
+                'string',
+                'max:50',
+                Rule::unique('pengguna', 'nama_pengguna')->ignore($id, 'id_pengguna')
+            ],
             'bidang'   => ['required', Rule::exists('bidang', 'nama_bidang')],
         ], [
             'nama.required'     => 'Nama lengkap wajib diisi',
@@ -127,6 +131,41 @@ class AkunController extends Controller
 
         return redirect()->route('admin.akun.index')
             ->with('sukses', 'Data akun berhasil diubah.');
+    }
+
+    public function updateBidang(Request $request, $id)
+    {
+        // Pastikan akun tersedia dan belum dihapus
+        $ada = DB::table('pengguna')
+            ->where('id_pengguna', $id)
+            ->whereNull('dihapus_pada')
+            ->exists();
+
+        abort_if(!$ada, 404);
+
+        // Validasi bidang harus terdaftar di database
+        $request->validate([
+            'id_bidang' => [
+                'required',
+                'integer',
+                Rule::exists('bidang', 'id_bidang'),
+            ],
+        ], [
+            'id_bidang.required' => 'Bidang wajib dipilih.',
+            'id_bidang.integer'  => 'ID bidang tidak valid.',
+            'id_bidang.exists'   => 'Bidang tidak terdaftar.',
+        ]);
+
+        // Tetapkan bidang baru pada akun
+        DB::table('pengguna')
+            ->where('id_pengguna', $id)
+            ->update([
+                'id_bidang'  => $request->id_bidang,
+                'updated_at' => now(),
+            ]);
+
+        return redirect()->route('admin.akun.index')
+            ->with('sukses', 'Bidang akun berhasil diperbarui.');
     }
 
     public function editPeran($id)
@@ -209,7 +248,8 @@ class AkunController extends Controller
             ->with('sukses', 'Peran akun berhasil diubah.');
     }
 
-    public function destroy($id){
+    public function destroy($id)
+    {
         // Admin tidak boleh menghapus akunnya sendiri
         if ((int) $id === (int) Auth::id()) {
             abort(403, 'Anda tidak dapat menghapus akun Anda sendiri.');
@@ -290,7 +330,8 @@ class AkunController extends Controller
             ->with('sukses', 'Akun berhasil dibuat.');
     }
 
-    public function resetPassword($id){
+    public function resetPassword($id)
+    {
         $akun = DB::table('pengguna')
             ->where('id_pengguna', $id)
             ->whereNull('dihapus_pada')
