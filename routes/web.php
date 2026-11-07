@@ -55,6 +55,11 @@ Route::post('/ubah-kata-sandi', [ChangePasswordController::class, 'update'])
     ->middleware(['auth', NoCache::class])
     ->name('password.update');
 
+// Layar wajib ganti kata sandi (setelah reset), untuk semua peran
+Route::view('/ganti-kata-sandi', 'auth.ganti-kata-sandi')
+    ->middleware(['auth', NoCache::class])
+    ->name('password.edit');
+
 // Kelola Akun
 Route::middleware(['auth', 'role:Admin', NoCache::class])
     ->prefix('admin/akun')

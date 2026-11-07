@@ -50,12 +50,22 @@ class ChangePasswordController extends Controller
 
         // Simpan kata sandi baru.
         // Model Pengguna otomatis melakukan hashing melalui cast hashed.
+        $wajibGanti = (bool) $pengguna->perlu_ganti_kata_sandi;
+
         $pengguna->kata_sandi_hash = $validated['kata_sandi_baru'];
+        $pengguna->perlu_ganti_kata_sandi = false;
         $pengguna->save();
 
-        return back()->with(
-            'success',
-            'Kata sandi berhasil diubah.'
-        );
+        // Alur paksa (setelah reset): lanjut ke halaman tujuan sesuai peran.
+        if ($wajibGanti) {
+            $tujuan = $pengguna->peran?->nama_peran === 'Admin'
+                ? route('admin.dashboard')
+                : route('beranda');
+
+            return redirect($tujuan)->with('success', 'Kata sandi berhasil diubah.');
+        }
+
+        // Alur biasa (B-003, form di /admin/profil): perilaku tetap sama.
+        return back()->with('success', 'Kata sandi berhasil diubah.');
     }
 }
