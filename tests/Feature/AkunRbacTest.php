@@ -17,7 +17,7 @@ class AkunRbacTest extends TestCase
     private function buatAkun(string $namaPeran, string $username): Pengguna
     {
         $peran = Peran::firstOrCreate(['nama_peran' => $namaPeran]);
-        $bidang = Bidang::firstOrCreate(['nama_bidang' => 'Umum']);
+        $bidang = Bidang::firstOrCreate(['nama_bidang' => 'Sekretariat']);
 
         return Pengguna::create([
             'nama_lengkap' => 'Akun ' . $username,
@@ -37,14 +37,14 @@ class AkunRbacTest extends TestCase
 
     private function dataValid(array $ubah = []): array
     {
-        Peran::firstOrCreate(['nama_peran' => 'Anggota']);
-        Bidang::firstOrCreate(['nama_bidang' => 'Umum']);
+        Peran::firstOrCreate(['nama_peran' => 'Anggota Bidang']);
+        Bidang::firstOrCreate(['nama_bidang' => 'Ekonomi']);
 
         return array_merge([
             'nama'     => 'Budi Santoso',
             'username' => 'budi.santoso',
-            'peran'    => 'Anggota',
-            'bidang'   => 'Umum',
+            'peran'    => 'Anggota Bidang',
+            'bidang'   => 'Ekonomi',
             'password' => 'Rahasia123',
         ], $ubah);
     }
@@ -79,7 +79,7 @@ class AkunRbacTest extends TestCase
     public function test_nama_pengguna_ganda_ditolak(): void
     {
         $admin = $this->buatAdmin();
-        $this->buatAkun('Anggota', 'budi.santoso');
+        $this->buatAkun('Anggota Bidang', 'budi.santoso');
 
         $this->actingAs($admin)
             ->post(route('admin.akun.store'), $this->dataValid())
@@ -91,7 +91,7 @@ class AkunRbacTest extends TestCase
     // AC B-004 no. 5: peran bukan Admin
     public static function peranBukanAdmin(): array
     {
-        return [['Anggota'], ['Ketua Bidang']];
+        return [['Anggota Bidang'], ['Penasihat']];
     }
 
     #[DataProvider('peranBukanAdmin')]
@@ -122,7 +122,7 @@ class AkunRbacTest extends TestCase
         $this->assertDatabaseMissing('pengguna', ['nama_pengguna' => 'budi.santoso']);
     }
 
-        // AC B-004 no. 4: kata sandi minimal 8 karakter dan disimpan sebagai hash
+    // AC B-004 no. 4: kata sandi minimal 8 karakter dan disimpan sebagai hash
     public function test_kata_sandi_7_karakter_ditolak(): void
     {
         $this->actingAs($this->buatAdmin())

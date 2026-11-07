@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Rules\BidangSesuaiPeran;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -63,12 +64,25 @@ class AkunController extends Controller
         return view('admin.akun.index', compact('akun', 'stat', 'daftarPeran', 'daftarBidang'));
     }
 
-    public function create()
+    private function slotPenuh(): array
     {
-        $daftarPeran  = DB::table('peran')->orderBy('id_peran')->pluck('nama_peran');
-        $daftarBidang = DB::table('bidang')->orderBy('nama_bidang')->pluck('nama_bidang');
+        $penuh = [];
+        foreach (array_keys(config('dwp.slot')) as $p) {
+            foreach (config('dwp.bidang') as $b) {
+                if (BidangSesuaiPeran::slotTerisi($p, $b)) {
+                    $penuh[$p][] = $b;
+                }
+            }
+        }
+        return $penuh;
+    }
 
-        return view('admin.akun.create', compact('daftarPeran', 'daftarBidang'));
+    public function create(){
+        return view('admin.akun.create', [
+            'daftarPeran' => config('dwp.peran_dipilih'),
+            'petaBidang'  => config('dwp.peran_bidang'),
+            'penuh'       => $this->slotPenuh(),
+        ]);
     }
 
     public function edit($id)
@@ -89,19 +103,20 @@ class AkunController extends Controller
 
         abort_if(!$akun, 404);
 
-        $daftarBidang = DB::table('bidang')->orderBy('nama_bidang')->pluck('nama_bidang');
+        $daftarBidang = config('dwp.peran_bidang')[$akun->nama_peran] ?? [];
 
         return view('admin.akun.edit', compact('akun', 'daftarBidang'));
     }
 
-    public function update(Request $request, $id)
-    {
-        $ada = DB::table('pengguna')
-            ->where('id_pengguna', $id)
-            ->whereNull('dihapus_pada')
-            ->exists();
+    public function update(Request $request, $id){
+        $akun = DB::table('pengguna')
+            ->join('peran', 'pengguna.id_peran', '=', 'peran.id_peran')
+            ->whereNull('pengguna.dihapus_pada')
+            ->where('pengguna.id_pengguna', $id)
+            ->select('pengguna.id_pengguna', 'peran.nama_peran')
+            ->first();
 
-        abort_if(!$ada, 404);
+        abort_if(!$akun, 404);
 
         $request->validate([
             'nama'     => 'required|string|max:255',
@@ -111,7 +126,12 @@ class AkunController extends Controller
                 'max:50',
                 Rule::unique('pengguna', 'nama_pengguna')->ignore($id, 'id_pengguna')
             ],
-            'bidang'   => ['required', Rule::exists('bidang', 'nama_bidang')],
+            'bidang'   => [
+                'bail',
+                'required',
+                Rule::exists('bidang', 'nama_bidang'),
+                new BidangSesuaiPeran($akun->nama_peran, (int) $akun->id_pengguna),
+            ],
         ], [
             'nama.required'     => 'Nama lengkap wajib diisi',
             'username.required' => 'Nama pengguna wajib diisi',
@@ -133,36 +153,35 @@ class AkunController extends Controller
             ->with('sukses', 'Data akun berhasil diubah.');
     }
 
-    public function updateBidang(Request $request, $id)
-    {
-        // Pastikan akun tersedia dan belum dihapus
-        $ada = DB::table('pengguna')
-            ->where('id_pengguna', $id)
-            ->whereNull('dihapus_pada')
-            ->exists();
+    public function updateBidang(Request $request, $id){
+        $akun = DB::table('pengguna')
+            ->join('peran', 'pengguna.id_peran', '=', 'peran.id_peran')
+            ->whereNull('pengguna.dihapus_pada')
+            ->where('pengguna.id_pengguna', $id)
+            ->select('pengguna.id_pengguna', 'peran.nama_peran')
+            ->first();
 
-        abort_if(!$ada, 404);
+        abort_if(!$akun, 404);
 
-        // Validasi bidang harus terdaftar di database
         $request->validate([
-            'id_bidang' => [
-                'required',
-                'integer',
-                Rule::exists('bidang', 'id_bidang'),
-            ],
+            'id_bidang' => ['required', 'integer', Rule::exists('bidang', 'id_bidang')],
         ], [
             'id_bidang.required' => 'Bidang wajib dipilih.',
             'id_bidang.integer'  => 'ID bidang tidak valid.',
             'id_bidang.exists'   => 'Bidang tidak terdaftar.',
         ]);
 
-        // Tetapkan bidang baru pada akun
-        DB::table('pengguna')
-            ->where('id_pengguna', $id)
-            ->update([
-                'id_bidang'  => $request->id_bidang,
-                'updated_at' => now(),
-            ]);
+        $namaBidang = DB::table('bidang')->where('id_bidang', $request->id_bidang)->value('nama_bidang');
+
+        $rule = new BidangSesuaiPeran($akun->nama_peran, (int) $akun->id_pengguna);
+        $rule->validate('id_bidang', $namaBidang, function ($pesan) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['id_bidang' => $pesan]);
+        });
+
+        DB::table('pengguna')->where('id_pengguna', $id)->update([
+            'id_bidang'  => $request->id_bidang,
+            'updated_at' => now(),
+        ]);
 
         return redirect()->route('admin.akun.index')
             ->with('sukses', 'Bidang akun berhasil diperbarui.');
@@ -185,63 +204,74 @@ class AkunController extends Controller
         abort_if((int) $id === (int) Auth::id(), 403);
         abort_if(!$akun, 404);
 
-        $daftarPeran = DB::table('peran')->orderBy('id_peran')->pluck('nama_peran');
+        $daftarPeran = config('dwp.peran_dipilih');
 
         return view('admin.akun.peran', compact('akun', 'daftarPeran'));
     }
 
-    public function updatePeran(Request $request, $id)
-    {
+    public function updatePeran(Request $request, $id){
         // Admin tidak boleh mengubah peran akunnya sendiri
         abort_if((int) $id === (int) Auth::id(), 403);
 
-        $ada = DB::table('pengguna')
-            ->where('id_pengguna', $id)
-            ->whereNull('dihapus_pada')
-            ->exists();
+        $akun = DB::table('pengguna')
+            ->join('peran', 'pengguna.id_peran', '=', 'peran.id_peran')
+            ->join('bidang', 'pengguna.id_bidang', '=', 'bidang.id_bidang')
+            ->whereNull('pengguna.dihapus_pada')
+            ->where('pengguna.id_pengguna', $id)
+            ->select(
+                'pengguna.id_pengguna',
+                'pengguna.id_peran',
+                'peran.nama_peran',
+                'bidang.nama_bidang'
+            )
+            ->first();
 
-        abort_if(!$ada, 404);
+        abort_if(!$akun, 404);
 
         $request->validate([
-            'peran' => ['required', Rule::exists('peran', 'nama_peran')],
+            'peran' => ['required', Rule::in(config('dwp.peran_dipilih'))],
         ], [
             'peran.required' => 'Peran wajib dipilih',
-            'peran.exists'   => 'Peran tidak valid',
+            'peran.in'       => 'Peran tidak valid',
         ]);
-
-        $idPeran = DB::table('peran')
-            ->where('nama_peran', $request->peran)
-            ->value('id_peran');
-
-        $idPeranLama = DB::table('pengguna')
-            ->where('id_pengguna', $id)
-            ->value('id_peran');
-
-        $namaPeranLama = DB::table('peran')
-            ->where('id_peran', $idPeranLama)
-            ->value('nama_peran');
 
         $namaPeranBaru = $request->peran;
 
-        if ((int) $idPeran === (int) $idPeranLama) {
+        if ($namaPeranBaru === $akun->nama_peran) {
             return back()
                 ->withErrors(['peran' => 'Peran baru tidak boleh sama dengan peran saat ini'])
                 ->withInput();
         }
 
+        // Bidang lama dipertahankan kalau masih cocok dengan peran baru,
+        // kalau tidak (mis. jadi Bendahara) otomatis pindah ke bidang yang diizinkan.
+        $boleh      = config('dwp.peran_bidang')[$namaPeranBaru];
+        $bidangBaru = in_array($akun->nama_bidang, $boleh, true) ? $akun->nama_bidang : $boleh[0];
+
+        if (BidangSesuaiPeran::slotTerisi($namaPeranBaru, $bidangBaru, (int) $akun->id_pengguna)) {
+            return back()
+                ->withErrors(['peran' => "Peran {$namaPeranBaru} untuk bidang {$bidangBaru} sudah terisi."])
+                ->withInput();
+        }
+
+        $idPeranBaru  = DB::table('peran')->where('nama_peran', $namaPeranBaru)->value('id_peran');
+        $idBidangBaru = DB::table('bidang')->where('nama_bidang', $bidangBaru)->value('id_bidang');
+
         DB::table('pengguna')->where('id_pengguna', $id)->update([
-            'id_peran'   => $idPeran,
+            'id_peran'   => $idPeranBaru,
+            'id_bidang'  => $idBidangBaru,
             'updated_at' => now(),
         ]);
 
         Log::info('Admin mengubah peran akun', [
-            'admin_id'       => Auth::id(),
-            'akun_id'        => $id,
-            'peran_lama_id'  => $idPeranLama,
-            'peran_lama'     => $namaPeranLama,
-            'peran_baru_id'  => $idPeran,
-            'peran_baru'     => $namaPeranBaru,
-            'dicatat_pada'   => now()->toDateTimeString(),
+            'admin_id'      => Auth::id(),
+            'akun_id'       => $id,
+            'peran_lama_id' => $akun->id_peran,
+            'peran_lama'    => $akun->nama_peran,
+            'peran_baru_id' => $idPeranBaru,
+            'peran_baru'    => $namaPeranBaru,
+            'bidang_baru'   => $bidangBaru,
+            'dicatat_pada'  => now()->toDateTimeString(),
         ]);
 
         return redirect()->route('admin.akun.index')
@@ -279,8 +309,7 @@ class AkunController extends Controller
             ->with('sukses', 'Akun berhasil dihapus.');
     }
 
-    public function store(Request $request)
-    {
+    public function store(Request $request){
         $request->validate([
             'nama'     => 'required|string|max:255',
             'username' => [
@@ -289,15 +318,20 @@ class AkunController extends Controller
                 'max:50',
                 Rule::unique('pengguna', 'nama_pengguna')
             ],
-            'peran'    => ['required', Rule::exists('peran', 'nama_peran')],
-            'bidang'   => ['required', Rule::exists('bidang', 'nama_bidang')],
+            'peran'    => ['required', Rule::in(config('dwp.peran_dipilih'))],
+            'bidang'   => [
+                'bail',
+                'required',
+                Rule::exists('bidang', 'nama_bidang'),
+                new BidangSesuaiPeran($request->input('peran')),
+            ],
             'password' => ['required', 'string', 'min:8', 'max:100'],
         ], [
             'nama.required'     => 'Nama lengkap wajib diisi',
             'username.required' => 'Nama pengguna wajib diisi',
             'username.unique'   => 'Nama pengguna sudah digunakan',
             'peran.required'    => 'Peran wajib dipilih',
-            'peran.exists'      => 'Peran tidak valid',
+            'peran.in'          => 'Peran tidak valid',
             'bidang.required'   => 'Bidang wajib dipilih',
             'bidang.exists'     => 'Bidang tidak valid',
             'password.required' => 'Kata sandi awal wajib diisi',
