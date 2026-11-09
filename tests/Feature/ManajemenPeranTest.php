@@ -17,7 +17,7 @@ class ManajemenPeranTest extends TestCase
     {
         parent::setUp();
 
-        foreach (['Admin', 'Penasihat', 'Anggota Bidang'] as $peran) {
+        foreach (['Admin', 'Penanggung Jawab', 'Anggota Bidang'] as $peran) {
             Peran::firstOrCreate(['nama_peran' => $peran]);
         }
 
@@ -52,7 +52,7 @@ class ManajemenPeranTest extends TestCase
     public function test_admin_dapat_mengubah_peran_pengguna_dengan_peran_valid()
     {
         $admin = $this->buatAkun('admin_test', 'Admin', 'Sekretariat');
-        $target = $this->buatAkun('target_user', 'Penasihat', 'Ekonomi');
+        $target = $this->buatAkun('target_user', 'Penanggung Jawab', 'Ekonomi');
 
         $this->actingAs($admin)
             ->put(route('admin.akun.peran.update', $target->id_pengguna), [

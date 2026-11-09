@@ -164,7 +164,7 @@
                                 </td>
                                 <td class="akun-username">{{ $a->nama_pengguna }}</td>
                                 <td><span class="akun-pill">{{ $a->nama_peran }}</span></td>
-                                <td>{{ $a->nama_bidang }}</td>
+                                <td>{{ $a->nama_bidang ?? '—' }}</td>
                                 <td>
                                     <span class="akun-status {{ $a->status === 'aktif' ? 'aktif' : 'nonaktif' }}">
                                         <i></i>{{ ucfirst($a->status) }}

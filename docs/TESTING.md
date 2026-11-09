@@ -30,11 +30,11 @@ php artisan test
 
 \## Fixture (dari migration T-07)
 
-\- 5 peran: Admin, Penasihat, Pimpinan Bidang, Anggota Bidang, Bendahara
+\- 5 peran: Admin, Penanggung Jawab, Pimpinan Bidang, Anggota Bidang, Bendahara
 
 \- 5 bidang: Ekonomi, Sosial Budaya, Pendidikan, Sekretariat, Bendahara
 
-\- Akun uji (nama pengguna): admin, penasihat, pimpinan, anggota, bendahara (aktif), nonaktif (status nonaktif)
+\- Akun uji (nama pengguna): admin, penanggungjawab, pimpinan, anggota, bendahara (aktif), nonaktif (status nonaktif)
 
 \- Kata sandi dari SEED_ADMIN_PASSWORD dan SEED_USER_PASSWORD di .env, tidak ditulis di kode
 

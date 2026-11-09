@@ -29,7 +29,7 @@ class PenggunaSeeder extends Seeder
         // [nama_lengkap, nama_pengguna, kata sandi, peran, bidang, status]
         $akun = [
             ['Admin Uji', 'admin', $passAdmin, 'Admin', 'Sekretariat', 'aktif'],
-            ['Penasihat Uji', 'penasihat', $passUser, 'Penasihat', 'Sekretariat', 'aktif'],
+            ['Penanggung Jawab Uji', 'penanggungjawab', $passUser, 'Penanggung Jawab', 'Sekretariat', 'aktif'],
             ['Pimpinan Ekonomi', 'pimpinan', $passUser, 'Pimpinan Bidang', 'Ekonomi', 'aktif'],
             ['Anggota Pendidikan', 'anggota', $passUser, 'Anggota Bidang', 'Pendidikan', 'aktif'],
             ['Bendahara Uji', 'bendahara', $passUser, 'Bendahara', 'Bendahara', 'aktif'],

@@ -80,21 +80,32 @@
                     <p class="akun-hint">Peran tidak bisa diubah di sini.</p>
                 </div>
 
-                <div class="akun-field {{ isset($err['bidang']) ? 'has-error' : '' }}">
-                    <label for="bidang">Bidang <em>*</em></label>
-                    <div class="akun-input">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="12" height="18" rx="1"/><path d="M16 9h4v12h-4M8 7h4M8 11h4M8 15h4"/></svg>
-                        <select id="bidang" name="bidang">
-                            <option value="">Pilih Bidang</option>
-                            @foreach ($daftarBidang as $b)
-                                <option value="{{ $b }}" @selected(old('bidang', $akun->nama_bidang) === $b)>{{ $b }}</option>
-                            @endforeach
-                        </select>
+                @if (count($daftarBidang))
+                    <div class="akun-field {{ isset($err['bidang']) ? 'has-error' : '' }}">
+                        <label for="bidang">Bidang <em>*</em></label>
+                        <div class="akun-input">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="12" height="18" rx="1"/><path d="M16 9h4v12h-4M8 7h4M8 11h4M8 15h4"/></svg>
+                            <select id="bidang" name="bidang">
+                                <option value="">Pilih Bidang</option>
+                                @foreach ($daftarBidang as $b)
+                                    <option value="{{ $b }}" @selected(old('bidang', $akun->nama_bidang) === $b)>{{ $b }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @isset($err['bidang'])
+                            <p class="akun-error">{!! $ikonSalah !!} {{ $err['bidang'] }}</p>
+                        @endisset
                     </div>
-                    @isset($err['bidang'])
-                        <p class="akun-error">{!! $ikonSalah !!} {{ $err['bidang'] }}</p>
-                    @endisset
-                </div>
+                @else
+                    <div class="akun-field">
+                        <label for="bidang">Bidang</label>
+                        <div class="akun-input">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="12" height="18" rx="1"/><path d="M16 9h4v12h-4M8 7h4M8 11h4M8 15h4"/></svg>
+                            <input type="text" id="bidang" value="Tidak memerlukan bidang" disabled>
+                        </div>
+                        <p class="akun-hint">Peran {{ $akun->nama_peran }} tidak terikat bidang.</p>
+                    </div>
+                @endif
             </div>
 
             <div class="akun-form-aksi">

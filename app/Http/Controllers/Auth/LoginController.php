@@ -144,11 +144,11 @@ class LoginController extends Controller
             null
         );
 
-        if ($pengguna->peran->nama_peran === 'Admin') {
-            return redirect()->route('admin.dashboard');
-        }
-
-        return redirect()->route('beranda');
+        return match ($pengguna->peran->nama_peran) {
+            'Admin'     => redirect()->route('admin.dashboard'),
+            'Penasihat' => redirect()->route('penasihat.dashboard'),
+            default     => redirect()->route('beranda'),
+        };
     }
 
     public function logout(Request $request): RedirectResponse

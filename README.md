@@ -107,14 +107,14 @@ Struktur database disiapkan menggunakan fitur migrasi Laravel.
    ```
 
 ### Data Awal yang Dihasilkan Seeder:
-- **Peran:** Admin, Penasihat, Pimpinan Bidang, Anggota Bidang, Bendahara.
+- **Peran:** Admin, Penanggung Jawab, Pimpinan Bidang, Anggota Bidang, Bendahara.
 - **Bidang:** Ekonomi, Sosial Budaya, Pendidikan, Sekretariat, Bendahara.
 - **Akun Uji Bawaan:**
 
 | Nama Pengguna | Peran | Status |
 | :--- | :--- | :--- |
 | `admin` | Admin | Aktif |
-| `penasihat` | Penasihat | Aktif |
+| `penanggungjawab` | Penanggung Jawab | Aktif |
 | `pimpinan` | Pimpinan Bidang | Aktif |
 | `anggota` | Anggota Bidang | Aktif |
 | `bendahara` | Bendahara | Aktif |
