@@ -18,15 +18,27 @@
     $adminNama = $adminNama ?? auth()->user()->nama_lengkap;
     $adminUnit = $adminUnit ?? \Illuminate\Support\Facades\DB::table('peran')->where('id_peran', auth()->user()->id_peran)->value('nama_peran');
 
-    $menu = [
-        ['label' => 'Dasbor', 'icon' => 'dashboard', 'href' => 'admin.dashboard', 'route' => 'admin.dashboard'],
-        ['label' => 'Struktur Organisasi', 'icon' => 'org', 'href' => null, 'route' => 'admin.struktur.*'],
-        ['label' => 'Kelola Akun', 'icon' => 'users', 'href' => 'admin.akun.index', 'route' => 'admin.akun.*'],
-        ['label' => 'Kelola Bidang', 'icon' => 'shapes', 'href' => 'admin.bidang.index', 'route' => 'admin.bidang.*'],
-        ['label' => 'Kelola Program Kerja', 'icon' => 'clipboard', 'href' => null, 'route' => 'admin.proker.*'],
-        ['label' => 'Laporan Kegiatan', 'icon' => 'file', 'href' => null, 'route' => 'admin.laporan.*'],
-        ['label' => 'Surat Masuk/Keluar', 'icon' => 'mail', 'href' => null, 'route' => 'admin.surat.*'],
-    ];
+    $penasihat = $adminUnit === 'Penasihat';
+
+    if ($penasihat) {
+        // Penasihat: view only, cuma dasbor pantau
+        $menu = [
+            ['label' => 'Dasbor', 'icon' => 'dashboard', 'href' => 'penasihat.dashboard', 'route' => 'penasihat.dashboard'],
+        ];
+        // Halaman profil admin dikunci role:Admin, jadi Penasihat tidak diarahkan ke sana
+        $profilUrl = '#';
+    } else {
+        $menu = [
+            ['label' => 'Dasbor', 'icon' => 'dashboard', 'href' => 'admin.dashboard', 'route' => 'admin.dashboard'],
+            ['label' => 'Struktur Organisasi', 'icon' => 'org', 'href' => null, 'route' => 'admin.struktur.*'],
+            ['label' => 'Kelola Akun', 'icon' => 'users', 'href' => 'admin.akun.index', 'route' => 'admin.akun.*'],
+            ['label' => 'Kelola Bidang', 'icon' => 'shapes', 'href' => 'admin.bidang.index', 'route' => 'admin.bidang.*'],
+            ['label' => 'Kelola Program Kerja', 'icon' => 'clipboard', 'href' => null, 'route' => 'admin.proker.*'],
+            ['label' => 'Laporan Kegiatan', 'icon' => 'file', 'href' => null, 'route' => 'admin.laporan.*'],
+            ['label' => 'Surat Masuk/Keluar', 'icon' => 'mail', 'href' => null, 'route' => 'admin.surat.*'],
+        ];
+        $profilUrl = route('admin.profil');
+    }
 @endphp
 
 <body>
@@ -47,7 +59,7 @@
             <button class="icon-btn" type="button" aria-label="Notifikasi">
                 <x-icon name="bell" :size="24" />
             </button>
-            <a href="{{ route('admin.profil') }}" class="profile">
+            <a href="{{ $profilUrl }}" class="profile">
                 <span class="avatar">
                     <x-icon name="user" :size="24" />
                 </span>

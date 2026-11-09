@@ -44,13 +44,13 @@ class DaftarAkunTest extends TestCase
     public function test_filter_berdasarkan_peran()
     {
         $admin = $this->buatAkun('Admin', 'Sekretariat', 'admin.utama');
-        $this->buatAkun('Penasihat', 'Sekretariat', 'penasihat.satu');
+        $this->buatAkun('Penanggung Jawab', 'Sekretariat', 'penanggungjawab.satu');
         $this->buatAkun('Ketua', 'Umum', 'ketua.satu');
 
         $this->actingAs($admin)
-            ->get(route('admin.akun.index', ['peran' => 'Penasihat']))
+            ->get(route('admin.akun.index', ['peran' => 'Penanggung Jawab']))
             ->assertStatus(200)
-            ->assertSee('penasihat.satu') // Harus muncul
+            ->assertSee('penanggungjawab.satu') // Harus muncul
             ->assertDontSee('ketua.satu'); // Tidak boleh muncul
     }
 

@@ -91,7 +91,7 @@ class AkunRbacTest extends TestCase
     // AC B-004 no. 5: peran bukan Admin
     public static function peranBukanAdmin(): array
     {
-        return [['Anggota Bidang'], ['Penasihat']];
+        return [['Anggota Bidang'], ['Penanggung Jawab']];
     }
 
     #[DataProvider('peranBukanAdmin')]

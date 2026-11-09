@@ -97,7 +97,7 @@
                 </div>
 
                 <div class="akun-field {{ isset($err['bidang']) ? 'has-error' : '' }}">
-                    <label for="bidang">Bidang <em>*</em></label>
+                    <label for="bidang">Bidang <em id="bintangBidang">*</em></label>
                     <div class="akun-input">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="12" height="18" rx="1"/><path d="M16 9h4v12h-4M8 7h4M8 11h4M8 15h4"/></svg>
                         <select id="bidang" name="bidang">
@@ -152,6 +152,7 @@
 <div id="dwpData" hidden
      data-peta="{{ json_encode($petaBidang) }}"
      data-penuh="{{ json_encode($penuh) }}"
+     data-tanpa="{{ json_encode($tanpaBidang) }}"
      data-lama="{{ old('bidang') }}">
 </div>
 <script>
@@ -159,6 +160,7 @@
     const data   = document.getElementById('dwpData').dataset;
     const peta   = JSON.parse(data.peta);
     const penuh  = JSON.parse(data.penuh);
+    const tanpa  = JSON.parse(data.tanpa);
     const lama   = data.lama;
     const peran  = document.getElementById('peran');
     const bidang = document.getElementById('bidang');
@@ -169,6 +171,18 @@
     }
 
     function isiBidang() {
+        const bintang = document.getElementById('bintangBidang');
+
+        // Peran tanpa bidang (Penasihat): kunci dropdown bidang
+        if (tanpa.includes(peran.value)) {
+            bidang.innerHTML = '<option value="">Tidak memerlukan bidang</option>';
+            bidang.disabled = true;
+            if (bintang) bintang.hidden = true;
+            return;
+        }
+        bidang.disabled = false;
+        if (bintang) bintang.hidden = false;
+
         const boleh  = peran.value ? (peta[peran.value] || []) : [];
         const terisi = penuh[peran.value] || [];
         bidang.innerHTML = '';

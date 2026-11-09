@@ -18,15 +18,16 @@ class SeedDataTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed();
 
+        $this->seed();
+        
     }
 
-    public function test_ada_lima_peran_dan_lima_bidang(): void
+    public function test_ada_enam_peran_dan_lima_bidang(): void
     {
-        $this->assertSame(5, Peran::count());
+        $this->assertSame(6, Peran::count());
         $this->assertSame(5, Bidang::count());
-
+        
     }
 
     public function test_ada_akun_aktif_dan_nonaktif(): void
@@ -39,15 +40,19 @@ class SeedDataTest extends TestCase
     {
         $admin = Pengguna::where('nama_pengguna', 'admin')->first();
 
+        $this->assertNotNull($admin);
         $this->assertSame('Admin', $admin->peran->nama_peran);
         $this->assertSame('aktif', $admin->status);
     }
-    
+
     public function test_kata_sandi_tersimpan_dalam_bentuk_hash(): void
     {
         $admin = Pengguna::where('nama_pengguna', 'admin')->first();
 
+        $this->assertNotNull($admin);
         $this->assertNotSame(env('SEED_ADMIN_PASSWORD'), $admin->kata_sandi_hash);
-        $this->assertTrue(Hash::check(env('SEED_ADMIN_PASSWORD'), $admin->kata_sandi_hash));
+        $this->assertTrue(
+            Hash::check(env('SEED_ADMIN_PASSWORD'), $admin->kata_sandi_hash)
+        );
     }
 }

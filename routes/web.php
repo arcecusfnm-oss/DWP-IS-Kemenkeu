@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\Admin\BidangController;
 use App\Http\Controllers\Admin\AkunController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Penasihat\DashboardController as PenasihatDashboardController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\NoCache;
 
@@ -83,4 +84,11 @@ Route::middleware(['auth', 'role:Admin', NoCache::class])
         Route::put('/{id}/peran', [AkunController::class, 'updatePeran'])->whereNumber('id')->name('peran.update');
 
         Route::post('/{id}/reset-password', [AkunController::class, 'resetPassword'])->whereNumber('id')->name('reset-password');
+    });
+
+Route::middleware(['auth', 'role:Penasihat', NoCache::class])
+    ->prefix('penasihat')
+    ->name('penasihat.')
+    ->group(function () {
+        Route::get('/dashboard', [PenasihatDashboardController::class, 'index'])->name('dashboard');
     });

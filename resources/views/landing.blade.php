@@ -6,7 +6,7 @@
 @push('styles')
     <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="{{ asset('css/landing.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/landing.css') }}?v={{ filemtime(public_path('css/landing.css')) }}">
 @endpush
 
 @section('content')
@@ -54,9 +54,9 @@
 
         <div class="lp-grid">
             <figure class="lp-ketua reveal">
-                <img src="{{ asset('images/ketua.png') }}" alt="Ibu Wati Heru Pambudi">
+                <img src="{{ asset('images/ketua.png') }}" alt="Ny. Nany Astera Prima">
                 <figcaption>
-                    <strong>Ibu Wati Heru Pambudi</strong>
+                    <strong>Ny. Nany Astera Prima</strong>
                     <span>Ketua Dharma Wanita Persatuan<br>Kementrian Keuangan</span>
                 </figcaption>
             </figure>

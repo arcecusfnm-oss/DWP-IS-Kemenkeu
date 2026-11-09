@@ -12,9 +12,7 @@ class BidangSesuaiPeran implements ValidationRule
 
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        $boleh = config('dwp.peran_bidang')[$this->peran] ?? [];
-
-        if (! in_array($value, $boleh, true)) {
+        if (! in_array($value, self::bidangBoleh($this->peran), true)) {
             $fail('Bidang tidak sesuai dengan peran yang dipilih.');
             return;
         }
@@ -24,14 +22,40 @@ class BidangSesuaiPeran implements ValidationRule
         }
     }
 
+    public static function tanpaBidang(?string $peran): bool
+    {
+        return in_array($peran, config('dwp.peran_tanpa_bidang', []), true);
+    }
+
+
+    /** Bidang yang boleh dipakai suatu peran (dinamis dari tabel bidang). */
+    public static function bidangBoleh(?string $peran): array
+    {
+        if (! in_array($peran, config('dwp.peran'), true)) {
+            return [];
+        }
+
+        $tetap = config('dwp.peran_bidang_tetap')[$peran] ?? null;
+        if ($tetap) {
+            return $tetap;
+        }
+
+        return DB::table('bidang')->orderBy('id_bidang')->pluck('nama_bidang')->all();
+    }
+
     public static function slotTerisi(?string $peran, string $bidang, ?int $kecualiId = null): bool
     {
-        $slot = config('dwp.slot')[$peran] ?? null;
-        if (! $slot || ! isset($slot[$bidang])) {
+        if (! in_array($peran, config('dwp.peran_satu_per_slot'), true)) {
             return false; // Admin, Bendahara, Anggota: tanpa batas
         }
 
-        $satuSlot = array_keys(array_filter($slot, fn ($s) => $s === $slot[$bidang]));
+        $satuSlot = [$bidang];
+        foreach (config('dwp.slot_gabungan')[$peran] ?? [] as $kelompok) {
+            if (in_array($bidang, $kelompok, true)) {
+                $satuSlot = $kelompok;
+                break;
+            }
+        }
 
         return DB::table('pengguna')
             ->join('peran', 'pengguna.id_peran', '=', 'peran.id_peran')
