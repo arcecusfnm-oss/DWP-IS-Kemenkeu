@@ -18,11 +18,11 @@ class ChangePasswordTest extends TestCase
     use RefreshDatabase;
 
     private const SANDI_LAMA = 'ArcecusLama123';
-    private const SANDI_BARU = 'ArcecusBaru456';
+    private const SANDI_BARU = 'ArcecusBaru456!';
     private const SANDI_AKUN_LAIN = 'ArcecusLain789';
     private const SANDI_SALAH = 'ArcecusSalah1';
     private const SANDI_7_KARAKTER = 'Arcecus';   // 7 karakter
-    private const SANDI_8_KARAKTER = 'Arcecus1';  // tepat 8 karakter
+    private const SANDI_8_KARAKTER = 'Arcecu1!';  // tepat 8 karakter, memenuhi semua aturan
 
     /**
      * Buat akun uji aktif. Cast `hashed` pada model Pengguna
