@@ -77,7 +77,7 @@
                     <li data-aturan="besar">○ Huruf besar (A-Z)</li>
                     <li data-aturan="kecil">○ Huruf kecil (a-z)</li>
                     <li data-aturan="angka">○ Angka (0-9)</li>
-                    <li data-aturan="khusus">○ Karakter khusus (! @ # $ % ^ & *)</li>
+                    <li data-aturan="khusus">○ Karakter khusus (misalnya ! @ # $ % ^ & *)</li>
                 </ul>
             </div>
 
@@ -110,7 +110,7 @@
             besar:   v => /\p{Lu}/u.test(v),
             kecil:   v => /\p{Ll}/u.test(v),
             angka:   v => /[0-9]/.test(v),
-            khusus:  v => /[!@#$%^&*]/.test(v),
+            khusus:  v => /[^\p{L}\p{N}\s]/u.test(v),
         };
         inputBaru.addEventListener('input', function () {
             document.querySelectorAll('#aturan-kata-sandi li').forEach(function (li) {
