@@ -7,6 +7,11 @@ use Illuminate\Contracts\Validation\ValidationRule;
 
 class KataSandiKuat implements ValidationRule
 {
+    /**
+     * Contoh karakter khusus yang ditampilkan ke pengguna dan dipakai
+     * saat membuat kata sandi sementara. Untuk validasi, SEMUA karakter
+     * yang bukan huruf, angka, atau spasi dianggap karakter khusus.
+     */
     public const KARAKTER_KHUSUS = '!@#$%^&*';
 
     public function validate(string $attribute, mixed $value, Closure $fail): void
@@ -23,12 +28,12 @@ class KataSandiKuat implements ValidationRule
         if (!preg_match('/[0-9]/', $value)) {
             $kurang[] = 'angka';
         }
-        if (!preg_match('/[' . preg_quote(self::KARAKTER_KHUSUS, '/') . ']/', $value)) {
-            $kurang[] = 'karakter khusus (' . implode(' ', str_split(self::KARAKTER_KHUSUS)) . ')';
+        if (!preg_match('/[^\p{L}\p{N}\s]/u', $value)) {
+            $kurang[] = 'karakter khusus (misalnya ' . implode(' ', str_split(self::KARAKTER_KHUSUS)) . ')';
         }
 
         if ($kurang) {
-            $fail('Kata sandi baru harus memuat ' . implode(', ', $kurang) . '.');
+            $fail('Kata sandi harus memuat ' . implode(', ', $kurang) . '.');
         }
     }
 }
