@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Rules\KataSandiKuat;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -26,7 +27,7 @@ class ChangePasswordController extends Controller
         // Validasi field kata sandi.
         $validated = $request->validate([
             'kata_sandi_lama' => ['required', 'string'],
-            'kata_sandi_baru' => ['required', 'string', 'min:8'],
+            'kata_sandi_baru' => ['required', 'string', 'min:8', new KataSandiKuat()],
         ], [
             'kata_sandi_lama.required' => 'Kata sandi lama salah',
             'kata_sandi_baru.required' => 'Kata sandi baru wajib diisi.',
@@ -48,10 +49,11 @@ class ChangePasswordController extends Controller
             ]);
         }
 
-        // Simpan kata sandi baru.
-        // Model Pengguna otomatis melakukan hashing melalui cast hashed.
+        // Catat dulu apakah ini alur paksa (setelah reset), sebelum penanda dihapus.
         $wajibGanti = (bool) $pengguna->perlu_ganti_kata_sandi;
 
+        // Simpan kata sandi baru.
+        // Model Pengguna otomatis melakukan hashing melalui cast hashed.
         $pengguna->kata_sandi_hash = $validated['kata_sandi_baru'];
         $pengguna->perlu_ganti_kata_sandi = false;
         $pengguna->save();

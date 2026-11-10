@@ -26,6 +26,9 @@
         .ada-error input { border-color:var(--merah); background:#fff6f4; }
         .pesan { margin:6px 0 0; font-size:12.5px; color:var(--merah); }
         .hint { margin:6px 0 0; font-size:12.5px; color:#7a5c52; }
+        .aturan { list-style:none; margin:8px 0 0; padding:0; font-size:12.5px; color:#7a5c52; }
+        .aturan li { margin-top:3px; }
+        .aturan li.ok { color:#1e8449; }
         .aksi { display:flex; gap:10px; justify-content:flex-end; margin-top:24px; }
         .aksi button { padding:10px 22px; border-radius:10px; font-size:14px; font-weight:600; cursor:pointer; border:1px solid transparent; }
         .simpan { background:var(--oranye); color:#fff; }
@@ -68,9 +71,14 @@
                 </div>
                 @if ($errBaru)
                     <p class="pesan">{{ $errBaru }}</p>
-                @else
-                    <p class="hint">Minimal 8 karakter.</p>
                 @endif
+                <ul class="aturan" id="aturan-kata-sandi">
+                    <li data-aturan="panjang">○ Minimal 8 karakter</li>
+                    <li data-aturan="besar">○ Huruf besar (A-Z)</li>
+                    <li data-aturan="kecil">○ Huruf kecil (a-z)</li>
+                    <li data-aturan="angka">○ Angka (0-9)</li>
+                    <li data-aturan="khusus">○ Karakter khusus (! @ # $ % ^ & *)</li>
+                </ul>
             </div>
 
             <div class="aksi">
@@ -93,6 +101,22 @@
                 const tampil = input.type === 'password';
                 input.type = tampil ? 'text' : 'password';
                 btn.setAttribute('aria-label', tampil ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi');
+            });
+        });
+
+        const inputBaru = document.getElementById('kata_sandi_baru');
+        const cek = {
+            panjang: v => v.length >= 8,
+            besar:   v => /\p{Lu}/u.test(v),
+            kecil:   v => /\p{Ll}/u.test(v),
+            angka:   v => /[0-9]/.test(v),
+            khusus:  v => /[!@#$%^&*]/.test(v),
+        };
+        inputBaru.addEventListener('input', function () {
+            document.querySelectorAll('#aturan-kata-sandi li').forEach(function (li) {
+                const ok = cek[li.dataset.aturan](inputBaru.value);
+                li.textContent = li.textContent.replace(/^[○✓]/, ok ? '✓' : '○');
+                li.classList.toggle('ok', ok);
             });
         });
     </script>

@@ -140,13 +140,13 @@ class ResetKataSandiTest extends TestCase
         $this->actingAs($target->fresh())
             ->post(route('password.update'), [
                 'kata_sandi_lama' => $sementara,
-                'kata_sandi_baru' => 'KataSandiBaru123',
+                'kata_sandi_baru' => 'KataSandiBaru123!',
             ])
             ->assertSessionHasNoErrors();
 
         $hashSesudah = $this->hashDiDatabase($target);
         $this->assertFalse(Hash::check($sementara, $hashSesudah));
-        $this->assertTrue(Hash::check('KataSandiBaru123', $hashSesudah));
+        $this->assertTrue(Hash::check('KataSandiBaru123!', $hashSesudah));
 
         // Coba masuk lewat form login: sementara ditolak, baru diterima.
         $this->post(route('logout'));
@@ -159,7 +159,7 @@ class ResetKataSandiTest extends TestCase
 
         $this->post(route('login.process'), [
             'username' => 'target_reset',
-            'password' => 'KataSandiBaru123',
+            'password' => 'KataSandiBaru123!',
         ])->assertSessionHasNoErrors();
         $this->assertAuthenticated();
     }
@@ -179,7 +179,7 @@ class ResetKataSandiTest extends TestCase
         $this->actingAs($target->fresh())
             ->post(route('password.update'), [
                 'kata_sandi_lama' => $sementara,
-                'kata_sandi_baru' => 'KataSandiBaru123',
+                'kata_sandi_baru' => 'KataSandiBaru123!',
             ]);
 
         $this->assertFalse((bool) $target->fresh()->perlu_ganti_kata_sandi);
