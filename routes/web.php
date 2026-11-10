@@ -15,7 +15,7 @@ Route::view('/', 'landing')
     ->name('beranda');
 
 // Halaman login
-Route::view('/login', 'auth.login')
+Route::get('/login', [LoginController::class, 'showLogin'])
     ->middleware('guest')
     ->name('login');
 
