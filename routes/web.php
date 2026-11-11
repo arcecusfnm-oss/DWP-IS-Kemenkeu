@@ -79,7 +79,7 @@ Route::middleware(['auth', 'role:Admin', NoCache::class])
             ->name('bidang.update');
 
         Route::delete('/{id}', [AkunController::class, 'destroy'])->whereNumber('id')->name('destroy');
-
+        Route::post('/{id}/nonaktifkan', [AkunController::class, 'nonaktifkan'])->whereNumber('id')->name('nonaktifkan');
         Route::get('/{id}/peran', [AkunController::class, 'editPeran'])->whereNumber('id')->name('peran.edit');
         Route::put('/{id}/peran', [AkunController::class, 'updatePeran'])->whereNumber('id')->name('peran.update');
 

@@ -434,4 +434,55 @@ class AkunController extends Controller
             ->with('sukses', 'Kata sandi berhasil direset.')
             ->with('kata_sandi_sementara', $kataSandiSementara);
     }
+
+    public function nonaktifkan($id)
+    {
+        // Admin tidak boleh menonaktifkan akunnya sendiri.
+        if ((int) $id === (int) Auth::id()) {
+            return back()->with('galat', 'Anda tidak dapat menonaktifkan akun sendiri.');
+        }
+
+        $akun = DB::transaction(function () use ($id) {
+            $akun = DB::table('pengguna')
+                ->where('id_pengguna', $id)
+                ->whereNull('dihapus_pada')
+                ->lockForUpdate()
+                ->first(['id_pengguna', 'nama_pengguna', 'status']);
+
+            if (!$akun) {
+                abort(404, 'Akun tidak ditemukan.');
+            }
+
+            if ($akun->status !== 'aktif') {
+                return null;
+            }
+
+            DB::table('pengguna')
+                ->where('id_pengguna', $id)
+                ->update([
+                    'status' => 'nonaktif',
+                    'updated_at' => now(),
+                ]);
+
+            // Cabut seluruh sesi aktif milik akun tersebut.
+            DB::table('sessions')
+                ->where('user_id', $id)
+                ->delete();
+
+            return $akun;
+        });
+
+        if (!$akun) {
+            return back()->with('galat', 'Akun tersebut sudah nonaktif.');
+        }
+
+        // Catat aktivitas tanpa menyimpan informasi sensitif.
+        Log::info('Admin menonaktifkan akun', [
+            'admin_id' => Auth::id(),
+            'target_id' => $akun->id_pengguna,
+            'target_username' => $akun->nama_pengguna,
+        ]);
+
+        return back()->with('sukses', 'Akun berhasil dinonaktifkan.');
+    }
 }
