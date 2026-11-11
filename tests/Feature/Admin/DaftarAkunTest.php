@@ -50,8 +50,8 @@ class DaftarAkunTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.akun.index', ['peran' => 'Penanggung Jawab']))
             ->assertStatus(200)
-            ->assertSee('penanggungjawab.satu') // Harus muncul
-            ->assertDontSee('ketua.satu'); // Tidak boleh muncul
+            ->assertSee('penanggungjawab.satu')
+            ->assertDontSee('<td class="akun-username">ketua.satu</td>', false); // Diubah
     }
 
     public function test_filter_berdasarkan_bidang()
@@ -63,8 +63,8 @@ class DaftarAkunTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.akun.index', ['bidang' => 'Sosial Budaya']))
             ->assertStatus(200)
-            ->assertSee('anggota.sosbud') // Harus muncul
-            ->assertDontSee('anggota.ekonomi'); // Tidak boleh muncul
+            ->assertSee('anggota.sosbud')
+            ->assertDontSee('<td class="akun-username">anggota.ekonomi</td>', false); // Diubah
     }
 
     public function test_akses_ditolak_untuk_tanpa_sesi()

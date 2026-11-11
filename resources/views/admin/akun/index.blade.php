@@ -205,7 +205,7 @@
                                 <th>Peran</th>
                                 <th>Bidang</th>
                                 <th>Status</th>
-                                <th>Aksi</th>
+                                <th class="kolom-aksi">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -250,16 +250,10 @@
                                             {{-- Slot 2: Ubah peran --}}
                                             <span class="akun-aksi-slot">
                                                 @if (auth()->id() == $a->id_pengguna)
-                                                    <button type="button" class="hapus"
-                                                        title="Tidak bisa mengubah peran akun sendiri" disabled>
-                                                        <svg width="18" height="18" viewBox="0 0 24 24"
-                                                            fill="none" stroke="currentColor" stroke-width="2"
-                                                            stroke-linecap="round" stroke-linejoin="round">
-                                                            <circle cx="9" cy="7" r="4" />
-                                                            <path d="M3 21v-2a4 4 0 0 1 4-4h4" />
-                                                            <circle cx="18" cy="18" r="2" />
-                                                            <path
-                                                                d="M18 14v1M18 21v1M21.5 16l-.9.5M15.4 19.5l-.9.5M21.5 20l-.9-.5M15.4 16.5l-.9-.5" />
+                                                    <button type="button" id="bukaAlih" title="Alih peran Admin">
+                                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                            <path d="M17 3l4 4-4 4" /><path d="M3 7h18" />
+                                                            <path d="M7 21l-4-4 4-4" /><path d="M21 17H3" />
                                                         </svg>
                                                     </button>
                                                 @else
@@ -280,16 +274,28 @@
 
                                             {{-- Slot 3: Reset password --}}
                                             <span class="akun-aksi-slot">
-                                                <button type="button" class="reset-password" title="Reset kata sandi"
-                                                    data-reset-url="{{ route('admin.akun.reset-password', $a->id_pengguna) }}"
-                                                    data-reset-nama="{{ $a->nama_lengkap }}">
-                                                    <svg width="18" height="18" viewBox="0 0 24 24"
-                                                        fill="none" stroke="currentColor" stroke-width="2"
-                                                        stroke-linecap="round" stroke-linejoin="round">
-                                                        <circle cx="7.5" cy="15.5" r="4.5" />
-                                                        <path d="m10.7 12.3 9.3-9.3M17 6l3 3M14 9l2 2" />
-                                                    </svg>
-                                                </button>
+                                                @if (auth()->id() == $a->id_pengguna)
+                                                    <button type="button" class="hapus"
+                                                        title="Tidak bisa mereset kata sandi akun sendiri" disabled>
+                                                        <svg width="18" height="18" viewBox="0 0 24 24"
+                                                            fill="none" stroke="currentColor" stroke-width="2"
+                                                            stroke-linecap="round" stroke-linejoin="round">
+                                                            <circle cx="7.5" cy="15.5" r="4.5" />
+                                                            <path d="m10.7 12.3 9.3-9.3M17 6l3 3M14 9l2 2" />
+                                                        </svg>
+                                                    </button>
+                                                @else
+                                                    <button type="button" class="reset-password" title="Reset kata sandi"
+                                                        data-reset-url="{{ route('admin.akun.reset-password', $a->id_pengguna) }}"
+                                                        data-reset-nama="{{ $a->nama_lengkap }}">
+                                                        <svg width="18" height="18" viewBox="0 0 24 24"
+                                                            fill="none" stroke="currentColor" stroke-width="2"
+                                                            stroke-linecap="round" stroke-linejoin="round">
+                                                            <circle cx="7.5" cy="15.5" r="4.5" />
+                                                            <path d="m10.7 12.3 9.3-9.3M17 6l3 3M14 9l2 2" />
+                                                        </svg>
+                                                    </button>
+                                                @endif
                                             </span>
 
                                             {{-- Slot 4: Nonaktifkan --}}
@@ -360,6 +366,170 @@
             </div>
         </div>
     </div>
+
+    {{-- Dialog alih admin --}}
+    <div class="hapus-overlay" id="alihOverlay" hidden>
+        <div class="hapus-dialog" style="text-align:left" role="dialog" aria-modal="true" aria-labelledby="alihJudul">
+            <h3 id="alihJudul" style="text-align:center">Alih Peran Admin</h3>
+            <p style="text-align:center">
+                Akun tujuan akan menjadi Admin, dan akun Anda turun ke peran yang dipilih.
+                Setelah ini Anda tidak bisa membuka halaman Admin lagi.
+            </p>
+
+            @if ($errors->any())
+                <div class="akun-alert-error" style="margin-bottom:12px">
+                    <div><strong>{{ $errors->first() }}</strong></div>
+                </div>
+            @endif
+
+            <form method="POST" action="{{ route('admin.akun.alih-admin') }}">
+                @csrf
+
+                <div class="akun-field">
+                    <label for="alihTujuan">Akun tujuan <em>*</em></label>
+                    <div class="akun-input">
+                        <select id="alihTujuan" name="id_tujuan">
+                            <option value="">Pilih akun tujuan</option>
+                            @foreach ($tujuanAlih as $t)
+                                <option value="{{ $t->id_pengguna }}" @selected((string) old('id_tujuan') === (string) $t->id_pengguna)>
+                                    {{ $t->nama_lengkap }} ({{ $t->nama_peran }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <div class="akun-field">
+                    <label for="alihPeran">Peran baru untuk akun Anda <em>*</em></label>
+                    <div class="akun-input">
+                        <select id="alihPeran" name="peran_turun">
+                            <option value="">Pilih peran</option>
+                            @foreach ($peranTurun as $p)
+                                <option value="{{ $p }}" @selected(old('peran_turun') === $p)>{{ $p }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <div class="akun-field">
+                    <label>Bidang <em id="alihBintang">*</em></label>
+                    <div id="alihDaftarBidang"></div>
+                    <button type="button" id="alihTambah" class="akun-btn-batal" style="margin-top:8px" hidden>+ Tambah bidang</button>
+                </div>
+
+                <div class="hapus-aksi">
+                    <button type="button" class="hapus-batal" id="alihBatal">Batal</button>
+                    <button type="submit" class="hapus-ya">Ya, Alihkan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="alihData" hidden
+        data-peta='@json($petaBidang)'
+        data-penuh='@json($penuh)'
+        data-tanpa='@json($tanpaBidang)'
+        data-multi='@json($peranMulti)'
+        data-lama='@json(array_values((array) old("bidang", [])))'
+        data-buka='{{ old('id_tujuan') !== null || old('peran_turun') !== null ? 1 : 0 }}'>
+    </div>
+
+    <script>
+    (function () {
+        const overlay = document.getElementById('alihOverlay');
+        const tombol  = document.getElementById('bukaAlih');
+        if (!overlay) return;
+
+        const d     = document.getElementById('alihData').dataset;
+        const peta  = JSON.parse(d.peta);
+        const penuh = JSON.parse(d.penuh);
+        const tanpa = JSON.parse(d.tanpa);
+        const multi = JSON.parse(d.multi);
+        const lama  = JSON.parse(d.lama);
+
+        const peran   = document.getElementById('alihPeran');
+        const daftar  = document.getElementById('alihDaftarBidang');
+        const tambah  = document.getElementById('alihTambah');
+        const bintang = document.getElementById('alihBintang');
+
+        function baris(boleh, terisi, terpilih, bisaHapus) {
+            const wrap = document.createElement('div');
+            wrap.className = 'akun-input';
+            wrap.style.marginBottom = '8px';
+
+            const sel = document.createElement('select');
+            sel.name = 'bidang[]';
+            sel.innerHTML = '<option value="">Pilih Bidang</option>';
+            boleh.forEach(function (b) {
+                const o = document.createElement('option');
+                const isi = terisi.includes(b);
+                o.value = b;
+                o.textContent = isi ? b + ' (sudah terisi)' : b;
+                o.disabled = isi;
+                o.selected = (b === terpilih);
+                sel.appendChild(o);
+            });
+            wrap.appendChild(sel);
+
+            if (bisaHapus) {
+                const x = document.createElement('button');
+                x.type = 'button';
+                x.textContent = '✕';
+                x.setAttribute('aria-label', 'Hapus bidang');
+                x.style.cssText = 'position:absolute; top:0; right:0; width:46px; height:46px; color:#b42318;';
+                x.onclick = function () { if (daftar.children.length > 1) wrap.remove(); };
+                wrap.appendChild(x);
+            }
+            return wrap;
+        }
+
+        function render(pakaiLama) {
+            daftar.innerHTML = '';
+            const p = peran.value;
+
+            if (!p) {
+                daftar.innerHTML = '<div class="akun-input"><select disabled><option>Pilih peran dulu</option></select></div>';
+                tambah.hidden = true;
+                return;
+            }
+            if (tanpa.includes(p)) {
+                daftar.innerHTML = '<div class="akun-input"><input type="text" value="Tidak memerlukan bidang" disabled></div>';
+                tambah.hidden = true;
+                bintang.hidden = true;
+                return;
+            }
+            bintang.hidden = false;
+
+            const boleh   = peta[p] || [];
+            const terisi  = penuh[p] || [];
+            const isMulti = multi.includes(p);
+            tambah.hidden = !isMulti;
+
+            let awal = pakaiLama ? lama.filter(b => boleh.includes(b)) : [];
+            if (!isMulti) awal = awal.slice(0, 1);
+            if (!awal.length) awal = [boleh.length === 1 ? boleh[0] : ''];
+
+            awal.forEach(function (b, i) {
+                daftar.appendChild(baris(boleh, terisi, b, isMulti && i > 0));
+            });
+        }
+
+        tambah.addEventListener('click', function () {
+            const p = peran.value;
+            daftar.appendChild(baris(peta[p] || [], penuh[p] || [], '', true));
+        });
+        peran.addEventListener('change', function () { render(false); });
+
+        function tutup() { overlay.hidden = true; }
+        if (tombol) tombol.addEventListener('click', function () { overlay.hidden = false; });
+        document.getElementById('alihBatal').addEventListener('click', tutup);
+        overlay.addEventListener('click', function (e) { if (e.target === overlay) tutup(); });
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') tutup(); });
+
+        render(true);
+        if (d.buka === '1') overlay.hidden = false;
+    })();
+    </script>
 
     {{-- Dialog konfirmasi nonaktifkan akun --}}
     <div class="hapus-overlay" id="nonaktifkanOverlay" hidden>

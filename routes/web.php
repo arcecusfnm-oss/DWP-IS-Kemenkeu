@@ -74,9 +74,7 @@ Route::middleware(['auth', 'role:Admin', NoCache::class])
         Route::put('/{id}', [AkunController::class, 'update'])->whereNumber('id')->name('update');
 
         // Endpoint penetapan bidang
-        Route::put('/{id}/bidang', [AkunController::class, 'updateBidang'])
-            ->whereNumber('id')
-            ->name('bidang.update');
+        Route::put('/{id}/bidang', [AkunController::class, 'updateBidang'])->whereNumber('id')->name('bidang.update');
 
         Route::delete('/{id}', [AkunController::class, 'destroy'])->whereNumber('id')->name('destroy');
         Route::post('/{id}/nonaktifkan', [AkunController::class, 'nonaktifkan'])->whereNumber('id')->name('nonaktifkan');
@@ -84,6 +82,9 @@ Route::middleware(['auth', 'role:Admin', NoCache::class])
         Route::put('/{id}/peran', [AkunController::class, 'updatePeran'])->whereNumber('id')->name('peran.update');
 
         Route::post('/{id}/reset-password', [AkunController::class, 'resetPassword'])->whereNumber('id')->name('reset-password');
+        
+        // Endpoint alih admin
+        Route::post('/alih-admin', [AkunController::class, 'alihAdmin'])->name('alih-admin');
     });
 
 Route::middleware(['auth', 'role:Penasihat', NoCache::class])

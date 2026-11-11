@@ -2,9 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\Bidang;
 use App\Models\Pengguna;
 use App\Models\Peran;
-use App\Models\Bidang;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
@@ -54,21 +54,20 @@ class AssignBidangTest extends TestCase
     {
         $admin = $this->buatAkun('admin_test', 'Admin', 'Sekretariat');
         $target = $this->buatAkun('target_test', 'Anggota Bidang', 'Ekonomi');
-        $bidangBaru = $this->idBidang('Pendidikan');
 
         $this->actingAs($admin)
             ->put(route('admin.akun.bidang.update', $target->id_pengguna), [
-                'id_bidang' => $bidangBaru,
+                'bidang' => ['Pendidikan'], // Array nama bidang
             ])
             ->assertRedirect(route('admin.akun.index'));
 
         $this->assertDatabaseHas('pengguna', [
             'id_pengguna' => $target->id_pengguna,
-            'id_bidang' => $bidangBaru,
+            'id_bidang' => $this->idBidang('Pendidikan'),
         ]);
     }
 
-    // 2. ID bidang yang tidak terdaftar ditolak
+    // 2. Bidang yang tidak terdaftar ditolak
     public function test_bidang_tidak_terdaftar_ditolak()
     {
         $admin = $this->buatAkun('admin_test', 'Admin', 'Sekretariat');
@@ -76,9 +75,9 @@ class AssignBidangTest extends TestCase
 
         $this->actingAs($admin)
             ->put(route('admin.akun.bidang.update', $target->id_pengguna), [
-                'id_bidang' => 999999,
+                'bidang' => ['Bidang Tidak Terdaftar'],
             ])
-            ->assertSessionHasErrors('id_bidang');
+            ->assertSessionHasErrors('bidang.0'); // Gunakan 'bidang.0'
 
         $this->assertDatabaseHas('pengguna', [
             'id_pengguna' => $target->id_pengguna,
@@ -86,7 +85,7 @@ class AssignBidangTest extends TestCase
         ]);
     }
 
-    // 3. ID bidang wajib diisi
+    // 3. Bidang wajib diisi
     public function test_id_bidang_wajib_diisi()
     {
         $admin = $this->buatAkun('admin_test', 'Admin', 'Sekretariat');
@@ -94,9 +93,9 @@ class AssignBidangTest extends TestCase
 
         $this->actingAs($admin)
             ->put(route('admin.akun.bidang.update', $target->id_pengguna), [
-                'id_bidang' => '',
+                'bidang' => [],
             ])
-            ->assertSessionHasErrors('id_bidang');
+            ->assertSessionHasErrors('bidang');
     }
 
     // 4. Non-Admin tidak boleh menetapkan bidang
@@ -107,7 +106,7 @@ class AssignBidangTest extends TestCase
 
         $this->actingAs($nonAdmin)
             ->put(route('admin.akun.bidang.update', $target->id_pengguna), [
-                'id_bidang' => $this->idBidang('Pendidikan'),
+                'bidang' => ['Pendidikan'],
             ])
             ->assertStatus(403);
     }

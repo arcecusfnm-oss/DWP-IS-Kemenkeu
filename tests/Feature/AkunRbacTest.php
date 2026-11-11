@@ -38,13 +38,13 @@ class AkunRbacTest extends TestCase
     private function dataValid(array $ubah = []): array
     {
         Peran::firstOrCreate(['nama_peran' => 'Anggota Bidang']);
-        Bidang::firstOrCreate(['nama_bidang' => 'Ekonomi']);
+        $bidang = Bidang::firstOrCreate(['nama_bidang' => 'Ekonomi']);
 
         return array_merge([
             'nama'     => 'Budi Santoso',
             'username' => 'budi.santoso',
             'peran'    => 'Anggota Bidang',
-            'bidang'   => 'Ekonomi',
+            'bidang'   => [$bidang->nama_bidang], // Harus array nama_bidang
             'password' => 'Rahasia123',
         ], $ubah);
     }
@@ -68,8 +68,10 @@ class AkunRbacTest extends TestCase
     #[DataProvider('kolomWajib')]
     public function test_kolom_kosong_ditolak(string $kolom): void
     {
+        $val = $kolom === 'bidang' ? [] : '';
+
         $this->actingAs($this->buatAdmin())
-            ->post(route('admin.akun.store'), $this->dataValid([$kolom => '']))
+            ->post(route('admin.akun.store'), $this->dataValid([$kolom => $val]))
             ->assertSessionHasErrors($kolom);
 
         $this->assertSame(1, Pengguna::count()); // hanya admin pelaku
