@@ -1,3 +1,5 @@
+[hidden] { display: none !important; }
+
 :root {
     --peach: #f4b99a;
     --peach-muda: #fde8dc;
@@ -1642,6 +1644,10 @@ body::before {
     font-weight: 700;
     color: #000;
     background: #fdf1ea;
+}
+
+.akun-tabel th.kolom-aksi {
+    text-align: center;
 }
 
 .akun-tabel td {
