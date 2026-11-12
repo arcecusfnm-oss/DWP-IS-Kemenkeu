@@ -1,3 +1,5 @@
+[hidden] { display: none !important; }
+
 :root {
     --peach: #f4b99a;
     --peach-muda: #fde8dc;
@@ -7,21 +9,25 @@
     --coklat-tua: #5a2d1c;
     --ink: #3b2a25;
 }
+
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
+
 body {
     font-family: "Inter", system-ui, sans-serif;
     background: var(--bg);
     color: var(--ink);
     min-height: 100vh;
 }
+
 a {
     color: inherit;
     text-decoration: none;
 }
+
 button {
     font: inherit;
     cursor: pointer;
@@ -29,9 +35,11 @@ button {
     background: none;
     color: inherit;
 }
+
 .serif {
     font-family: "Gelasio", Georgia, serif;
 }
+
 body::before {
     content: "";
     position: fixed;
@@ -56,15 +64,18 @@ body::before {
     padding: 0 32px;
     background: var(--peach);
 }
+
 .topbar-left,
 .topbar-right {
     display: flex;
     align-items: center;
     gap: 12px;
 }
+
 .topbar-right {
     gap: 20px;
 }
+
 .logo {
     width: 52px;
     height: 52px;
@@ -75,31 +86,37 @@ body::before {
     transform: none;
     margin: 0 4px 0 0;
 }
+
 .brand {
     font-size: 24px;
     font-weight: 700;
     color: #000;
     line-height: 1.1;
 }
+
 .brand-sub {
     font-size: 14px;
     color: #5a3b30;
 }
+
 .menu-btn {
     display: none;
     padding: 8px;
     border-radius: 8px;
     color: var(--coklat-tua);
 }
+
 .icon-btn {
     padding: 8px;
     border-radius: 50%;
     color: var(--coklat-tua);
 }
+
 .icon-btn:hover,
 .menu-btn:hover {
     background: rgba(255, 255, 255, 0.3);
 }
+
 .profile {
     display: flex;
     align-items: center;
@@ -108,6 +125,7 @@ body::before {
     border-radius: 16px;
     background: #fdf1ea;
 }
+
 .avatar {
     width: 44px;
     height: 44px;
@@ -118,19 +136,23 @@ body::before {
     align-items: center;
     justify-content: center;
 }
+
 .profile-text {
     display: flex;
     flex-direction: column;
     line-height: 1.3;
 }
+
 .profile-text strong {
     font-size: 14px;
     color: #5a1f0c;
 }
+
 .profile-text span {
     font-size: 12px;
     color: var(--coklat);
 }
+
 .logout-top {
     display: flex;
     align-items: center;
@@ -143,6 +165,7 @@ body::before {
     font-size: 14px;
     font-weight: 500;
 }
+
 .logout-top:hover {
     background: #fbe3d5;
 }
@@ -160,6 +183,7 @@ body::before {
     border-right: 1px solid #e9d8d0;
     transition: transform 0.25s;
 }
+
 .side-brand {
     display: flex;
     align-items: center;
@@ -167,6 +191,7 @@ body::before {
     padding: 14px 16px;
     border-bottom: 1px solid var(--ink);
 }
+
 .side-brand-icon {
     width: 36px;
     height: 36px;
@@ -178,15 +203,18 @@ body::before {
     align-items: center;
     justify-content: center;
 }
+
 .side-brand strong {
     display: block;
     font-size: 17px;
     color: #000;
 }
+
 .side-brand small {
     font-size: 13px;
     color: var(--coklat);
 }
+
 .side-nav {
     flex: 1;
     overflow-y: auto;
@@ -195,6 +223,7 @@ body::before {
     flex-direction: column;
     gap: 5px;
 }
+
 .side-link {
     display: flex;
     align-items: center;
@@ -204,21 +233,26 @@ body::before {
     font-size: 18px;
     color: var(--coklat);
 }
+
 .side-link svg {
     flex-shrink: 0;
     color: #000;
 }
+
 .side-link:hover {
     background: #fdf1ea;
 }
+
 .side-link.active {
     background: var(--peach-muda);
     color: #5a3b30;
     font-weight: 500;
 }
+
 .side-logout {
     padding: 12px;
 }
+
 .logout-btn {
     width: 100%;
     display: flex;
@@ -231,6 +265,7 @@ body::before {
     color: #dc2626;
     font-weight: 500;
 }
+
 .logout-btn:hover {
     background: #f8d5c2;
 }
@@ -239,6 +274,7 @@ body::before {
     margin-left: 310px;
     padding-top: 80px;
 }
+
 .content {
     padding: 24px;
     display: flex;
@@ -252,14 +288,17 @@ body::before {
     padding: 20px 24px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
+
 .welcome h1 {
     font-size: 36px;
     color: #000;
     line-height: 1.2;
 }
+
 .welcome p {
     color: var(--coklat);
 }
+
 .welcome .masa {
     margin-top: 12px;
     text-align: right;
@@ -271,15 +310,18 @@ body::before {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 14px;
 }
+
 .stat {
     background: #fff;
     border-radius: 16px;
     padding: 16px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
+
 .stat-label {
     color: var(--coklat);
 }
+
 .stat-row {
     display: flex;
     align-items: center;
@@ -287,20 +329,24 @@ body::before {
     gap: 8px;
     margin-top: 4px;
 }
+
 .stat-num {
     display: flex;
     align-items: baseline;
     gap: 8px;
 }
+
 .stat-num b {
     font-size: 36px;
     color: #000;
 }
+
 .stat-num span {
     font-size: 18px;
     font-weight: 600;
     color: #000;
 }
+
 .stat-icon {
     width: 48px;
     height: 48px;
@@ -312,11 +358,13 @@ body::before {
     align-items: center;
     justify-content: center;
 }
+
 .stat-badge {
     margin-top: 12px;
     display: flex;
     justify-content: center;
 }
+
 .badge {
     display: inline-flex;
     align-items: center;
@@ -326,26 +374,31 @@ body::before {
     border: 1px solid;
     font-size: 12px;
 }
+
 .ikon {
     display: inline-flex;
     align-items: center;
     flex-shrink: 0;
 }
+
 .badge-green {
     background: #dcfce7;
     color: #166534;
     border-color: #16a34a;
 }
+
 .badge-blue {
     background: #e0e7ff;
     color: #3730a3;
     border-color: #6366f1;
 }
+
 .badge-yellow {
     background: #fef9c3;
     color: #854d0e;
     border-color: #facc15;
 }
+
 .badge-red {
     background: #fee2e2;
     color: #b91c1c;
@@ -356,15 +409,18 @@ body::before {
     padding: 32px 8px;
     text-align: center;
 }
+
 .struktur h2 {
     font-size: 36px;
     color: #000;
 }
+
 .struktur .tahun {
     font-size: 24px;
     font-weight: 700;
     color: #000;
 }
+
 .org-list {
     margin-top: 48px;
     display: flex;
@@ -372,6 +428,7 @@ body::before {
     justify-content: center;
     gap: 32px;
 }
+
 .org-card {
     position: relative;
     width: 100%;
@@ -382,11 +439,13 @@ body::before {
     text-align: left;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
+
 .org-tag,
 .org-name,
 .org-nip {
     font-family: "Gelasio", Georgia, serif;
 }
+
 .org-tag {
     position: absolute;
     top: -12px;
@@ -400,22 +459,26 @@ body::before {
     text-align: center;
     white-space: nowrap;
 }
+
 .org-tag b {
     display: block;
     font-size: 14px;
     font-weight: 400;
     line-height: 1.2;
 }
+
 .org-tag small {
     display: block;
     font-size: 9px;
     line-height: 1.2;
 }
+
 .org-body {
     display: flex;
     align-items: center;
     gap: 16px;
 }
+
 .org-photo {
     width: 80px;
     height: 80px;
@@ -428,12 +491,14 @@ body::before {
     align-items: center;
     justify-content: center;
 }
+
 .org-name {
     font-size: 20px;
     font-weight: 700;
     line-height: 1.2;
     color: #000;
 }
+
 .org-nip {
     margin-top: 4px;
     padding-top: 4px;
@@ -441,6 +506,7 @@ body::before {
     font-size: 12px;
     color: #5a3b30;
 }
+
 .org-foot {
     margin-top: 20px;
     display: flex;
@@ -449,6 +515,7 @@ body::before {
     font-size: 12px;
     color: var(--coklat);
 }
+
 .org-foot a {
     display: inline-flex;
     align-items: center;
@@ -456,6 +523,7 @@ body::before {
     color: #4f46e5;
     text-decoration: underline;
 }
+
 .kosong {
     color: var(--coklat);
 }
@@ -465,38 +533,48 @@ body::before {
         grid-template-columns: repeat(2, 1fr);
     }
 }
+
 @media (max-width: 1024px) {
     .menu-btn {
         display: block;
     }
+
     .sidebar {
         transform: translateX(-100%);
     }
+
     .sidebar.open {
         transform: translateX(0);
     }
+
     .main {
         margin-left: 0;
     }
 }
+
 @media (max-width: 640px) {
     .stats {
         grid-template-columns: 1fr;
     }
+
     .topbar {
         padding: 0 16px;
     }
+
     .brand-sub,
     .profile-text {
         display: none;
     }
+
     .profile {
         padding: 8px;
     }
+
     .welcome h1,
     .struktur h2 {
         font-size: 28px;
     }
+
     .logout-top {
         padding: 10px;
     }
@@ -506,58 +584,73 @@ body::before {
     padding: 24px 28px;
     gap: 20px;
 }
+
 .admin-dashboard .welcome {
     padding: 20px 24px;
     border-radius: 16px;
 }
+
 .admin-dashboard .welcome h1 {
     font-size: 38px;
 }
+
 .admin-dashboard .welcome p {
     font-size: 14px;
 }
+
 .admin-dashboard .welcome .masa {
     font-size: 13px;
     margin-top: 10px;
 }
+
 .admin-dashboard .stats {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 14px;
 }
+
 .admin-dashboard .stat {
     padding: 18px 20px;
     border-radius: 16px;
 }
+
 .admin-dashboard .stat-label {
     font-size: 16px;
 }
+
 .admin-dashboard .stat-row {
     margin-top: 8px;
 }
+
 .admin-dashboard .stat-num b {
     font-size: 42px;
 }
+
 .admin-dashboard .stat-num span {
     font-size: 20px;
 }
+
 .admin-dashboard .stat-icon {
     width: 52px;
     height: 52px;
 }
+
 .admin-dashboard .stat-badge {
     margin-top: 12px;
 }
+
 .admin-dashboard .badge {
     padding: 4px 12px;
     font-size: 13px;
     white-space: nowrap;
 }
+
 .admin-dashboard .struktur {
     padding: 28px 24px 20px;
     background: #fff;
     border-radius: 16px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
+
 .struktur-scroll {
     margin-top: 28px;
     max-height: 480px;
@@ -568,28 +661,35 @@ body::before {
     scrollbar-width: thin;
     scrollbar-color: var(--peach) transparent;
 }
+
 .struktur-scroll::-webkit-scrollbar {
     width: 10px;
     height: 10px;
 }
+
 .struktur-scroll::-webkit-scrollbar-thumb {
     background: var(--peach);
     border-radius: 999px;
 }
+
 .struktur-scroll::-webkit-scrollbar-track {
     background: transparent;
 }
+
 .admin-dashboard .struktur h2 {
     font-size: 38px;
 }
+
 .admin-dashboard .struktur .tahun {
     font-size: 26px;
 }
+
 .admin-dashboard .org-list {
     margin-top: 0;
     gap: 28px;
     justify-content: safe center;
 }
+
 .admin-dashboard .org-card {
     max-width: 480px;
     border-radius: 22px;
@@ -600,35 +700,44 @@ body::before {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
+
 @media (max-width: 1024px) {
     .main {
         margin-left: 0;
     }
 }
+
 @media (max-width: 640px) {
     .logo {
         width: 54px;
         height: 54px;
     }
+
     .content.admin-dashboard {
         padding: 16px;
     }
+
     .admin-dashboard .stats {
         grid-template-columns: 1fr;
     }
+
     .admin-dashboard .welcome h1,
     .admin-dashboard .struktur h2 {
         font-size: 28px;
     }
+
     .admin-dashboard .struktur .tahun {
         font-size: 21px;
     }
+
     .admin-dashboard .org-card {
         padding: 30px 18px 16px;
     }
+
     .admin-dashboard .struktur {
         padding: 20px 14px 14px;
     }
+
     .struktur-scroll {
         max-height: 420px;
         padding: 24px 10px 24px;
@@ -669,16 +778,19 @@ body::before {
     align-items: center;
     max-width: 320px;
 }
+
 .profil-avatar {
     display: block;
     width: 144px;
     height: 144px;
     color: var(--pf-brown);
 }
+
 .profil-avatar svg {
     width: 100%;
     height: 100%;
 }
+
 .profil-nama {
     margin-top: 32px;
     font-size: 36px;
@@ -704,26 +816,31 @@ body::before {
     border-radius: 4px;
     color: #000;
 }
+
 .alert-ikon {
     flex: none;
     color: var(--pf-ok-icon);
 }
+
 .alert-teks {
     flex: 1;
     display: flex;
     flex-direction: column;
     gap: 2px;
 }
+
 .alert-teks strong {
     font-size: 15px;
     line-height: 20px;
     font-weight: 600;
 }
+
 .alert-teks span {
     font-size: 12px;
     line-height: 16px;
     color: var(--ink);
 }
+
 .alert-tutup {
     flex: none;
     align-self: flex-start;
@@ -735,6 +852,7 @@ body::before {
     border-radius: 4px;
     color: var(--ink);
 }
+
 .alert-tutup:hover {
     background: rgba(0, 0, 0, 0.08);
 }
@@ -748,6 +866,7 @@ body::before {
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
     overflow: hidden;
 }
+
 .profil-form::before {
     content: "";
     position: absolute;
@@ -755,13 +874,12 @@ body::before {
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(
-        90deg,
-        rgba(194, 101, 61, 0.35) 0%,
-        #b5532a 50%,
-        rgba(194, 101, 61, 0.35) 100%
-    );
+    background: linear-gradient(90deg,
+            rgba(194, 101, 61, 0.35) 0%,
+            #b5532a 50%,
+            rgba(194, 101, 61, 0.35) 100%);
 }
+
 .profil-form.ada-error {
     padding-top: 40px;
 }
@@ -769,6 +887,7 @@ body::before {
 .isian {
     margin-bottom: 20px;
 }
+
 .isian label {
     display: block;
     margin-bottom: 10px;
@@ -777,10 +896,12 @@ body::before {
     font-weight: 600;
     color: #000;
 }
+
 .isian .req {
     color: var(--pf-req);
     margin-left: 2px;
 }
+
 .isian.has-error .req {
     display: none;
 }
@@ -788,6 +909,7 @@ body::before {
 .isian-sandi {
     position: relative;
 }
+
 .isian-sandi input {
     width: 100%;
     height: 48px;
@@ -806,17 +928,21 @@ body::before {
         box-shadow 0.15s,
         background-color 0.15s;
 }
+
 .isian-sandi input::placeholder {
     color: var(--pf-placeholder);
 }
+
 .isian-sandi input:focus {
     border-color: var(--pf-accent);
     box-shadow: 0 0 0 3px rgba(194, 101, 61, 0.16);
 }
+
 .isian.has-error .isian-sandi input {
     background: var(--pf-error-bg);
     border-color: var(--pf-error-border);
 }
+
 .isian.has-error .isian-sandi input:focus {
     box-shadow: 0 0 0 3px rgba(181, 83, 42, 0.18);
 }
@@ -832,19 +958,24 @@ body::before {
     border-radius: 6px;
     color: var(--coklat);
 }
+
 .tombol-lihat:hover {
     color: var(--pf-brown);
 }
+
 .tombol-lihat:focus-visible {
     outline: 2px solid var(--pf-accent);
     outline-offset: -2px;
 }
+
 .tombol-lihat .mata-buka {
     display: none;
 }
+
 .tombol-lihat.terlihat .mata-buka {
     display: block;
 }
+
 .tombol-lihat.terlihat .mata-tutup {
     display: none;
 }
@@ -858,17 +989,21 @@ body::before {
     font-size: 13px;
     line-height: 18px;
 }
+
 .hint[hidden],
 .pesan-error[hidden] {
     display: none;
 }
+
 .hint {
     color: var(--ink);
 }
+
 .pesan-error {
     color: var(--pf-error);
     margin-top: 6px;
 }
+
 .hint svg,
 .pesan-error svg {
     flex: none;
@@ -880,6 +1015,7 @@ body::before {
     gap: 12px;
     margin-top: 32px;
 }
+
 .profil-form.ada-error .profil-aksi {
     margin-top: 24px;
 }
@@ -895,25 +1031,30 @@ body::before {
         background-color 0.15s,
         border-color 0.15s;
 }
+
 .btn-batal {
     min-width: 92px;
     background: #fff;
     color: #000;
     border: 1px solid var(--pf-border);
 }
+
 .btn-batal:hover {
     background: var(--bg);
 }
+
 .btn-simpan {
     min-width: 112px;
     background: var(--pf-accent);
     color: #fff;
     border: 1px solid transparent;
 }
+
 .btn-simpan:hover,
 .profil-form.ada-error .btn-simpan {
     background: var(--pf-accent-dark);
 }
+
 .btn-batal:focus-visible,
 .btn-simpan:focus-visible {
     outline: 2px solid var(--pf-brown);
@@ -929,19 +1070,23 @@ body::before {
         max-width: 640px;
         padding: 40px 28px;
     }
+
     .profil-form-wrap {
         width: 100%;
         max-width: 540px;
     }
 }
+
 @media (max-width: 640px) {
     .profil-nama {
         font-size: 28px;
     }
+
     .profil-avatar {
         width: 112px;
         height: 112px;
     }
+
     .profil-form {
         padding: 36px 20px 24px;
     }
@@ -1255,7 +1400,7 @@ body::before {
 }
 
 /* Jarak notifikasi pada halaman Kelola Bidang */
-.bidang-page > .pesan {
+.bidang-page>.pesan {
     margin-bottom: 0;
 }
 
@@ -1277,14 +1422,17 @@ body::before {
     color: #000;
     font-size: 15px;
 }
+
 .akun-alert svg {
     color: #166534;
     flex: none;
 }
+
 .akun-alert strong {
     flex: 1;
     font-weight: 600;
 }
+
 .akun-alert-tutup {
     display: grid;
     place-items: center;
@@ -1292,6 +1440,7 @@ body::before {
     height: 28px;
     border-radius: 6px;
 }
+
 .akun-alert-tutup:hover {
     background: rgba(0, 0, 0, 0.08);
 }
@@ -1302,6 +1451,7 @@ body::before {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 14px;
 }
+
 .akun-stat {
     display: flex;
     align-items: center;
@@ -1311,6 +1461,7 @@ body::before {
     border-radius: 14px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
+
 .akun-stat small {
     display: block;
     font-size: 11px;
@@ -1318,12 +1469,14 @@ body::before {
     letter-spacing: 0.6px;
     color: var(--coklat);
 }
+
 .akun-stat b {
     display: block;
     margin-top: 2px;
     font-size: 22px;
     color: #000;
 }
+
 .akun-stat-icon {
     width: 44px;
     height: 44px;
@@ -1334,14 +1487,17 @@ body::before {
     background: var(--peach-kartu);
     color: var(--coklat-tua);
 }
+
 .akun-stat-icon.hijau {
     background: #bdf0b0;
     color: #166534;
 }
+
 .akun-stat-icon.merah {
     background: #fde2d6;
     color: #a33d17;
 }
+
 .akun-stat-icon.biru {
     background: #e0e7ff;
     color: #3730a3;
@@ -1363,6 +1519,7 @@ body::before {
     flex-wrap: wrap;
     padding: 20px 24px;
 }
+
 .akun-filter-grup label {
     display: block;
     margin-bottom: 6px;
@@ -1370,6 +1527,7 @@ body::before {
     font-weight: 600;
     color: var(--coklat);
 }
+
 .akun-filter-grup select {
     width: 200px;
     height: 44px;
@@ -1385,9 +1543,11 @@ body::before {
     outline: none;
     cursor: pointer;
 }
+
 .akun-filter-grup select:focus {
     border-color: var(--peach);
 }
+
 .akun-btn-reset {
     display: inline-flex;
     align-items: center;
@@ -1401,20 +1561,24 @@ body::before {
     font-weight: 500;
     transition: background 0.15s;
 }
+
 .akun-btn-reset:hover {
     background: #f8d5c2;
 }
+
 .akun-btn-reset.aktif {
     min-width: 180px;
     justify-content: center;
     font-weight: 600;
 }
+
 .akun-cari {
     position: relative;
     margin-left: auto;
     width: 100%;
     max-width: 320px;
 }
+
 .akun-cari svg {
     position: absolute;
     top: 50%;
@@ -1422,6 +1586,7 @@ body::before {
     transform: translateY(-50%);
     color: var(--coklat);
 }
+
 .akun-cari input {
     width: 100%;
     height: 44px;
@@ -1436,18 +1601,22 @@ body::before {
     outline: none;
     color: var(--ink);
 }
+
 .akun-cari input::placeholder {
     color: #a58f86;
 }
+
 .akun-cari input:focus {
     border-color: var(--peach);
 }
+
 .akun-filter-info {
     margin-left: auto;
     align-self: center;
     font-size: 12px;
     color: var(--coklat);
 }
+
 .akun-filter-info span {
     margin-left: 6px;
     padding: 5px 12px;
@@ -1461,11 +1630,13 @@ body::before {
 .akun-tabel-wrap {
     overflow-x: auto;
 }
+
 .akun-tabel {
     width: 100%;
     border-collapse: collapse;
     min-width: 860px;
 }
+
 .akun-tabel th {
     padding: 16px;
     text-align: left;
@@ -1474,25 +1645,34 @@ body::before {
     color: #000;
     background: #fdf1ea;
 }
+
+.akun-tabel th.kolom-aksi {
+    text-align: center;
+}
+
 .akun-tabel td {
     padding: 16px;
     font-size: 14px;
     color: var(--ink);
     border-bottom: 1px solid #f6ebe5;
 }
+
 .akun-tabel th:first-child,
 .akun-tabel td:first-child {
     width: 56px;
     text-align: center;
 }
+
 .akun-nama {
     display: flex;
     align-items: center;
     gap: 12px;
 }
+
 .akun-nama strong {
     font-weight: 600;
 }
+
 .akun-inisial {
     width: 36px;
     height: 36px;
@@ -1505,10 +1685,12 @@ body::before {
     font-size: 12px;
     font-weight: 700;
 }
+
 .akun-username {
     font-size: 13px;
     color: var(--coklat);
 }
+
 .akun-pill {
     display: inline-block;
     padding: 3px 12px;
@@ -1519,6 +1701,7 @@ body::before {
     font-weight: 500;
     white-space: nowrap;
 }
+
 .akun-status {
     display: inline-flex;
     align-items: center;
@@ -1528,25 +1711,33 @@ body::before {
     font-size: 11px;
     font-weight: 500;
 }
+
 .akun-status i {
     width: 6px;
     height: 6px;
     border-radius: 50%;
     background: currentColor;
 }
+
 .akun-status.aktif {
     background: #bdf0b0;
     color: #166534;
 }
+
 .akun-status.nonaktif {
     background: var(--peach-kartu);
     color: var(--coklat);
 }
+
 .akun-aksi {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(5, 36px);
     align-items: center;
-    gap: 18px;
+    gap: 8px;
+    justify-content: start;
+    white-space: nowrap;
 }
+
 .akun-aksi a,
 .akun-aksi button {
     display: grid;
@@ -1554,12 +1745,33 @@ body::before {
     color: var(--ink);
     transition: color 0.15s;
 }
+
+.akun-aksi>a,
+.akun-aksi>button,
+.akun-aksi>.akun-aksi-spacer {
+    width: 36px;
+    height: 36px;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.akun-aksi-spacer {
+    visibility: hidden;
+    pointer-events: none;
+}
+
 .akun-aksi a:hover {
     color: var(--coklat-tua);
 }
+
 .akun-aksi .hapus {
     color: #b94b3c;
 }
+
 .akun-aksi .hapus:hover {
     color: #8f2c1e;
 }
@@ -1572,6 +1784,7 @@ body::before {
     padding: 72px 24px;
     text-align: center;
 }
+
 .akun-kosong-ikon {
     width: 96px;
     height: 96px;
@@ -1581,11 +1794,13 @@ body::before {
     background: var(--peach-kartu);
     color: var(--coklat-tua);
 }
+
 .akun-kosong h3 {
     margin-top: 28px;
     font-size: 22px;
     color: #000;
 }
+
 .akun-kosong p {
     margin-top: 10px;
     max-width: 460px;
@@ -1593,15 +1808,18 @@ body::before {
     line-height: 1.6;
     color: var(--coklat);
 }
+
 .akun-kosong p b {
     color: #000;
 }
+
 .akun-kosong-aksi {
     display: flex;
     align-items: center;
     gap: 24px;
     margin-top: 28px;
 }
+
 .akun-btn-ghost {
     padding: 12px 24px;
     border-radius: 8px;
@@ -1610,14 +1828,17 @@ body::before {
     font-size: 13px;
     font-weight: 600;
 }
+
 .akun-btn-ghost:hover {
     background: #f8d5c2;
 }
+
 .akun-link-panduan {
     font-size: 13px;
     font-weight: 600;
     color: #a2461f;
 }
+
 .akun-link-panduan:hover {
     text-decoration: underline;
 }
@@ -1634,14 +1855,17 @@ body::before {
     font-size: 12px;
     color: var(--coklat);
 }
+
 .akun-footer b {
     color: #000;
 }
+
 .akun-page-nav {
     display: flex;
     align-items: center;
     gap: 8px;
 }
+
 .akun-page-nav .num,
 .akun-page-nav .nav {
     display: grid;
@@ -1655,19 +1879,24 @@ body::before {
     font-size: 12px;
     font-weight: 600;
 }
+
 .akun-page-nav a:hover {
     background: #f8d5c2;
 }
+
 .akun-page-nav .aktif {
     background: #9a3f1c;
     color: #fff;
 }
+
 .akun-page-nav .aktif:hover {
     background: #9a3f1c;
 }
+
 .akun-page-nav .mati {
     opacity: 0.5;
 }
+
 .akun-page-nav .nav {
     background: transparent;
 }
@@ -1682,6 +1911,7 @@ body::before {
     border-radius: 20px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
+
 .akun-form-head {
     display: flex;
     align-items: flex-start;
@@ -1691,17 +1921,20 @@ body::before {
     background: #fdf1ea;
     border-radius: 12px;
 }
+
 .akun-form-head h1 {
     font-family: "Gelasio", Georgia, serif;
     font-size: 36px;
     color: #000;
     line-height: 1.2;
 }
+
 .akun-form-head p {
     margin-top: 4px;
     font-size: 14px;
     color: var(--coklat);
 }
+
 .akun-chip {
     padding: 4px 12px;
     border-radius: 999px;
@@ -1726,10 +1959,12 @@ body::before {
     font-size: 12px;
     line-height: 1.5;
 }
+
 .akun-info-box svg {
     flex: none;
     color: var(--coklat);
 }
+
 .akun-info-box.kecil {
     width: 100%;
     max-width: 100%;
@@ -1747,10 +1982,12 @@ body::before {
     border-radius: 8px;
     color: #a31515;
 }
+
 .akun-alert-error strong {
     display: block;
     font-size: 15px;
 }
+
 .akun-alert-error span {
     display: block;
     margin-top: 2px;
@@ -1768,6 +2005,7 @@ body::before {
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
     overflow: hidden;
 }
+
 .akun-form::before {
     content: "";
     position: absolute;
@@ -1777,6 +2015,7 @@ body::before {
     height: 4px;
     background: linear-gradient(90deg, #f4b99a, #9a3f1c);
 }
+
 .akun-form-judul {
     display: flex;
     align-items: center;
@@ -1785,6 +2024,7 @@ body::before {
     margin-bottom: 24px;
     border-bottom: 1px solid #f0ded4;
 }
+
 .akun-form-judul h2 {
     display: flex;
     align-items: center;
@@ -1793,12 +2033,14 @@ body::before {
     font-weight: 600;
     color: #000;
 }
+
 .akun-form-judul h2 i {
     width: 10px;
     height: 26px;
     border-radius: 999px;
     background: #9a3f1c;
 }
+
 .akun-form-judul span {
     font-size: 11px;
     color: #a2461f;
@@ -1807,6 +2049,7 @@ body::before {
 .akun-field {
     margin-bottom: 20px;
 }
+
 .akun-field label {
     display: block;
     margin-bottom: 8px;
@@ -1814,14 +2057,17 @@ body::before {
     font-weight: 600;
     color: #000;
 }
+
 .akun-field label em {
     margin-left: 2px;
     font-style: normal;
     color: #d4351c;
 }
+
 .akun-field.has-error label em {
     display: none;
 }
+
 .akun-baris {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1831,7 +2077,8 @@ body::before {
 .akun-input {
     position: relative;
 }
-.akun-input > svg:first-child {
+
+.akun-input>svg:first-child {
     position: absolute;
     top: 50%;
     left: 14px;
@@ -1839,6 +2086,7 @@ body::before {
     color: var(--coklat);
     pointer-events: none;
 }
+
 .akun-input input,
 .akun-input select {
     width: 100%;
@@ -1857,14 +2105,17 @@ body::before {
         border-color 0.15s,
         box-shadow 0.15s;
 }
+
 .akun-input input::placeholder {
     color: #b5a39a;
 }
+
 .akun-input input:focus,
 .akun-input select:focus {
     border-color: #c2653d;
     box-shadow: 0 0 0 3px rgba(194, 101, 61, 0.16);
 }
+
 .akun-input .status {
     position: absolute;
     top: 50%;
@@ -1872,9 +2123,11 @@ body::before {
     transform: translateY(-50%);
     color: #a33d17;
 }
+
 .akun-input .status.ok {
     color: #166534;
 }
+
 /* Tombol lihat/sembunyikan kata sandi */
 .akun-input .akun-toggle-pw {
     position: absolute;
@@ -1890,12 +2143,15 @@ body::before {
     opacity: 0.7;
     transition: opacity 0.15s;
 }
+
 .akun-input .akun-toggle-pw:hover {
     opacity: 1;
 }
+
 .akun-input:has(.akun-toggle-pw) .status {
     right: 50px;
 }
+
 .akun-field.has-error .akun-input input,
 .akun-field.has-error .akun-input select {
     background: #fde2d6;
@@ -1911,9 +2167,11 @@ body::before {
     font-size: 12px;
     line-height: 1.4;
 }
+
 .akun-hint {
     color: var(--coklat);
 }
+
 .akun-error {
     color: #a33d17;
     font-weight: 600;
@@ -1927,6 +2185,7 @@ body::before {
     padding-top: 24px;
     border-top: 1px solid #f0ded4;
 }
+
 .akun-btn-batal,
 .akun-btn-simpan {
     display: inline-flex;
@@ -1940,18 +2199,22 @@ body::before {
     font-weight: 600;
     transition: background 0.15s;
 }
+
 .akun-btn-batal {
     background: #fff;
     color: #000;
     border: 1px solid #e9d8d0;
 }
+
 .akun-btn-batal:hover {
     background: var(--bg);
 }
+
 .akun-btn-simpan {
     background: #9a3f1c;
     color: #fff;
 }
+
 .akun-btn-simpan:hover {
     background: #7d3115;
 }
@@ -1962,40 +2225,50 @@ body::before {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
+
 @media (max-width: 768px) {
+
     .akun-cari,
     .akun-filter-info {
         margin-left: 0;
         max-width: 100%;
     }
+
     .akun-filter-grup,
     .akun-filter-grup select {
         width: 100%;
     }
+
     .akun-baris {
         grid-template-columns: 1fr;
         gap: 0;
     }
+
     .akun-form {
         margin: 12px 0 0;
         padding: 28px 18px 20px;
     }
+
     .akun-form-head h1 {
         font-size: 28px;
     }
+
     .akun-form-aksi {
         flex-direction: column-reverse;
     }
+
     .akun-btn-batal,
     .akun-btn-simpan {
         width: 100%;
     }
 }
+
 @media (max-width: 640px) {
     .akun-stats {
         grid-template-columns: 1fr;
     }
 }
+
 .logout-top {
     flex-shrink: 0;
 }
@@ -2004,38 +2277,46 @@ body::before {
     .topbar {
         padding: 0 12px;
     }
+
     .topbar-left {
         flex: 1 1 auto;
         min-width: 0;
         gap: 8px;
     }
-    .topbar-left > div {
+
+    .topbar-left>div {
         min-width: 0;
     }
+
     .brand {
         font-size: 16px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
     }
+
     .logo {
         width: 40px;
         height: 40px;
         margin: 0;
     }
+
     .topbar-right {
         flex-shrink: 0;
         gap: 8px;
     }
+
     .profile {
         padding: 4px;
     }
+
     .logout-top {
         min-width: 44px;
         min-height: 44px;
         padding: 10px;
         justify-content: center;
     }
+
     .logout-top span {
         display: none;
     }
@@ -2045,18 +2326,21 @@ body::before {
     .topbar-left {
         gap: 6px;
     }
+
     .brand {
         font-size: 14px;
         white-space: normal;
         overflow: visible;
         text-overflow: clip;
     }
+
     .brand-sub {
         display: block;
         font-size: 9px;
         line-height: 1.2;
         margin-top: 2px;
     }
+
     .avatar {
         width: 36px;
         height: 36px;
@@ -2064,10 +2348,11 @@ body::before {
 }
 
 @media (max-width: 340px) {
-    .topbar-left > div {
+    .topbar-left>div {
         display: none;
     }
 }
+
 /* ================================
    DIALOG RESET KATA SANDI
 ================================ */
@@ -2105,6 +2390,7 @@ body::before {
         opacity: 0;
         transform: translateY(10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -2199,7 +2485,7 @@ body::before {
     margin-bottom: 16px;
 }
 
-.password-info > span {
+.password-info>span {
     display: block;
     font-size: 10px;
     font-weight: 700;
@@ -2298,6 +2584,7 @@ body::before {
 }
 
 @media (max-width: 480px) {
+
     .reset-dialog,
     .password-dialog {
         padding: 24px 20px;
@@ -2311,7 +2598,12 @@ body::before {
         width: 100%;
     }
 }
-.akun-alert.akun-alert-galat { background: #fde8e6; border-color: #e8b4ae; color: #c0392b; }
+
+.akun-alert.akun-alert-galat {
+    background: #fde8e6;
+    border-color: #e8b4ae;
+    color: #c0392b;
+}
 
 /* Sembunyikan tombol reveal/clear bawaan Edge, pakai tombol custom aja */
 .isian-sandi input[type="password"]::-ms-reveal,
@@ -2326,6 +2618,34 @@ body::before {
     position: absolute;
     right: 0;
 }
+
 .isian-sandi input {
-    padding-right: 44px; /* sesuaikan dengan lebar .tombol-lihat */
+    padding-right: 44px;
+    /* sesuaikan dengan lebar .tombol-lihat */
+}
+
+.akun-aksi {
+    display: grid !important;
+    grid-template-columns: repeat(5, 36px) !important;
+    gap: 8px !important;
+    align-items: center;
+}
+
+.akun-aksi-slot {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.akun-aksi-slot>a,
+.akun-aksi-slot>button {
+    width: 36px;
+    height: 36px;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }

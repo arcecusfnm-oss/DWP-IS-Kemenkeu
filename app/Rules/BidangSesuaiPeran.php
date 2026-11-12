@@ -66,4 +66,9 @@ class BidangSesuaiPeran implements ValidationRule
             ->when($kecualiId, fn ($q) => $q->where('pengguna.id_pengguna', '!=', $kecualiId))
             ->exists();
     }
+
+    public static function multiBidang(?string $peran): bool
+    {
+        return in_array($peran, config('dwp.peran_multi_bidang', []), true);
+    }
 }

@@ -9,17 +9,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
-/**
- * T-70 (B-010): Unit test tetapkan bidang pada akun.
- *
- * Tiga kelompok sesuai judul tugas:
- *   1. bidang valid       -> AC B-010 no. 1 dan 5
- *   2. bidang tidak ada   -> AC B-010 no. 3
- *   3. satu bidang aktif  -> AC B-010 no. 2
- *
- * Catatan: akses non-Admin (AC no. 4) dan "id_bidang wajib diisi" sudah dicakup
- * AssignBidangTest dari T-68, jadi tidak diulang di sini.
- */
 class TetapkanBidangTest extends TestCase
 {
     use RefreshDatabase;
@@ -48,9 +37,6 @@ class TetapkanBidangTest extends TestCase
             Bidang::firstOrCreate(['nama_bidang' => $nama]);
         }
 
-        // Kolom pengguna.id_bidang NOT NULL, jadi setiap akun harus punya bidang awal.
-        // Admin hanya boleh bidang Sekretariat; target berperan Anggota Bidang
-        // supaya boleh ditetapkan ke kelima bidang (sesuai config/dwp.php).
         $this->admin  = $this->buatPengguna('admin_t70', $peranAdmin->id_peran, $this->idBidang('Sekretariat'));
         $this->target = $this->buatPengguna('target_t70', $this->idPeranAnggota, $this->idBidang('Sosial Budaya'));
     }
@@ -70,11 +56,13 @@ class TetapkanBidangTest extends TestCase
         ]);
     }
 
-    private function tetapkan(Pengguna $akun, $idBidang)
+    private function tetapkan(Pengguna $akun, $namaBidang)
     {
+        $payload = is_array($namaBidang) ? $namaBidang : [$namaBidang];
+
         return $this->actingAs($this->admin)
             ->put(route('admin.akun.bidang.update', $akun->id_pengguna), [
-                'id_bidang' => $idBidang,
+                'bidang' => $payload,
             ]);
     }
 
@@ -94,15 +82,13 @@ class TetapkanBidangTest extends TestCase
 
     public function test_bidang_valid_tersimpan_dan_menampilkan_pesan_sukses(): void
     {
-        $idPendidikan = $this->idBidang('Pendidikan');
-
-        $this->tetapkan($this->target, $idPendidikan)
+        $this->tetapkan($this->target, 'Pendidikan')
             ->assertRedirect(route('admin.akun.index'))
             ->assertSessionHas('sukses', 'Bidang akun berhasil diperbarui.');
 
         $this->assertDatabaseHas('pengguna', [
             'id_pengguna' => $this->target->id_pengguna,
-            'id_bidang'   => $idPendidikan,
+            'id_bidang'   => $this->idBidang('Pendidikan'),
         ]);
     }
 
@@ -111,7 +97,7 @@ class TetapkanBidangTest extends TestCase
         foreach (self::NAMA_BIDANG as $nama) {
             $id = $this->idBidang($nama);
 
-            $this->tetapkan($this->target, $id)->assertSessionHasNoErrors();
+            $this->tetapkan($this->target, $nama)->assertSessionHasNoErrors();
 
             $this->assertSame($id, $this->bidangAkun($this->target), "Bidang {$nama} gagal ditetapkan");
         }
@@ -124,12 +110,11 @@ class TetapkanBidangTest extends TestCase
         $idAwal = $this->idBidang('Ekonomi');
         $this->target->update(['id_bidang' => $idAwal]);
 
-        // Angka yang tidak ada di tabel bidang: lolos 'integer', gagal 'exists'.
-        foreach ([999999, 0, -1] as $idTidakAda) {
-            $this->tetapkan($this->target, $idTidakAda)
-                ->assertSessionHasErrors(['id_bidang' => 'Bidang tidak terdaftar.']);
+        foreach (['Bidang Fiktif 1', 'Bidang Fiktif 2', 'Tidak Ada'] as $namaTidakAda) {
+            $this->tetapkan($this->target, $namaTidakAda)
+                ->assertSessionHasErrors('bidang.0'); // Gunakan 'bidang.0'
 
-            $this->assertSame($idAwal, $this->bidangAkun($this->target), "Bidang berubah untuk input {$idTidakAda}");
+            $this->assertSame($idAwal, $this->bidangAkun($this->target), "Bidang berubah untuk input {$namaTidakAda}");
         }
     }
 
@@ -140,7 +125,7 @@ class TetapkanBidangTest extends TestCase
 
         foreach (['abc', '1; DROP TABLE bidang', "' OR 1=1 --", '1.5'] as $input) {
             $this->tetapkan($this->target, $input)
-                ->assertSessionHasErrors(['id_bidang' => 'ID bidang tidak valid.']);
+                ->assertSessionHasErrors('bidang.0'); // Gunakan 'bidang.0'
 
             $this->assertSame($idAwal, $this->bidangAkun($this->target), "Bidang berubah untuk input {$input}");
         }
@@ -151,14 +136,12 @@ class TetapkanBidangTest extends TestCase
 
     public function test_akun_yang_tidak_ada_atau_sudah_dihapus_mengembalikan_404(): void
     {
-        $idBidang = $this->idBidang('Sekretariat');
-
-        $this->tetapkan($this->target, $idBidang);
+        $this->tetapkan($this->target, 'Sekretariat');
         $this->target->delete(); // soft delete (kolom dihapus_pada)
 
-        $this->tetapkan($this->target, $this->idBidang('Ekonomi'))->assertNotFound();
+        $this->tetapkan($this->target, 'Ekonomi')->assertNotFound();
         $this->actingAs($this->admin)
-            ->put(route('admin.akun.bidang.update', 999999), ['id_bidang' => $idBidang])
+            ->put(route('admin.akun.bidang.update', 999999), ['bidang' => ['Sekretariat']])
             ->assertNotFound();
     }
 
@@ -169,10 +152,10 @@ class TetapkanBidangTest extends TestCase
         $idA = $this->idBidang('Sekretariat');
         $idB = $this->idBidang('Ekonomi');
 
-        $this->tetapkan($this->target, $idA)->assertSessionHasNoErrors();
+        $this->tetapkan($this->target, 'Sekretariat')->assertSessionHasNoErrors();
         $this->assertSame($idA, $this->bidangAkun($this->target));
 
-        $this->tetapkan($this->target, $idB)->assertSessionHasNoErrors();
+        $this->tetapkan($this->target, 'Ekonomi')->assertSessionHasNoErrors();
 
         // Hanya bidang B yang tersimpan; bidang A tidak lagi menempel pada akun.
         $this->assertSame($idB, $this->bidangAkun($this->target));
@@ -193,7 +176,7 @@ class TetapkanBidangTest extends TestCase
 
         $akunLain = $this->buatPengguna('akun_lain_t70', $this->idPeranAnggota, $idA);
 
-        $this->tetapkan($this->target, $idB)->assertSessionHasNoErrors();
+        $this->tetapkan($this->target, 'Bendahara')->assertSessionHasNoErrors();
 
         $this->assertSame($idB, $this->bidangAkun($this->target));
         $this->assertSame($idA, $this->bidangAkun($akunLain), 'Akun lain ikut berubah');

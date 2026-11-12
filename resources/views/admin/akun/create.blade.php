@@ -6,7 +6,7 @@
     // Nanti ganti pakai $errors bawaan Laravel (@error('username') dst).
     $demoError = false;
     $err = collect($errors->messages())->map(fn ($m) => $m[0])->all();
-
+    $errBidang = $err['bidang'] ?? collect($err)->first(fn ($v, $k) => str_starts_with($k, 'bidang.'));
     $ikonSalah = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/></svg>';
 @endphp
 
@@ -96,17 +96,13 @@
                     @endisset
                 </div>
 
-                <div class="akun-field {{ isset($err['bidang']) ? 'has-error' : '' }}">
-                    <label for="bidang">Bidang <em id="bintangBidang">*</em></label>
-                    <div class="akun-input">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="12" height="18" rx="1"/><path d="M16 9h4v12h-4M8 7h4M8 11h4M8 15h4"/></svg>
-                        <select id="bidang" name="bidang">
-                            <option value="">Pilih peran dulu</option>
-                        </select>
-                    </div>
-                    @isset($err['bidang'])
-                        <p class="akun-error">{!! $ikonSalah !!} {{ $err['bidang'] }}</p>
-                    @endisset
+                <div class="akun-field {{ $errBidang ? 'has-error' : '' }}">
+                    <label>Bidang <em id="bintangBidang">*</em></label>
+                    <div id="daftarBidang"></div>
+                    <button type="button" id="tambahBidang" class="akun-btn-batal" style="margin-top:8px" hidden>+ Tambah bidang</button>
+                    @if ($errBidang)
+                        <p class="akun-error">{!! $ikonSalah !!} {{ $errBidang }}</p>
+                    @endif
                 </div>
             </div>
 
@@ -150,63 +146,98 @@
     });
 </script>
 <div id="dwpData" hidden
-     data-peta="{{ json_encode($petaBidang) }}"
-     data-penuh="{{ json_encode($penuh) }}"
-     data-tanpa="{{ json_encode($tanpaBidang) }}"
-     data-lama="{{ old('bidang') }}">
+     data-peta='@json($petaBidang)'
+     data-penuh='@json($penuh)'
+     data-tanpa='@json($tanpaBidang)'
+     data-multi='@json($peranMulti)'
+     data-lama='@json(array_values((array) old("bidang", [])))'>
 </div>
 <script>
 (function () {
-    const data   = document.getElementById('dwpData').dataset;
-    const peta   = JSON.parse(data.peta);
-    const penuh  = JSON.parse(data.penuh);
-    const tanpa  = JSON.parse(data.tanpa);
-    const lama   = data.lama;
+    const d     = document.getElementById('dwpData').dataset;
+    const peta  = JSON.parse(d.peta);
+    const penuh = JSON.parse(d.penuh);
+    const tanpa = JSON.parse(d.tanpa);
+    const multi = JSON.parse(d.multi);
+    const lama  = JSON.parse(d.lama);
+
     const peran  = document.getElementById('peran');
-    const bidang = document.getElementById('bidang');
+    const daftar = document.getElementById('daftarBidang');
+    const tambah = document.getElementById('tambahBidang');
+    const bintang = document.getElementById('bintangBidang');
 
-    if (!peran || !bidang) {
-        console.error('Select #peran atau #bidang tidak ditemukan');
-        return;
-    }
+    const ikon = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="12" height="18" rx="1"/><path d="M16 9h4v12h-4M8 7h4M8 11h4M8 15h4"/></svg>';
 
-    function isiBidang() {
-        const bintang = document.getElementById('bintangBidang');
+    function baris(boleh, terisi, terpilih, bisaHapus) {
+        const wrap = document.createElement('div');
+        wrap.className = 'akun-input';
+        wrap.style.marginBottom = '8px';
+        wrap.innerHTML = ikon;
 
-        // Peran tanpa bidang (Penasihat): kunci dropdown bidang
-        if (tanpa.includes(peran.value)) {
-            bidang.innerHTML = '<option value="">Tidak memerlukan bidang</option>';
-            bidang.disabled = true;
-            if (bintang) bintang.hidden = true;
-            return;
-        }
-        bidang.disabled = false;
-        if (bintang) bintang.hidden = false;
-
-        const boleh  = peran.value ? (peta[peran.value] || []) : [];
-        const terisi = penuh[peran.value] || [];
-        bidang.innerHTML = '';
-
-        const kosong = document.createElement('option');
-        kosong.value = '';
-        kosong.textContent = peran.value ? 'Pilih Bidang' : 'Pilih peran dulu';
-        bidang.appendChild(kosong);
-
+        const sel = document.createElement('select');
+        sel.name = 'bidang[]';
+        sel.innerHTML = '<option value="">Pilih Bidang</option>';
         boleh.forEach(function (b) {
             const o = document.createElement('option');
             const isi = terisi.includes(b);
             o.value = b;
             o.textContent = isi ? b + ' (sudah terisi)' : b;
             o.disabled = isi;
-            bidang.appendChild(o);
+            o.selected = (b === terpilih);
+            sel.appendChild(o);
         });
+        wrap.appendChild(sel);
 
-        if (boleh.length === 1) bidang.value = boleh[0];
-        else if (lama && boleh.includes(lama) && !terisi.includes(lama)) bidang.value = lama;
+        if (bisaHapus) {
+            const x = document.createElement('button');
+            x.type = 'button';
+            x.textContent = '✕';
+            x.setAttribute('aria-label', 'Hapus bidang');
+            x.style.cssText = 'position:absolute; top:0; right:0; width:46px; height:46px; color:#b42318;';
+            x.onclick = function () { if (daftar.children.length > 1) wrap.remove(); };
+            wrap.appendChild(x);
+        }
+        return wrap;
     }
 
-    peran.addEventListener('change', isiBidang);
-    isiBidang();
+    function render(pakaiLama) {
+        daftar.innerHTML = '';
+        const p = peran.value;
+
+        if (tanpa.includes(p)) {
+            daftar.innerHTML = '<div class="akun-input">' + ikon + '<input type="text" value="Tidak memerlukan bidang" disabled></div>';
+            tambah.hidden = true;
+            if (bintang) bintang.hidden = true;
+            return;
+        }
+        if (bintang) bintang.hidden = false;
+
+        const boleh  = p ? (peta[p] || []) : [];
+        const terisi = penuh[p] || [];
+        const isMulti = multi.includes(p);
+        tambah.hidden = !isMulti;
+
+        if (!p) {
+            daftar.innerHTML = '<div class="akun-input">' + ikon + '<select disabled><option>Pilih peran dulu</option></select></div>';
+            return;
+        }
+
+        let awal = pakaiLama ? lama.filter(b => boleh.includes(b)) : [];
+        if (!isMulti) awal = awal.slice(0, 1);
+        if (!awal.length) awal = [boleh.length === 1 ? boleh[0] : ''];
+
+        awal.forEach(function (b, i) {
+            daftar.appendChild(baris(boleh, terisi, b, isMulti && i > 0));
+        });
+    }
+
+    tambah.addEventListener('click', function () {
+        const p = peran.value;
+        daftar.appendChild(baris(peta[p] || [], penuh[p] || [], '', true));
+    });
+
+    peran.addEventListener('change', function () { render(false); });
+    render(true);
 })();
 </script>
 @endsection

@@ -239,6 +239,51 @@ class LoginTest extends TestCase
         $this->assertGuest();
     }
 
+    public function test_lockout_tetap_aktif_setelah_halaman_login_di_refresh(): void
+    {
+        $this->buatPengguna();
+
+        // Lakukan lima kali percobaan login dengan password salah.
+        for ($i = 0; $i < 5; $i++) {
+            $this->post('/login', [
+                'username' => 'fahira',
+                'password' => 'salah123',
+            ]);
+        }
+
+        // Simulasikan session kehilangan data lockout.
+        $this->flushSession();
+
+        // Username tetap diketahui agar controller bisa mencari Cache lockout.
+        $this->withSession([
+            'login_throttle_username' => 'fahira',
+        ]);
+
+        // Buka ulang halaman login.
+        $response = $this->get('/login');
+
+        $response->assertOk();
+        $response->assertSee('Terlalu banyak percobaan masuk.');
+        $response->assertSee('Silakan coba lagi dalam:');
+        $response->assertSee('05:00');
+        $response->assertSee('disabled', false);
+
+        // Pastikan timestamp berhasil dipulihkan dari Cache.
+        $response->assertSessionHas('login_throttle_until');
+        $response->assertSessionHas(
+            'login_throttle_username',
+            'fahira'
+        );
+
+        // Password benar tetap harus ditolak selama lockout aktif.
+        $this->from('/login')->post('/login', [
+            'username' => 'fahira',
+            'password' => 'password123',
+        ])->assertSessionHasErrors('throttle');
+
+        $this->assertGuest();
+    }
+
     public function test_akun_yang_sudah_dihapus_tidak_dapat_login(): void
     {
         $pengguna = $this->buatPengguna();

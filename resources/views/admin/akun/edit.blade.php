@@ -3,7 +3,7 @@
 @section('content')
 @php
     $err = collect($errors->messages())->map(fn ($m) => $m[0])->all();
-
+    $errBidang = $err['bidang'] ?? collect($err)->first(fn ($v, $k) => str_starts_with($k, 'bidang.'));
     $ikonSalah = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/></svg>';
 @endphp
 
@@ -81,20 +81,36 @@
                 </div>
 
                 @if (count($daftarBidang))
-                    <div class="akun-field {{ isset($err['bidang']) ? 'has-error' : '' }}">
-                        <label for="bidang">Bidang <em>*</em></label>
-                        <div class="akun-input">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="12" height="18" rx="1"/><path d="M16 9h4v12h-4M8 7h4M8 11h4M8 15h4"/></svg>
-                            <select id="bidang" name="bidang">
-                                <option value="">Pilih Bidang</option>
-                                @foreach ($daftarBidang as $b)
-                                    <option value="{{ $b }}" @selected(old('bidang', $akun->nama_bidang) === $b)>{{ $b }}</option>
-                                @endforeach
-                            </select>
+                    @php
+                        $terpilih = array_values((array) old('bidang', $bidangTerpilih));
+                        if (!$terpilih) $terpilih = [''];
+                        if (!$multi) $terpilih = array_slice($terpilih, 0, 1);
+                    @endphp
+                    <div class="akun-field {{ $errBidang ? 'has-error' : '' }}">
+                        <label>Bidang <em>*</em></label>
+                        <div id="daftarBidang">
+                            @foreach ($terpilih as $i => $pilih)
+                                <div class="akun-input" style="margin-bottom:8px">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="12" height="18" rx="1"/><path d="M16 9h4v12h-4M8 7h4M8 11h4M8 15h4"/></svg>
+                                    <select name="bidang[]">
+                                        <option value="">Pilih Bidang</option>
+                                        @foreach ($daftarBidang as $b)
+                                            <option value="{{ $b }}" @selected($pilih === $b)>{{ $b }}</option>
+                                        @endforeach
+                                    </select>
+                                    @if ($multi && $i > 0)
+                                        <button type="button" class="hapus-bidang" aria-label="Hapus bidang"
+                                            style="position:absolute; top:0; right:0; width:46px; height:46px; color:#b42318;">✕</button>
+                                    @endif
+                                </div>
+                            @endforeach
                         </div>
-                        @isset($err['bidang'])
-                            <p class="akun-error">{!! $ikonSalah !!} {{ $err['bidang'] }}</p>
-                        @endisset
+                        @if ($multi)
+                            <button type="button" id="tambahBidang" class="akun-btn-batal" style="margin-top:8px">+ Tambah bidang</button>
+                        @endif
+                        @if ($errBidang)
+                            <p class="akun-error">{!! $ikonSalah !!} {{ $errBidang }}</p>
+                        @endif
                     </div>
                 @else
                     <div class="akun-field">
@@ -118,4 +134,37 @@
         </form>
     </div>
 </div>
+
+@if ($multi && count($daftarBidang))
+<script>
+(function () {
+    const daftar = document.getElementById('daftarBidang');
+    const tambah = document.getElementById('tambahBidang');
+    if (!daftar || !tambah) return;
+
+    function pasangHapus(btn) {
+        btn.addEventListener('click', function () {
+            if (daftar.children.length > 1) btn.closest('.akun-input').remove();
+        });
+    }
+    daftar.querySelectorAll('.hapus-bidang').forEach(pasangHapus);
+
+    tambah.addEventListener('click', function () {
+        const klon = daftar.firstElementChild.cloneNode(true);
+        klon.querySelector('select').value = '';
+        const lama = klon.querySelector('.hapus-bidang');
+        if (lama) lama.remove();
+        const x = document.createElement('button');
+        x.type = 'button';
+        x.className = 'hapus-bidang';
+        x.setAttribute('aria-label', 'Hapus bidang');
+        x.textContent = '✕';
+        x.style.cssText = 'position:absolute; top:0; right:0; width:46px; height:46px; color:#b42318;';
+        klon.appendChild(x);
+        pasangHapus(x);
+        daftar.appendChild(klon);
+    });
+})();
+</script>
+@endif
 @endsection

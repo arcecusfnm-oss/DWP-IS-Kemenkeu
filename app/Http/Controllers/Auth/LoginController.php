@@ -21,6 +21,39 @@ class LoginController extends Controller
         private readonly LogLoginRepository $logLoginRepository // T-13
     ) {}
 
+    public function showLogin(Request $request)
+    {
+        $username = $request->session()->get('login_throttle_username');
+
+        if ($username) {
+            $ip = $request->ip();
+
+            $key = 'login|' . $username . '|' . $ip;
+            $lockKey = $key . '|locked';
+
+            $lockedUntil = Cache::get($lockKey);
+
+            if (
+                $lockedUntil !== null &&
+                (int) $lockedUntil > now()->timestamp
+            ) {
+                $request->session()->put(
+                    'login_throttle_until',
+                    (int) $lockedUntil
+                );
+            } else {
+                $request->session()->forget([
+                    'login_throttle_username',
+                    'login_throttle_until',
+                ]);
+            }
+        }
+
+        return response()
+            ->view('auth.login')
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+    }
+
     public function login(Request $request): RedirectResponse
     {
         $credentials = $request->validate([
@@ -45,6 +78,11 @@ class LoginController extends Controller
                 $request->session()->put(
                     'login_throttle_until',
                     (int) $lockedUntil
+                );
+
+                $request->session()->put(
+                    'login_throttle_username',
+                    $username
                 );
 
                 return redirect()
@@ -99,6 +137,11 @@ class LoginController extends Controller
                     $lockedUntil
                 );
 
+                $request->session()->put(
+                    'login_throttle_username',
+                    $username
+                );
+
                 return redirect()
                     ->route('login')
                     ->withErrors([
@@ -131,7 +174,10 @@ class LoginController extends Controller
         // Login berhasil: hapus hitungan kegagalan.
         Cache::forget($key);
         Cache::forget($lockKey);
-        $request->session()->forget('login_throttle_until');
+        $request->session()->forget([
+            'login_throttle_until',
+            'login_throttle_username',
+        ]);
 
         Auth::login($pengguna);
         $request->session()->regenerate();

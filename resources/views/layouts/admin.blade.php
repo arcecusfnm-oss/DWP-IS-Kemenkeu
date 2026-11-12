@@ -11,19 +11,28 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Gelasio:wght@500;600;700&family=Inter:wght@400;500;600&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('css/admin.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') }}?v={{ filemtime(public_path('css/admin.css')) }}">
     @stack('styles')
 </head>
 @php
     $adminNama = $adminNama ?? auth()->user()->nama_lengkap;
-    $adminUnit = $adminUnit ?? \Illuminate\Support\Facades\DB::table('peran')->where('id_peran', auth()->user()->id_peran)->value('nama_peran');
+    $adminUnit =
+        $adminUnit ??
+        \Illuminate\Support\Facades\DB::table('peran')
+            ->where('id_peran', auth()->user()->id_peran)
+            ->value('nama_peran');
 
     $penasihat = $adminUnit === 'Penasihat';
 
     if ($penasihat) {
         // Penasihat: view only, cuma dasbor pantau
         $menu = [
-            ['label' => 'Dasbor', 'icon' => 'dashboard', 'href' => 'penasihat.dashboard', 'route' => 'penasihat.dashboard'],
+            [
+                'label' => 'Dasbor',
+                'icon' => 'dashboard',
+                'href' => 'penasihat.dashboard',
+                'route' => 'penasihat.dashboard',
+            ],
         ];
         // Halaman profil admin dikunci role:Admin, jadi Penasihat tidak diarahkan ke sana
         $profilUrl = '#';
@@ -32,7 +41,12 @@
             ['label' => 'Dasbor', 'icon' => 'dashboard', 'href' => 'admin.dashboard', 'route' => 'admin.dashboard'],
             ['label' => 'Struktur Organisasi', 'icon' => 'org', 'href' => null, 'route' => 'admin.struktur.*'],
             ['label' => 'Kelola Akun', 'icon' => 'users', 'href' => 'admin.akun.index', 'route' => 'admin.akun.*'],
-            ['label' => 'Kelola Bidang', 'icon' => 'shapes', 'href' => 'admin.bidang.index', 'route' => 'admin.bidang.*'],
+            [
+                'label' => 'Kelola Bidang',
+                'icon' => 'shapes',
+                'href' => 'admin.bidang.index',
+                'route' => 'admin.bidang.*',
+            ],
             ['label' => 'Kelola Program Kerja', 'icon' => 'clipboard', 'href' => null, 'route' => 'admin.proker.*'],
             ['label' => 'Laporan Kegiatan', 'icon' => 'file', 'href' => null, 'route' => 'admin.laporan.*'],
             ['label' => 'Surat Masuk/Keluar', 'icon' => 'mail', 'href' => null, 'route' => 'admin.surat.*'],

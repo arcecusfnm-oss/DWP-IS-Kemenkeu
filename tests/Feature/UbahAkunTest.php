@@ -2,9 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\Bidang;
 use App\Models\Pengguna;
 use App\Models\Peran;
-use App\Models\Bidang;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
@@ -45,7 +45,7 @@ class UbahAkunTest extends TestCase
             ->put(route('admin.akun.update', $target->id_pengguna), [
                 'nama' => 'Target Baru',
                 'username' => 'target_baru',
-                'bidang' => $bidang->nama_bidang
+                'bidang' => [$bidang->nama_bidang],
             ]);
 
         $response->assertRedirect(route('admin.akun.index'));
@@ -96,7 +96,7 @@ class UbahAkunTest extends TestCase
             ->put(route('admin.akun.update', $target->id_pengguna), [
                 'nama' => 'Nama Baru',
                 'username' => 'user_lain', // Sengaja dibuat bentrok
-                'bidang' => $bidang->nama_bidang
+                'bidang' => [$bidang->nama_bidang],
             ]);
 
         $response->assertSessionHasErrors('username');
@@ -132,7 +132,7 @@ class UbahAkunTest extends TestCase
             ->put(route('admin.akun.update', $target->id_pengguna), [
                 'nama' => '',
                 'username' => '',
-                'bidang' => ''
+                'bidang' => [],
             ]);
 
         $response->assertSessionHasErrors(['nama', 'username', 'bidang']);
@@ -141,7 +141,6 @@ class UbahAkunTest extends TestCase
     // 4. Skenario Gagal: Akses Non-Admin (RBAC)
     public function test_non_admin_ditolak_mengubah_akun()
     {
-        // Pastikan peran non-admin tersedia
         $perans = Peran::pluck('id_peran');
         $idNonAdmin = $perans[1] ?? Peran::create(['nama_peran' => 'Anggota'])->id_peran;
         $bidang = Bidang::first() ?? Bidang::create(['nama_bidang' => 'Sekretariat']);
@@ -170,7 +169,7 @@ class UbahAkunTest extends TestCase
             ->put(route('admin.akun.update', $target->id_pengguna), [
                 'nama' => 'Target Baru',
                 'username' => 'target_baru',
-                'bidang' => $bidang->nama_bidang
+                'bidang' => [$bidang->nama_bidang],
             ]);
 
         $response->assertStatus(403);
@@ -206,7 +205,7 @@ class UbahAkunTest extends TestCase
             ->put(route('admin.akun.update', $target->id_pengguna), [
                 'nama' => 'Target Diperbarui',
                 'username' => 'target_lama',
-                'bidang' => $bidang->nama_bidang,
+                'bidang' => [$bidang->nama_bidang],
             ]);
 
         $response->assertRedirect(route('admin.akun.index'));
@@ -249,10 +248,10 @@ class UbahAkunTest extends TestCase
             ->put(route('admin.akun.update', $target->id_pengguna), [
                 'nama' => 'Target Baru',
                 'username' => 'target_baru',
-                'bidang' => 'Bidang Tidak Terdaftar',
+                'bidang' => ['Bidang Tidak Terdaftar'],
             ]);
 
-        $response->assertSessionHasErrors('bidang');
+        $response->assertSessionHasErrors('bidang.0'); // Gunakan 'bidang.0'
 
         $this->assertDatabaseHas('pengguna', [
             'id_pengguna' => $target->id_pengguna,

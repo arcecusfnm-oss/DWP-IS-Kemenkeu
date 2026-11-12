@@ -49,4 +49,36 @@ document.addEventListener('DOMContentLoaded', function () {
         password.type = tersembunyi ? 'text' : 'password';
         tombolLihat.setAttribute('aria-label', tersembunyi ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi');
     });
+
+    // Countdown lockout login berdasarkan waktu dari server.
+    const pesanLockout = document.getElementById('pesan-lockout');
+
+    if (pesanLockout) {
+        const countdown = document.getElementById('lockout-countdown');
+        const tombolMasuk = form.querySelector('button[type="submit"]');
+        const lockedUntil = Number(pesanLockout.dataset.lockoutUntil);
+
+        function updateCountdown() {
+            const waktuSekarang = Math.floor(Date.now() / 1000);
+            const sisaDetik = Math.max(0, lockedUntil - waktuSekarang);
+
+            const menit = Math.floor(sisaDetik / 60);
+            const detik = sisaDetik % 60;
+
+            countdown.textContent =
+                String(menit).padStart(2, '0') + ':' +
+                String(detik).padStart(2, '0');
+
+            if (sisaDetik <= 0) {
+                tombolMasuk.disabled = false;
+                pesanLockout.remove();
+                return;
+            }
+
+            tombolMasuk.disabled = true;
+            setTimeout(updateCountdown, 1000);
+        }
+
+        updateCountdown();
+    }
 });
