@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Rules\BidangSesuaiPeran;
 use App\Http\Controllers\Controller;
+use App\Rules\KataSandiKuat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -364,7 +365,7 @@ class AkunController extends Controller
             ],
             'peran'    => ['required', Rule::in(config('dwp.peran_dipilih'))],
             'bidang'   => $this->aturanBidang($request->input('peran')),
-            'password' => ['required', 'string', 'min:8', 'max:100'],
+            'password' => ['required', 'string', 'min:8', 'max:100', new KataSandiKuat()],
         ], [
             'nama.required'     => 'Nama lengkap wajib diisi',
             'username.required' => 'Nama pengguna wajib diisi',

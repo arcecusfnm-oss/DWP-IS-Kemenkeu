@@ -45,7 +45,7 @@ class AkunRbacTest extends TestCase
             'username' => 'budi.santoso',
             'peran'    => 'Anggota Bidang',
             'bidang'   => 'Ekonomi',
-            'password' => 'Rahasia123',
+            'password' => 'Rahasia123!',
         ], $ubah);
     }
 
@@ -135,13 +135,23 @@ class AkunRbacTest extends TestCase
     public function test_kata_sandi_8_karakter_diterima_dan_disimpan_sebagai_hash(): void
     {
         $this->actingAs($this->buatAdmin())
-            ->post(route('admin.akun.store'), $this->dataValid(['password' => 'Abcdef12']))
+            ->post(route('admin.akun.store'), $this->dataValid(['password' => 'Abcdef1!']))
             ->assertSessionHasNoErrors();
 
         $akun = Pengguna::where('nama_pengguna', 'budi.santoso')->first();
 
         $this->assertNotNull($akun);
-        $this->assertNotSame('Abcdef12', $akun->kata_sandi_hash);
-        $this->assertTrue(Hash::check('Abcdef12', $akun->kata_sandi_hash));
+        $this->assertNotSame('Abcdef1!', $akun->kata_sandi_hash);
+        $this->assertTrue(Hash::check('Abcdef1!', $akun->kata_sandi_hash));
+    }
+
+        // Aturan kata sandi kuat (revisi Sprint 1)
+    public function test_kata_sandi_tanpa_karakter_khusus_ditolak(): void
+    {
+        $this->actingAs($this->buatAdmin())
+            ->post(route('admin.akun.store'), $this->dataValid(['password' => 'Abcdef12']))
+            ->assertSessionHasErrors('password');
+
+        $this->assertDatabaseMissing('pengguna', ['nama_pengguna' => 'budi.santoso']);
     }
 }
