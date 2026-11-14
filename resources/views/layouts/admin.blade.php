@@ -40,8 +40,7 @@
         $menu = [
             ['label' => 'Dasbor', 'icon' => 'dashboard', 'href' => 'admin.dashboard', 'route' => 'admin.dashboard'],
             ['label' => 'Struktur Organisasi', 'icon' => 'org', 'href' => null, 'route' => 'admin.struktur.*'],
-            ['label' => 'Kelola Akun', 'icon' => 'users', 'href' => 'admin.akun.index', 'route' => 'admin.akun.*'],
-            [
+            ['label' => 'Kelola Akun', 'icon' => 'user-cog', 'href' => 'admin.akun.index', 'route' => 'admin.akun.*'],            [
                 'label' => 'Kelola Anggota',
                 'icon' => 'users',
                 'href' => 'admin.anggota.index',

@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\NoCache;
 use App\Http\Controllers\ProgramKerjaController;
 use App\Http\Controllers\Admin\AnggotaController;
+use App\Http\Controllers\Admin\KetuaBidangController;
 
 // Halaman utama (publik)
 Route::view('/', 'landing')
@@ -46,6 +47,7 @@ Route::middleware(['auth', 'role:Admin', NoCache::class])
         Route::post('/', [BidangController::class, 'store'])->name('store');
         Route::get('/{id}/edit', [BidangController::class, 'edit'])->name('edit');
         Route::delete('/{id}', [BidangController::class, 'destroy'])->name('destroy');
+        Route::put('/{id}/ketua', [KetuaBidangController::class, 'update'])->whereNumber('id')->name('ketua.update');
     });
 
 // Halaman profil admin (tambahan)

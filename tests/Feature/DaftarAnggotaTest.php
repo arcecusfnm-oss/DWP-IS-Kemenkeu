@@ -145,7 +145,7 @@ class DaftarAnggotaTest extends TestCase
         $baris   = $respons->json('anggota.data.0');
 
         $this->assertEqualsCanonicalizing(
-            ['id_anggota', 'nama_lengkap', 'nomor_telepon', 'status', 'nama_bidang', 'nama_unit_kerja'],
+            ['id_anggota', 'nama_lengkap', 'nama_panggilan', 'nomor_telepon', 'status', 'jabatan_bidang', 'nama_bidang', 'nama_unit_kerja', 'lengkap'],
             array_keys($baris)
         );
         $this->assertStringNotContainsString('kata_sandi', $respons->getContent());

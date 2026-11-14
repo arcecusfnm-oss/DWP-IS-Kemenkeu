@@ -30,30 +30,61 @@ class AnggotaController extends Controller
 
     // ===== T-42: TIDAK DIUBAH =====
 
-    public function index(Request $request)
+        public function index(Request $request)
     {
-        // Nilai filter = id_bidang. Kosong berarti semua bidang.
+        // bidang = id_bidang, peran = id_peran, q = kata kunci. Kosong berarti tanpa filter.
         $request->validate([
             'bidang' => ['nullable', 'integer'],
+            'peran'  => ['nullable', 'integer'],
+            'q'      => ['nullable', 'string', 'max:100'],
         ], [
             'bidang.integer' => 'Filter bidang tidak valid',
+            'peran.integer'  => 'Filter peran tidak valid',
+            'q.max'          => 'Kata kunci terlalu panjang',
         ]);
 
         $query = DB::table('anggota')
             ->leftJoin('bidang', 'bidang.id_bidang', '=', 'anggota.id_bidang')
             ->leftJoin('unit_kerja', 'unit_kerja.id_unit_kerja', '=', 'anggota.id_unit_kerja')
+            ->leftJoin('pengguna', 'pengguna.id_pengguna', '=', 'anggota.id_pengguna')
             ->whereNull('anggota.dihapus_pada')
             ->select(
                 'anggota.id_anggota',
                 'anggota.nama_lengkap',
+                'anggota.nama_panggilan',
                 'anggota.nomor_telepon',
                 'anggota.status',
+                'anggota.jabatan_bidang',
                 'bidang.nama_bidang',
                 'unit_kerja.nama_unit_kerja'
-            );
+            )
+            // DRAFT (belum dikonfirmasi klien): lengkap = 6 kolom opsional form terisi semua.
+            // Dihitung di SQL supaya email/alamat tidak ikut terkirim ke respons.
+            ->selectRaw("(
+                NULLIF(TRIM(anggota.tempat_lahir), '') IS NOT NULL
+                AND anggota.tanggal_lahir IS NOT NULL
+                AND NULLIF(TRIM(anggota.alamat_lengkap), '') IS NOT NULL
+                AND NULLIF(TRIM(anggota.email), '') IS NOT NULL
+                AND anggota.id_unit_kerja IS NOT NULL
+                AND NULLIF(TRIM(anggota.tingkat_pendidikan), '') IS NOT NULL
+            ) AS lengkap");
 
         if ($request->filled('bidang')) {
             $query->where('anggota.id_bidang', (int) $request->query('bidang'));
+        }
+
+        if ($request->filled('peran')) {
+            $query->where('pengguna.id_peran', (int) $request->query('peran'));
+        }
+
+        if ($request->filled('q')) {
+            // Escape wildcard LIKE supaya "%" dan "_" dicari sebagai teks biasa.
+            $kata = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], trim((string) $request->query('q')));
+            $query->where(function ($w) use ($kata) {
+                $w->where('anggota.nama_lengkap', 'like', "%{$kata}%")
+                    ->orWhere('anggota.nama_panggilan', 'like', "%{$kata}%")
+                    ->orWhere('pengguna.nama_pengguna', 'like', "%{$kata}%");
+            });
         }
 
         $anggota = $query
@@ -66,17 +97,22 @@ class AnggotaController extends Controller
             ->orderBy('nama_bidang')
             ->get(['id_bidang', 'nama_bidang']);
 
+        $daftarPeran = DB::table('peran')
+            ->orderBy('nama_peran')
+            ->get(['id_peran', 'nama_peran']);
+
         if ($request->expectsJson()) {
             return response()->json([
                 'anggota'       => $anggota,
                 'daftar_bidang' => $daftarBidang,
+                'daftar_peran'  => $daftarPeran,
             ]);
         }
 
         return view('admin.anggota.index', [
             'anggota'      => $anggota,
             'daftarBidang' => $daftarBidang,
-            'filterBidang' => $request->filled('bidang') ? (int) $request->query('bidang') : null,
+            'daftarPeran'  => $daftarPeran,
         ]);
     }
 
