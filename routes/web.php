@@ -111,4 +111,6 @@ Route::middleware(['auth', 'role:Admin', NoCache::class])
     ->name('admin.anggota.')
     ->group(function () {
         Route::get('/', [AnggotaController::class, 'index'])->name('index');
+        Route::get('/tambah', [AnggotaController::class, 'create'])->name('create');
+        Route::post('/', [AnggotaController::class, 'store'])->name('store');
     });
