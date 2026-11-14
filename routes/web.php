@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Penasihat\DashboardController as PenasihatDashboardController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\NoCache;
+use App\Http\Controllers\ProgramKerjaController;
 
 // Halaman utama (publik)
 Route::view('/', 'landing')
@@ -92,4 +93,12 @@ Route::middleware(['auth', 'role:Penasihat', NoCache::class])
     ->name('penasihat.')
     ->group(function () {
         Route::get('/dashboard', [PenasihatDashboardController::class, 'index'])->name('dashboard');
+    });
+
+    // Program Kerja (hanya Pimpinan Bidang)
+Route::middleware(['auth', 'role:Pimpinan Bidang', NoCache::class])
+    ->prefix('program-kerja')
+    ->name('program-kerja.')
+    ->group(function () {
+        Route::post('/', [ProgramKerjaController::class, 'store'])->name('store');
     });
