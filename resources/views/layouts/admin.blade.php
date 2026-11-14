@@ -42,6 +42,12 @@
             ['label' => 'Struktur Organisasi', 'icon' => 'org', 'href' => null, 'route' => 'admin.struktur.*'],
             ['label' => 'Kelola Akun', 'icon' => 'users', 'href' => 'admin.akun.index', 'route' => 'admin.akun.*'],
             [
+                'label' => 'Kelola Anggota',
+                'icon' => 'users',
+                'href' => 'admin.anggota.index',
+                'route' => 'admin.anggota.*',
+            ],
+            [
                 'label' => 'Kelola Bidang',
                 'icon' => 'shapes',
                 'href' => 'admin.bidang.index',

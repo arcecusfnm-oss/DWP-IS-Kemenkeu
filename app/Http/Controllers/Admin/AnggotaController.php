@@ -135,8 +135,9 @@ class AnggotaController extends Controller
             'dicatat_pada'   => now()->toDateTimeString(),
         ]);
 
-        return redirect()->route('admin.anggota.create')
-            ->with('sukses', 'Data anggota berhasil disimpan.');
+        return redirect()
+            ->route('admin.anggota.index')
+            ->with('success', 'Data berhasil disimpan.');
     }
 
     private function aturan(): array
