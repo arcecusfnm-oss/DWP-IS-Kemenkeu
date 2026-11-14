@@ -704,4 +704,45 @@ class AkunController extends Controller
 
         return back()->with('sukses', 'Akun berhasil dinonaktifkan.');
     }
+
+    public function aktifkan($id)
+    {
+        $akun = DB::transaction(function () use ($id) {
+            $akun = DB::table('pengguna')
+                ->where('id_pengguna', $id)
+                ->whereNull('dihapus_pada')
+                ->lockForUpdate()
+                ->first(['id_pengguna', 'nama_pengguna', 'status']);
+
+            if (!$akun) {
+                abort(404, 'Akun tidak ditemukan.');
+            }
+
+            // Akun yang sudah aktif tidak perlu diubah.
+            if ($akun->status === 'aktif') {
+                return null;
+            }
+
+            DB::table('pengguna')
+                ->where('id_pengguna', $id)
+                ->update([
+                    'status'     => 'aktif',
+                    'updated_at' => now(),
+                ]);
+
+            return $akun;
+        });
+
+        if (!$akun) {
+            return back()->with('galat', 'Akun tersebut sudah aktif.');
+        }
+
+        Log::info('Admin mengaktifkan kembali akun', [
+            'admin_id'        => Auth::id(),
+            'target_id'       => $akun->id_pengguna,
+            'target_username' => $akun->nama_pengguna,
+        ]);
+
+        return back()->with('sukses', 'Akun berhasil diaktifkan kembali.');
+    }
 }

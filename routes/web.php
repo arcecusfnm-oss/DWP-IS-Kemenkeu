@@ -80,11 +80,12 @@ Route::middleware(['auth', 'role:Admin', NoCache::class])
 
         Route::delete('/{id}', [AkunController::class, 'destroy'])->whereNumber('id')->name('destroy');
         Route::post('/{id}/nonaktifkan', [AkunController::class, 'nonaktifkan'])->whereNumber('id')->name('nonaktifkan');
+        Route::post('/{id}/aktifkan', [AkunController::class, 'aktifkan'])->whereNumber('id')->name('aktifkan');
         Route::get('/{id}/peran', [AkunController::class, 'editPeran'])->whereNumber('id')->name('peran.edit');
         Route::put('/{id}/peran', [AkunController::class, 'updatePeran'])->whereNumber('id')->name('peran.update');
 
         Route::post('/{id}/reset-password', [AkunController::class, 'resetPassword'])->whereNumber('id')->name('reset-password');
-        
+
         // Endpoint alih admin
         Route::post('/alih-admin', [AkunController::class, 'alihAdmin'])->name('alih-admin');
     });
