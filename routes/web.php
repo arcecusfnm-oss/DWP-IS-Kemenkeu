@@ -9,6 +9,7 @@ use App\Http\Controllers\Penasihat\DashboardController as PenasihatDashboardCont
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\NoCache;
 use App\Http\Controllers\ProgramKerjaController;
+use App\Http\Controllers\Admin\AnggotaController;
 
 // Halaman utama (publik)
 Route::view('/', 'landing')
@@ -101,4 +102,12 @@ Route::middleware(['auth', 'role:Pimpinan Bidang', NoCache::class])
     ->name('program-kerja.')
     ->group(function () {
         Route::post('/', [ProgramKerjaController::class, 'store'])->name('store');
+    });
+
+// Kelola Anggota (hanya Admin)
+Route::middleware(['auth', 'role:Admin', NoCache::class])
+    ->prefix('admin/anggota')
+    ->name('admin.anggota.')
+    ->group(function () {
+        Route::get('/', [AnggotaController::class, 'index'])->name('index');
     });
