@@ -1,25 +1,21 @@
 {{--
     resources/views/admin/anggota/index.blade.php
     Tampilan daftar anggota sesuai Figma "Kelola Anggota - Daftar Anggota".
-    Catatan: fitur filter/cari/paginasi sungguhan dikerjakan di B-020 (bukan T-27).
+    T-43 (B-020): filter bidang/peran, pencarian, dan paginasi dibaca dari AnggotaController::index().
 
-    Variabel yang dipakai (semua opsional kecuali $anggota):
-      $anggota       : koleksi atau paginator. Tiap item: nama_lengkap, nama_panggilan, nomor_telepon,
-                       nama_bidang, posisi, status ('aktif'/'nonaktif'), lengkap (bool)
-      $daftarPeran   : daftar peran untuk filter (teks, atau objek dengan nama_peran)
-      $daftarBidang  : daftar bidang untuk filter (teks, atau objek dengan nama_bidang)
+    Variabel yang dipakai:
+      $anggota       : paginator. Tiap item: nama_lengkap, nama_panggilan, nomor_telepon,
+                       nama_bidang, jabatan_bidang ('ketua'/'wakil_ketua'/null),
+                       status ('aktif'/'nonaktif'), lengkap (0/1)
+      $daftarPeran   : koleksi objek (id_peran, nama_peran) untuk filter
+      $daftarBidang  : koleksi objek (id_bidang, nama_bidang) untuk filter
 --}}
 @extends('layouts.admin')
 
 @section('title', 'Kelola Anggota')
 
 @php
-    // Terima teks biasa ATAU objek baris tabel (nama_peran / nama_bidang / nama).
-    $ambilNama = fn ($item, array $kolom) => is_object($item)
-        ? (collect($kolom)->map(fn ($k) => $item->{$k} ?? null)->filter()->first() ?? '')
-        : (string) $item;
-    $daftarPeran  = collect($daftarPeran ?? [])->map(fn ($i) => $ambilNama($i, ['nama_peran', 'nama']))->filter()->unique()->values();
-    $daftarBidang = collect($daftarBidang ?? [])->map(fn ($i) => $ambilNama($i, ['nama_bidang', 'nama']))->filter()->unique()->values();
+    $posisiLabel  = ['ketua' => 'Ketua', 'wakil_ketua' => 'Wakil Ketua'];
     $adaPaginasi  = method_exists($anggota, 'total');
     $total        = $adaPaginasi ? $anggota->total() : $anggota->count();
     $dari         = $adaPaginasi ? ($anggota->firstItem() ?? 0) : ($total ? 1 : 0);
@@ -81,7 +77,7 @@
                 <select id="f-peran" name="peran">
                     <option value="">Semua Peran</option>
                     @foreach ($daftarPeran as $p)
-                        <option value="{{ $p }}" @selected(request('peran') === $p)>{{ $p }}</option>
+                        <option value="{{ $p->id_peran }}" @selected((string) request('peran') === (string) $p->id_peran)>{{ $p->nama_peran }}</option>
                     @endforeach
                 </select>
             </div>
@@ -90,7 +86,7 @@
                 <select id="f-bidang" name="bidang">
                     <option value="">Semua Bidang</option>
                     @foreach ($daftarBidang as $b)
-                        <option value="{{ $b }}" @selected(request('bidang') === $b)>{{ $b }}</option>
+                        <option value="{{ $b->id_bidang }}" @selected((string) request('bidang') === (string) $b->id_bidang)>{{ $b->nama_bidang }}</option>
                     @endforeach
                 </select>
             </div>
@@ -137,7 +133,7 @@
                             </td>
                             <td>{{ $a->nomor_telepon }}</td>
                             <td><span class="akun-pill">{{ $a->nama_bidang ?? '-' }}</span></td>
-                            <td class="agl-posisi">{{ $a->posisi ?? '-' }}</td>
+                            <td class="agl-posisi">{{ $posisiLabel[$a->jabatan_bidang ?? ''] ?? '-' }}</td>
                             <td>
                                 <span class="akun-status {{ $aktif ? 'aktif' : 'nonaktif' }}"><i></i>{{ $aktif ? 'Aktif' : 'Nonaktif' }}</span>
                             </td>
@@ -150,12 +146,7 @@
                             </td>
                             <td>
                                 <div class="agl-aksi">
-                                    <a href="#" aria-label="Lihat detail {{ $a->nama_lengkap }}" title="Lihat detail">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
-                                    </a>
-                                    <a href="#" aria-label="Ubah {{ $a->nama_lengkap }}" title="Ubah">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-                                    </a>
+                                    {{-- TODO: lihat/ubah, B-021 --}}
                                 </div>
                             </td>
                         </tr>
@@ -168,7 +159,7 @@
 
         {{-- Footer dan paginasi --}}
         <div class="akun-footer">
-            <span>Menampilkan <b>{{ $dari }}–{{ $sampai }}</b> dari <b>{{ $total }}</b> akun</span>
+            <span>Menampilkan <b>{{ $dari }}–{{ $sampai }}</b> dari <b>{{ $total }}</b> anggota</span>
 
             @if ($adaPaginasi && $anggota->hasPages())
                 <nav class="akun-page-nav" aria-label="Paginasi">
@@ -202,6 +193,13 @@
     var kotak = document.getElementById('agl-sukses');
     if (tutup && kotak) {
         tutup.addEventListener('click', function () { kotak.hidden = true; });
+    }
+    // Dropdown filter langsung kirim form saat diganti (tidak ada tombol submit).
+    var form = document.querySelector('form.akun-filter');
+    if (form) {
+        form.querySelectorAll('select').forEach(function (s) {
+            s.addEventListener('change', function () { form.submit(); });
+        });
     }
 })();
 </script>
