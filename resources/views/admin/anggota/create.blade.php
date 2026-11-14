@@ -44,6 +44,10 @@
             <span class="akun-chip">Formulir Anggota</span>
         </div>
 
+        @if (session('sukses'))
+            <div class="akun-info-box ang-lebar" role="status">{{ session('sukses') }}</div>
+        @endif
+        
         @if (session('error'))
             <div class="akun-alert-error ang-lebar" role="alert">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
