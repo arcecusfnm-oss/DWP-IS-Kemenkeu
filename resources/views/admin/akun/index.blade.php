@@ -251,9 +251,13 @@
                                             <span class="akun-aksi-slot">
                                                 @if (auth()->id() == $a->id_pengguna)
                                                     <button type="button" id="bukaAlih" title="Alih peran Admin">
-                                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                            <path d="M17 3l4 4-4 4" /><path d="M3 7h18" />
-                                                            <path d="M7 21l-4-4 4-4" /><path d="M21 17H3" />
+                                                        <svg width="18" height="18" viewBox="0 0 24 24"
+                                                            fill="none" stroke="currentColor" stroke-width="2"
+                                                            stroke-linecap="round" stroke-linejoin="round">
+                                                            <path d="M17 3l4 4-4 4" />
+                                                            <path d="M3 7h18" />
+                                                            <path d="M7 21l-4-4 4-4" />
+                                                            <path d="M21 17H3" />
                                                         </svg>
                                                     </button>
                                                 @else
@@ -285,7 +289,8 @@
                                                         </svg>
                                                     </button>
                                                 @else
-                                                    <button type="button" class="reset-password" title="Reset kata sandi"
+                                                    <button type="button" class="reset-password"
+                                                        title="Reset kata sandi"
                                                         data-reset-url="{{ route('admin.akun.reset-password', $a->id_pengguna) }}"
                                                         data-reset-nama="{{ $a->nama_lengkap }}">
                                                         <svg width="18" height="18" viewBox="0 0 24 24"
@@ -298,20 +303,34 @@
                                                 @endif
                                             </span>
 
-                                            {{-- Slot 4: Nonaktifkan --}}
+                                            {{-- Slot 4: Aktifkan / Nonaktifkan --}}
                                             <span class="akun-aksi-slot">
-                                                @if ($a->status === 'aktif' && auth()->id() != $a->id_pengguna)
-                                                    <button type="button" class="nonaktifkan-akun"
-                                                        title="Nonaktifkan akun"
-                                                        data-nonaktifkan-url="{{ route('admin.akun.nonaktifkan', $a->id_pengguna) }}"
-                                                        data-nonaktifkan-nama="{{ $a->nama_lengkap }}">
-                                                        <svg width="18" height="18" viewBox="0 0 24 24"
-                                                            fill="none" stroke="currentColor" stroke-width="2"
-                                                            stroke-linecap="round" stroke-linejoin="round">
-                                                            <circle cx="12" cy="12" r="10" />
-                                                            <path d="M4.93 4.93l14.14 14.14" />
-                                                        </svg>
-                                                    </button>
+                                                @if (auth()->id() != $a->id_pengguna)
+                                                    @if ($a->status === 'aktif')
+                                                        <button type="button" class="nonaktifkan-akun"
+                                                            title="Nonaktifkan akun"
+                                                            data-nonaktifkan-url="{{ route('admin.akun.nonaktifkan', $a->id_pengguna) }}"
+                                                            data-nonaktifkan-nama="{{ $a->nama_lengkap }}">
+                                                            <svg width="18" height="18" viewBox="0 0 24 24"
+                                                                fill="none" stroke="currentColor" stroke-width="2"
+                                                                stroke-linecap="round" stroke-linejoin="round">
+                                                                <circle cx="12" cy="12" r="10" />
+                                                                <path d="M8 12h8" />
+                                                            </svg>
+                                                        </button>
+                                                    @elseif ($a->status === 'nonaktif')
+                                                        <button type="button" class="aktifkan-akun"
+                                                            title="Aktifkan kembali akun"
+                                                            data-aktifkan-url="{{ route('admin.akun.aktifkan', $a->id_pengguna) }}"
+                                                            data-aktifkan-nama="{{ $a->nama_lengkap }}">
+                                                            <svg width="18" height="18" viewBox="0 0 24 24"
+                                                                fill="none" stroke="currentColor" stroke-width="2"
+                                                                stroke-linecap="round" stroke-linejoin="round">
+                                                                <circle cx="12" cy="12" r="10" />
+                                                                <path d="m8 12 3 3 5-6" />
+                                                            </svg>
+                                                        </button>
+                                                    @endif
                                                 @endif
                                             </span>
 
@@ -405,7 +424,8 @@
                         <select id="alihPeran" name="peran_turun">
                             <option value="">Pilih peran</option>
                             @foreach ($peranTurun as $p)
-                                <option value="{{ $p }}" @selected(old('peran_turun') === $p)>{{ $p }}</option>
+                                <option value="{{ $p }}" @selected(old('peran_turun') === $p)>{{ $p }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
@@ -414,7 +434,8 @@
                 <div class="akun-field">
                     <label>Bidang <em id="alihBintang">*</em></label>
                     <div id="alihDaftarBidang"></div>
-                    <button type="button" id="alihTambah" class="akun-btn-batal" style="margin-top:8px" hidden>+ Tambah bidang</button>
+                    <button type="button" id="alihTambah" class="akun-btn-batal" style="margin-top:8px" hidden>+ Tambah
+                        bidang</button>
                 </div>
 
                 <div class="hapus-aksi">
@@ -425,110 +446,121 @@
         </div>
     </div>
 
-    <div id="alihData" hidden
-        data-peta='@json($petaBidang)'
-        data-penuh='@json($penuh)'
-        data-tanpa='@json($tanpaBidang)'
-        data-multi='@json($peranMulti)'
-        data-lama='@json(array_values((array) old("bidang", [])))'
+    <div id="alihData" hidden data-peta='@json($petaBidang)' data-penuh='@json($penuh)'
+        data-tanpa='@json($tanpaBidang)' data-multi='@json($peranMulti)'
+        data-lama='@json(array_values((array) old('bidang', [])))'
         data-buka='{{ old('id_tujuan') !== null || old('peran_turun') !== null ? 1 : 0 }}'>
     </div>
 
     <script>
-    (function () {
-        const overlay = document.getElementById('alihOverlay');
-        const tombol  = document.getElementById('bukaAlih');
-        if (!overlay) return;
+        (function() {
+            const overlay = document.getElementById('alihOverlay');
+            const tombol = document.getElementById('bukaAlih');
+            if (!overlay) return;
 
-        const d     = document.getElementById('alihData').dataset;
-        const peta  = JSON.parse(d.peta);
-        const penuh = JSON.parse(d.penuh);
-        const tanpa = JSON.parse(d.tanpa);
-        const multi = JSON.parse(d.multi);
-        const lama  = JSON.parse(d.lama);
+            const d = document.getElementById('alihData').dataset;
+            const peta = JSON.parse(d.peta);
+            const penuh = JSON.parse(d.penuh);
+            const tanpa = JSON.parse(d.tanpa);
+            const multi = JSON.parse(d.multi);
+            const lama = JSON.parse(d.lama);
 
-        const peran   = document.getElementById('alihPeran');
-        const daftar  = document.getElementById('alihDaftarBidang');
-        const tambah  = document.getElementById('alihTambah');
-        const bintang = document.getElementById('alihBintang');
+            const peran = document.getElementById('alihPeran');
+            const daftar = document.getElementById('alihDaftarBidang');
+            const tambah = document.getElementById('alihTambah');
+            const bintang = document.getElementById('alihBintang');
 
-        function baris(boleh, terisi, terpilih, bisaHapus) {
-            const wrap = document.createElement('div');
-            wrap.className = 'akun-input';
-            wrap.style.marginBottom = '8px';
+            function baris(boleh, terisi, terpilih, bisaHapus) {
+                const wrap = document.createElement('div');
+                wrap.className = 'akun-input';
+                wrap.style.marginBottom = '8px';
 
-            const sel = document.createElement('select');
-            sel.name = 'bidang[]';
-            sel.innerHTML = '<option value="">Pilih Bidang</option>';
-            boleh.forEach(function (b) {
-                const o = document.createElement('option');
-                const isi = terisi.includes(b);
-                o.value = b;
-                o.textContent = isi ? b + ' (sudah terisi)' : b;
-                o.disabled = isi;
-                o.selected = (b === terpilih);
-                sel.appendChild(o);
+                const sel = document.createElement('select');
+                sel.name = 'bidang[]';
+                sel.innerHTML = '<option value="">Pilih Bidang</option>';
+                boleh.forEach(function(b) {
+                    const o = document.createElement('option');
+                    const isi = terisi.includes(b);
+                    o.value = b;
+                    o.textContent = isi ? b + ' (sudah terisi)' : b;
+                    o.disabled = isi;
+                    o.selected = (b === terpilih);
+                    sel.appendChild(o);
+                });
+                wrap.appendChild(sel);
+
+                if (bisaHapus) {
+                    const x = document.createElement('button');
+                    x.type = 'button';
+                    x.textContent = '✕';
+                    x.setAttribute('aria-label', 'Hapus bidang');
+                    x.style.cssText = 'position:absolute; top:0; right:0; width:46px; height:46px; color:#b42318;';
+                    x.onclick = function() {
+                        if (daftar.children.length > 1) wrap.remove();
+                    };
+                    wrap.appendChild(x);
+                }
+                return wrap;
+            }
+
+            function render(pakaiLama) {
+                daftar.innerHTML = '';
+                const p = peran.value;
+
+                if (!p) {
+                    daftar.innerHTML =
+                        '<div class="akun-input"><select disabled><option>Pilih peran dulu</option></select></div>';
+                    tambah.hidden = true;
+                    return;
+                }
+                if (tanpa.includes(p)) {
+                    daftar.innerHTML =
+                        '<div class="akun-input"><input type="text" value="Tidak memerlukan bidang" disabled></div>';
+                    tambah.hidden = true;
+                    bintang.hidden = true;
+                    return;
+                }
+                bintang.hidden = false;
+
+                const boleh = peta[p] || [];
+                const terisi = penuh[p] || [];
+                const isMulti = multi.includes(p);
+                tambah.hidden = !isMulti;
+
+                let awal = pakaiLama ? lama.filter(b => boleh.includes(b)) : [];
+                if (!isMulti) awal = awal.slice(0, 1);
+                if (!awal.length) awal = [boleh.length === 1 ? boleh[0] : ''];
+
+                awal.forEach(function(b, i) {
+                    daftar.appendChild(baris(boleh, terisi, b, isMulti && i > 0));
+                });
+            }
+
+            tambah.addEventListener('click', function() {
+                const p = peran.value;
+                daftar.appendChild(baris(peta[p] || [], penuh[p] || [], '', true));
             });
-            wrap.appendChild(sel);
-
-            if (bisaHapus) {
-                const x = document.createElement('button');
-                x.type = 'button';
-                x.textContent = '✕';
-                x.setAttribute('aria-label', 'Hapus bidang');
-                x.style.cssText = 'position:absolute; top:0; right:0; width:46px; height:46px; color:#b42318;';
-                x.onclick = function () { if (daftar.children.length > 1) wrap.remove(); };
-                wrap.appendChild(x);
-            }
-            return wrap;
-        }
-
-        function render(pakaiLama) {
-            daftar.innerHTML = '';
-            const p = peran.value;
-
-            if (!p) {
-                daftar.innerHTML = '<div class="akun-input"><select disabled><option>Pilih peran dulu</option></select></div>';
-                tambah.hidden = true;
-                return;
-            }
-            if (tanpa.includes(p)) {
-                daftar.innerHTML = '<div class="akun-input"><input type="text" value="Tidak memerlukan bidang" disabled></div>';
-                tambah.hidden = true;
-                bintang.hidden = true;
-                return;
-            }
-            bintang.hidden = false;
-
-            const boleh   = peta[p] || [];
-            const terisi  = penuh[p] || [];
-            const isMulti = multi.includes(p);
-            tambah.hidden = !isMulti;
-
-            let awal = pakaiLama ? lama.filter(b => boleh.includes(b)) : [];
-            if (!isMulti) awal = awal.slice(0, 1);
-            if (!awal.length) awal = [boleh.length === 1 ? boleh[0] : ''];
-
-            awal.forEach(function (b, i) {
-                daftar.appendChild(baris(boleh, terisi, b, isMulti && i > 0));
+            peran.addEventListener('change', function() {
+                render(false);
             });
-        }
 
-        tambah.addEventListener('click', function () {
-            const p = peran.value;
-            daftar.appendChild(baris(peta[p] || [], penuh[p] || [], '', true));
-        });
-        peran.addEventListener('change', function () { render(false); });
+            function tutup() {
+                overlay.hidden = true;
+            }
+            if (tombol) tombol.addEventListener('click', function() {
+                overlay.hidden = false;
+            });
+            document.getElementById('alihBatal').addEventListener('click', tutup);
+            overlay.addEventListener('click', function(e) {
+                if (e.target === overlay) tutup();
+            });
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') tutup();
+            });
 
-        function tutup() { overlay.hidden = true; }
-        if (tombol) tombol.addEventListener('click', function () { overlay.hidden = false; });
-        document.getElementById('alihBatal').addEventListener('click', tutup);
-        overlay.addEventListener('click', function (e) { if (e.target === overlay) tutup(); });
-        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') tutup(); });
-
-        render(true);
-        if (d.buka === '1') overlay.hidden = false;
-    })();
+            render(true);
+            if (d.buka === '1') overlay.hidden = false;
+        })();
     </script>
 
     {{-- Dialog konfirmasi nonaktifkan akun --}}
@@ -558,6 +590,39 @@
                     </button>
                     <button type="submit" class="hapus-ya">
                         Ya, Nonaktifkan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- Dialog konfirmasi aktifkan akun --}}
+    <div class="hapus-overlay" id="aktifkanOverlay" hidden>
+        <div class="hapus-dialog" role="dialog" aria-modal="true" aria-labelledby="aktifkanJudul">
+
+            <div class="aktifkan-ikon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="m8 12 3 3 5-6" />
+                </svg>
+            </div>
+
+            <h3 id="aktifkanJudul">Aktifkan Akun Pengguna?</h3>
+
+            <p>
+                Akun <b id="aktifkanNama"></b> akan diaktifkan kembali.
+                Pengguna dapat masuk ke sistem menggunakan akunnya kembali.
+            </p>
+
+            <form method="POST" id="aktifkanForm" action="">
+                @csrf
+                <div class="hapus-aksi">
+                    <button type="button" class="hapus-batal" id="aktifkanBatal">
+                        Batal
+                    </button>
+                    <button type="submit" class="aktifkan-ya">
+                        Ya, Aktifkan Akun
                     </button>
                 </div>
             </form>
@@ -725,6 +790,29 @@
                 justify-content: center;
             }
 
+            .aktifkan-ikon {
+                width: 56px;
+                height: 56px;
+                margin: 0 auto 14px;
+                border-radius: 50%;
+                background: #e4f5e9;
+                color: #218838;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .aktifkan-ya {
+                padding: 10px 22px;
+                border-radius: 10px;
+                font-size: 14px;
+                font-weight: 600;
+                cursor: pointer;
+                border: 1px solid transparent;
+                background: #218838;
+                color: #fff;
+            }
+
             .hapus-dialog h3 {
                 margin: 0 0 8px;
                 font-size: 20px;
@@ -828,6 +916,39 @@
             overlay.addEventListener('click', function(e) {
                 if (e.target === overlay) tutup();
             });
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') tutup();
+            });
+        })();
+    </script>
+
+    <script>
+        (function() {
+            const overlay = document.getElementById('aktifkanOverlay');
+            const form = document.getElementById('aktifkanForm');
+            const nama = document.getElementById('aktifkanNama');
+            const batal = document.getElementById('aktifkanBatal');
+
+            if (!overlay || !form || !nama || !batal) return;
+
+            function tutup() {
+                overlay.hidden = true;
+            }
+
+            document.querySelectorAll('.aktifkan-akun').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    form.action = btn.dataset.aktifkanUrl;
+                    nama.textContent = btn.dataset.aktifkanNama;
+                    overlay.hidden = false;
+                });
+            });
+
+            batal.addEventListener('click', tutup);
+
+            overlay.addEventListener('click', function(e) {
+                if (e.target === overlay) tutup();
+            });
+
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') tutup();
             });
