@@ -15,7 +15,11 @@
 @section('title', 'Kelola Anggota')
 
 @php
-    $posisiLabel  = ['ketua' => 'Ketua', 'wakil_ketua' => 'Wakil Ketua'];
+    $posisiDariPeran = [
+        'Penasihat'       => 'Penasihat/Wakil Penasihat',
+        'Pimpinan Bidang' => 'Ketua Bidang',
+        'Anggota Bidang'  => 'Anggota Bidang',
+    ];
     $adaPaginasi  = method_exists($anggota, 'total');
     $total        = $adaPaginasi ? $anggota->total() : $anggota->count();
     $dari         = $adaPaginasi ? ($anggota->firstItem() ?? 0) : ($total ? 1 : 0);
@@ -36,7 +40,7 @@
     .agl-tabel th, .agl-tabel td { vertical-align: middle; }
     .agl-tabel td.agl-nomor { text-align: center; }
     .agl-tabel .akun-username { margin-top: 1px; }
-    .agl-posisi { max-width: 120px; }
+    .agl-posisi { max-width: 170px; }
 </style>
 @endpush
 
@@ -91,7 +95,7 @@
                 </select>
             </div>
             <a href="{{ route('admin.anggota.index') }}" class="akun-btn-reset">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v9"/><path d="M18.4 6.6a9 9 0 1 1-12.8 0"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
                 Atur Ulang
             </a>
             <div class="akun-cari">
@@ -133,7 +137,7 @@
                             </td>
                             <td>{{ $a->nomor_telepon }}</td>
                             <td><span class="akun-pill">{{ $a->nama_bidang ?? '-' }}</span></td>
-                            <td class="agl-posisi">{{ $posisiLabel[$a->jabatan_bidang ?? ''] ?? '-' }}</td>
+                            <td class="agl-posisi">{{ $posisiDariPeran[$a->nama_peran ?? ''] ?? ($a->nama_peran ?? '-') }}</td>
                             <td>
                                 <span class="akun-status {{ $aktif ? 'aktif' : 'nonaktif' }}"><i></i>{{ $aktif ? 'Aktif' : 'Nonaktif' }}</span>
                             </td>
