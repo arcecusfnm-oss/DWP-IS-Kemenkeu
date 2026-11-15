@@ -93,15 +93,16 @@ class DaftarAnggotaTampilanTest extends TestCase
         $respons->assertOk()->assertJsonPath('anggota.total', 0);
     }
 
-    public function test_posisi_dan_kelengkapan_data_terkirim(): void
+    public function test_posisi_dari_peran_dan_kelengkapan_data_terkirim(): void
     {
         $admin = $this->buatPengguna('Admin', 'admin.uji');
+        $bend  = $this->buatPengguna('Bendahara', 'bend.uji');
         $unit  = DB::table('unit_kerja')->insertGetId([
             'nama_unit_kerja' => 'Biro Uji', 'created_at' => now(), 'updated_at' => now(),
         ], 'id_unit_kerja');
 
         $this->buatAnggota('Lengkap', null, $admin->id_pengguna, [
-            'jabatan_bidang'     => 'ketua',
+            'id_pengguna'        => $bend->id_pengguna,
             'tempat_lahir'       => 'Jakarta',
             'tanggal_lahir'      => '1990-01-01',
             'alamat_lengkap'     => 'Jl. Uji 1',
@@ -115,11 +116,10 @@ class DaftarAnggotaTampilanTest extends TestCase
             ->keyBy('nama_lengkap');
 
         $this->assertEquals(1, $baris['Lengkap']['lengkap']);
-        $this->assertSame('ketua', $baris['Lengkap']['jabatan_bidang']);
+        $this->assertSame('Bendahara', $baris['Lengkap']['nama_peran']);
         $this->assertEquals(0, $baris['Belum']['lengkap']);
-        $this->assertNull($baris['Belum']['jabatan_bidang']);
+        $this->assertNull($baris['Belum']['nama_peran']);
     }
-
     public function test_view_dropdown_bidang_memakai_id_dan_filter_menyisakan_bidang_itu(): void
     {
         $admin    = $this->buatPengguna('Admin', 'admin.uji');

@@ -12,6 +12,7 @@ use Illuminate\Validation\Rule;
 
 /**
  * T-42 (B-020): daftar lengkap anggota seluruh bidang, dengan filter bidang.
+ * T-26 (B-016): form dan penyimpanan anggota baru.
  *
  * Akses: hanya Admin (middleware role di routes/web.php).
  * Respons hanya memuat kolom yang dibutuhkan tabel. Tidak ada kata sandi, hash,
@@ -28,7 +29,7 @@ class AnggotaController extends Controller
     // AC5 (validasi karakter): tolak < > dan karakter kontrol
     private const POLA_TEKS = '/^[^<>\x00-\x08\x0B\x0C\x0E-\x1F\x7F]*$/u';
 
-    // ===== T-42: TIDAK DIUBAH =====
+    // ===== T-42: daftar anggota (T-43: ditambah join peran untuk kolom Posisi) =====
 
         public function index(Request $request)
     {
@@ -47,6 +48,7 @@ class AnggotaController extends Controller
             ->leftJoin('bidang', 'bidang.id_bidang', '=', 'anggota.id_bidang')
             ->leftJoin('unit_kerja', 'unit_kerja.id_unit_kerja', '=', 'anggota.id_unit_kerja')
             ->leftJoin('pengguna', 'pengguna.id_pengguna', '=', 'anggota.id_pengguna')
+            ->leftJoin('peran', 'peran.id_peran', '=', 'pengguna.id_peran')
             ->whereNull('anggota.dihapus_pada')
             ->select(
                 'anggota.id_anggota',
@@ -54,7 +56,7 @@ class AnggotaController extends Controller
                 'anggota.nama_panggilan',
                 'anggota.nomor_telepon',
                 'anggota.status',
-                'anggota.jabatan_bidang',
+                'peran.nama_peran',
                 'bidang.nama_bidang',
                 'unit_kerja.nama_unit_kerja'
             )
@@ -122,8 +124,9 @@ class AnggotaController extends Controller
     {
         return view('admin.anggota.create', [
             'akunTersedia' => $this->akunTersedia()->get(),
+            // Urut id = urutan seeder = urutan di Template Database Pengurus.
             'unitKerja'    => DB::table('unit_kerja')
-                ->orderBy('nama_unit_kerja')
+                ->orderBy('id_unit_kerja')
                 ->get(['id_unit_kerja', 'nama_unit_kerja']),
         ]);
     }
@@ -132,11 +135,22 @@ class AnggotaController extends Controller
     {
         $data = $request->validate($this->aturan(), $this->pesan());
 
+        // Anti-tamper: nama dan bidang selalu diambil dari akun di server,
+        // bukan dari input form (kolom itu hanya readonly di browser).
+        if (! empty($data['id_pengguna'])) {
+            $akun = DB::table('pengguna')
+                ->where('id_pengguna', $data['id_pengguna'])
+                ->first(['nama_lengkap', 'id_bidang']);
+
+            $data['nama']      = $akun->nama_lengkap;
+            $data['id_bidang'] = $akun->id_bidang;
+        }
+
         try {
             $idAnggota = DB::table('anggota')->insertGetId([
                 'id_pengguna'        => $data['id_pengguna'] ?? null,
                 'nama_lengkap'       => $data['nama'],
-                'nama_panggilan'     => $data['nama_panggilan'] ?? null,
+                'nama_panggilan'     => $this->rapikanPanggilan($data['nama_panggilan'] ?? null),
                 'nomor_telepon'      => $data['nomor_telepon'],
                 'tempat_lahir'       => $data['tempat_lahir'] ?? null,
                 'tanggal_lahir'      => $data['tanggal_lahir'] ?? null,
@@ -147,9 +161,12 @@ class AnggotaController extends Controller
                 'tingkat_pendidikan' => $data['tingkat_pendidikan'] ?? null,
                 'bidang_pendidikan'  => $data['bidang_pendidikan'] ?? null,
                 'keahlian'           => $data['keahlian'] ?? null,
-                'instansi_kerja'     => $data['instansi_kerja'] ?? null,
                 'bidang_usaha'       => $data['bidang_usaha'] ?? null,
-                'id_bidang'          => $data['id_bidang'],
+                'bekerja'            => $data['bekerja'] ?? null,
+                // Kalau tidak bekerja, instansi dikosongkan di server (bukan hanya di browser).
+                'instansi_kerja'     => ($data['bekerja'] ?? null) === 'Tidak' ? null : ($data['instansi_kerja'] ?? null),
+                // Boleh kosong: Penasihat, Ketua DWP, dan Wakil DWP tidak terikat bidang.
+                'id_bidang'          => $data['id_bidang'] ?? null,
                 'status'             => 'aktif',
                 'dibuat_oleh'        => Auth::id(),
                 'created_at'         => now(),
@@ -176,6 +193,16 @@ class AnggotaController extends Controller
             ->with('success', 'Data berhasil disimpan.');
     }
 
+    // Nama panggilan selalu berawalan "Ny." (mis. "Wiwik Suryo" atau "ny wiwik suryo" menjadi "Ny. Wiwik Suryo").
+    // Awalan harus diikuti titik atau spasi, supaya nama seperti "Nyoman" tidak ikut terpotong.
+    private function rapikanPanggilan(?string $nama): ?string
+    {
+        $nama = trim((string) preg_replace('/\s+/u', ' ', (string) $nama));
+        $nama = preg_replace('/^(nyonya|ny)(\.\s*|\s+)/iu', '', $nama);
+
+        return $nama === '' ? null : 'Ny. ' . $nama;
+    }
+
     private function aturan(): array
     {
         $teks = 'regex:' . self::POLA_TEKS;
@@ -187,7 +214,8 @@ class AnggotaController extends Controller
                 'unique:anggota,id_pengguna',
             ],
             'nama'               => ['required', 'string', 'max:255', $teks],
-            'id_bidang'          => ['required', 'integer', 'exists:bidang,id_bidang'],
+            // Boleh kosong untuk peran yang tidak terikat bidang; kalau diisi harus bidang yang ada.
+            'id_bidang'          => ['nullable', 'integer', 'exists:bidang,id_bidang'],
             'nomor_telepon'      => ['required', 'regex:/^[0-9]{8,15}$/'],
             'nama_panggilan'     => ['nullable', 'string', 'max:255', $teks],
             'tempat_lahir'       => ['nullable', 'string', 'max:255', $teks],
@@ -200,6 +228,7 @@ class AnggotaController extends Controller
             'bidang_pendidikan'  => ['nullable', 'string', 'max:255', $teks],
             'keahlian'           => ['nullable', 'string', 'max:1000', $teks],
             'bidang_usaha'       => ['nullable', 'string', 'max:255', $teks],
+            'bekerja'            => ['nullable', Rule::in(['Ya', 'Tidak'])],
             'instansi_kerja'     => ['nullable', 'string', 'max:255', $teks],
         ];
     }
@@ -213,7 +242,6 @@ class AnggotaController extends Controller
             'id_pengguna.exists'            => 'Akun tidak tersedia.',
             'id_pengguna.unique'            => 'Akun tersebut sudah terhubung dengan anggota.',
             'nama.required'                 => 'Nama wajib diisi.',
-            'id_bidang.required'            => 'Bidang tidak tersedia.',
             'id_bidang.integer'             => 'Bidang tidak tersedia.',
             'id_bidang.exists'              => 'Bidang tidak tersedia.',
             'nomor_telepon.required'        => 'Nomor telepon wajib diisi.',
@@ -223,6 +251,7 @@ class AnggotaController extends Controller
             'tanggal_lahir.before_or_equal' => 'Tanggal lahir tidak boleh melebihi hari ini.',
             'id_unit_kerja.exists'          => 'Unit kerja tidak tersedia.',
             'tingkat_pendidikan.in'         => 'Tingkat pendidikan tidak valid.',
+            'bekerja.in'                    => 'Pilihan bekerja tidak valid.',
             'nama.regex'                    => $pesanTeks,
             'nama_panggilan.regex'          => $pesanTeks,
             'tempat_lahir.regex'            => $pesanTeks,
