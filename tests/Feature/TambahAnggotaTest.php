@@ -11,6 +11,12 @@ use Tests\TestCase;
 
 /**
  * T-28 (B-016): pengujian buat anggota (T-26).
+ *
+ * Disesuaikan dengan perubahan form/controller:
+ * - Bidang tidak wajib (Penasihat, Ketua DWP, Wakil DWP tidak terikat bidang).
+ * - Nama dan bidang diambil dari akun di server (anti-tamper).
+ * - Nama panggilan dinormalisasi berawalan "Ny.".
+ * - Kolom "bekerja" (Ya/Tidak); instansi dikosongkan bila Tidak.
  */
 class TambahAnggotaTest extends TestCase
 {
@@ -34,7 +40,7 @@ class TambahAnggotaTest extends TestCase
             ?? DB::table('peran')->insertGetId(['nama_peran' => $nama]);
     }
 
-    private function buatPengguna(string $peran, int $idBidang, string $username): Pengguna
+    private function buatPengguna(string $peran, ?int $idBidang, string $username): Pengguna
     {
         return Pengguna::create([
             'nama_lengkap'           => 'Nama ' . $username,
@@ -52,7 +58,7 @@ class TambahAnggotaTest extends TestCase
         return $this->buatPengguna('Admin', $this->buatBidang('Sekretariat'), 'admin_uji28');
     }
 
-    private function payload(Pengguna $akun, int $idBidang, array $ubah = []): array
+    private function payload(Pengguna $akun, ?int $idBidang, array $ubah = []): array
     {
         return array_merge([
             'id_pengguna'   => $akun->id_pengguna,
@@ -60,6 +66,11 @@ class TambahAnggotaTest extends TestCase
             'id_bidang'     => $idBidang,
             'nomor_telepon' => '08112233445',
         ], $ubah);
+    }
+
+    private function nilaiAnggota(Pengguna $akun, string $kolom): mixed
+    {
+        return DB::table('anggota')->where('id_pengguna', $akun->id_pengguna)->value($kolom);
     }
 
     // ---------- Skenario 1: berhasil ----------
@@ -77,7 +88,7 @@ class TambahAnggotaTest extends TestCase
         ]));
 
         $res->assertRedirect(route('admin.anggota.index'));
-        $res->assertSessionHas('success');
+        $res->assertSessionHas('success', 'Data berhasil disimpan.');
         $res->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('anggota', [
@@ -92,13 +103,36 @@ class TambahAnggotaTest extends TestCase
         ]);
     }
 
+    // ---------- Skenario 1b: akun tanpa bidang (Penasihat) ----------
+
+    public function test_akun_tanpa_bidang_tetap_bisa_disimpan(): void
+    {
+        $admin     = $this->buatAdmin();
+        $penasihat = $this->buatPengguna('Penasihat', null, 'penasihat_uji');
+
+        $res = $this->actingAs($admin)->post(
+            route('admin.anggota.store'),
+            $this->payload($penasihat, null)
+        );
+
+        $res->assertRedirect(route('admin.anggota.index'));
+        $res->assertSessionHas('success', 'Data berhasil disimpan.');
+        $res->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('anggota', [
+            'id_pengguna' => $penasihat->id_pengguna,
+            'status'      => 'aktif',
+        ]);
+        $this->assertNull($this->nilaiAnggota($penasihat, 'id_bidang'));
+    }
+
     // ---------- Skenario 2: kolom wajib kosong ----------
+    // Bidang tidak termasuk kolom wajib lagi (lihat test akun tanpa bidang di atas).
 
     public static function kolomWajib(): array
     {
         return [
             'nama kosong'          => ['nama'],
-            'bidang kosong'        => ['id_bidang'],
             'nomor telepon kosong' => ['nomor_telepon'],
         ];
     }
@@ -134,6 +168,40 @@ class TambahAnggotaTest extends TestCase
 
         $res->assertSessionHasErrors(['id_bidang' => 'Bidang tidak tersedia.']);
         $this->assertDatabaseCount('anggota', 0);
+    }
+
+    // ---------- Anti-tamper: nama dan bidang dari akun ----------
+
+    public function test_bidang_dan_nama_diambil_dari_akun_bukan_dari_input(): void
+    {
+        $bidangAsli = $this->buatBidang('Ekonomi');
+        $bidangLain = $this->buatBidang('Pendidikan');
+        $admin      = $this->buatAdmin();
+        $akun       = $this->buatPengguna('Anggota Bidang', $bidangAsli, 'akun_satu');
+
+        $this->actingAs($admin)
+            ->post(route('admin.anggota.store'), $this->payload($akun, $bidangLain, ['nama' => 'Nama Palsu']))
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('anggota', [
+            'id_pengguna'  => $akun->id_pengguna,
+            'nama_lengkap' => $akun->nama_lengkap,
+            'id_bidang'    => $bidangAsli,
+        ]);
+        $this->assertDatabaseMissing('anggota', ['nama_lengkap' => 'Nama Palsu']);
+    }
+
+    public function test_akun_tanpa_bidang_tidak_bisa_diberi_bidang_lewat_input(): void
+    {
+        $bidangLain = $this->buatBidang('Pendidikan');
+        $admin      = $this->buatAdmin();
+        $penasihat  = $this->buatPengguna('Penasihat', null, 'penasihat_uji');
+
+        $this->actingAs($admin)
+            ->post(route('admin.anggota.store'), $this->payload($penasihat, $bidangLain))
+            ->assertSessionHasNoErrors();
+
+        $this->assertNull($this->nilaiAnggota($penasihat, 'id_bidang'));
     }
 
     // ---------- Skenario 4: pengguna bukan Admin ----------
@@ -242,6 +310,87 @@ class TambahAnggotaTest extends TestCase
         $this->assertDatabaseCount('anggota', 1);
     }
 
+    // ---------- Nama panggilan berawalan "Ny." ----------
+
+    public static function namaPanggilan(): array
+    {
+        return [
+            'tanpa awalan'          => ['Wiwik Suryo', 'Ny. Wiwik Suryo'],
+            'sudah berawalan Ny.'   => ['Ny. Wiwik Suryo', 'Ny. Wiwik Suryo'],
+            'Ny tanpa titik'        => ['Ny Wiwik', 'Ny. Wiwik'],
+            'huruf kecil'           => ['ny. wiwik', 'Ny. wiwik'],
+            'awalan Nyonya'         => ['Nyonya Wiwik', 'Ny. Wiwik'],
+            'Nyoman tidak terpotong' => ['Nyoman', 'Ny. Nyoman'],
+            'spasi ganda dirapikan' => ['Wiwik   Suryo', 'Ny. Wiwik Suryo'],
+            'kosong menjadi NULL'   => ['', null],
+        ];
+    }
+
+    #[DataProvider('namaPanggilan')]
+    public function test_nama_panggilan_dinormalisasi(string $masuk, ?string $harapan): void
+    {
+        $bidang = $this->buatBidang();
+        $admin  = $this->buatAdmin();
+        $akun   = $this->buatPengguna('Anggota Bidang', $bidang, 'akun_satu');
+
+        $this->actingAs($admin)
+            ->post(route('admin.anggota.store'), $this->payload($akun, $bidang, ['nama_panggilan' => $masuk]))
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame($harapan, $this->nilaiAnggota($akun, 'nama_panggilan'));
+    }
+
+    // ---------- Bekerja (Ya/Tidak) ----------
+
+    public function test_bekerja_ya_menyimpan_instansi(): void
+    {
+        $bidang = $this->buatBidang();
+        $admin  = $this->buatAdmin();
+        $akun   = $this->buatPengguna('Anggota Bidang', $bidang, 'akun_satu');
+
+        $this->actingAs($admin)
+            ->post(route('admin.anggota.store'), $this->payload($akun, $bidang, [
+                'bekerja'        => 'Ya',
+                'instansi_kerja' => 'Kementerian Keuangan',
+            ]))
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame('Ya', $this->nilaiAnggota($akun, 'bekerja'));
+        $this->assertSame('Kementerian Keuangan', $this->nilaiAnggota($akun, 'instansi_kerja'));
+    }
+
+    public function test_bekerja_tidak_mengosongkan_instansi_di_server(): void
+    {
+        $bidang = $this->buatBidang();
+        $admin  = $this->buatAdmin();
+        $akun   = $this->buatPengguna('Anggota Bidang', $bidang, 'akun_satu');
+
+        $this->actingAs($admin)
+            ->post(route('admin.anggota.store'), $this->payload($akun, $bidang, [
+                'bekerja'        => 'Tidak',
+                'instansi_kerja' => 'Kementerian Keuangan',
+            ]))
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame('Tidak', $this->nilaiAnggota($akun, 'bekerja'));
+        $this->assertNull($this->nilaiAnggota($akun, 'instansi_kerja'));
+    }
+
+    public function test_pilihan_bekerja_tidak_valid_ditolak(): void
+    {
+        $bidang = $this->buatBidang();
+        $admin  = $this->buatAdmin();
+        $akun   = $this->buatPengguna('Anggota Bidang', $bidang, 'akun_satu');
+
+        $res = $this->actingAs($admin)->post(
+            route('admin.anggota.store'),
+            $this->payload($akun, $bidang, ['bekerja' => 'Mungkin'])
+        );
+
+        $res->assertSessionHasErrors(['bekerja' => 'Pilihan bekerja tidak valid.']);
+        $this->assertDatabaseCount('anggota', 0);
+    }
+
     // ---------- Formulir ----------
 
     public function test_formulir_hanya_menampilkan_akun_yang_belum_menjadi_anggota(): void
@@ -262,6 +411,33 @@ class TambahAnggotaTest extends TestCase
             ->assertOk()
             ->assertDontSee('akun_satu')
             ->assertSee('akun_dua');
+    }
+
+    public function test_akun_milik_anggota_yang_dihapus_tetap_tidak_muncul_dan_tidak_bisa_dipakai(): void
+    {
+        $bidang = $this->buatBidang();
+        $admin  = $this->buatAdmin();
+        $akun   = $this->buatPengguna('Anggota Bidang', $bidang, 'akun_satu');
+
+        // Anggota yang sudah di-soft-delete: id_pengguna unik, jadi akun tetap terpakai.
+        DB::table('anggota')->insert([
+            'id_pengguna'   => $akun->id_pengguna,
+            'nama_lengkap'  => 'Anggota Lama',
+            'nomor_telepon' => '08112233445',
+            'status'        => 'aktif',
+            'dihapus_pada'  => now(),
+            'dibuat_oleh'   => $admin->id_pengguna,
+            'created_at'    => now(),
+            'updated_at'    => now(),
+        ]);
+
+        $this->actingAs($admin)->get(route('admin.anggota.create'))
+            ->assertOk()
+            ->assertDontSee('akun_satu');
+
+        $this->actingAs($admin)
+            ->post(route('admin.anggota.store'), $this->payload($akun, $bidang))
+            ->assertSessionHasErrors('id_pengguna');
     }
 
     // ---------- Log (AC 6) ----------
