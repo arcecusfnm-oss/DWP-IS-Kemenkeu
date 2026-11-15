@@ -6,7 +6,7 @@
     $tingkatPendidikan = ['SMA/SMK', 'D3', 'D4', 'S1 (Sarjana)', 'S2 (Magister)', 'S3 (Doktoral)'];
     $kolomTambahan = ['nama_panggilan', 'tempat_lahir', 'tanggal_lahir', 'email', 'alamat_lengkap',
         'nama_suami', 'id_unit_kerja', 'tingkat_pendidikan', 'bidang_pendidikan', 'keahlian',
-        'bidang_usaha', 'instansi_kerja'];
+        'bidang_usaha', 'bekerja', 'instansi_kerja'];
     $tambahanBerisiError = collect($kolomTambahan)->contains(fn ($k) => $errors->has($k));
     $ikonSalah = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/></svg>';
 @endphp
@@ -22,6 +22,12 @@
     .akun-input textarea { width: 100%; min-height: 90px; padding: 12px 14px; font: 400 14px "Inter", system-ui, sans-serif; color: var(--ink); background: #fff; border: 1px solid #e9d8d0; border-radius: 8px; outline: none; resize: vertical; }
     .akun-input textarea:focus { border-color: #c2653d; box-shadow: 0 0 0 3px rgba(194, 101, 61, .16); }
     .akun-field.has-error .akun-input textarea { background: #fde2d6; border-color: #f4b99a; }
+
+    /* Awalan "Ny." tetap di dalam kolom Nama Panggilan (label visual, bukan isi input) */
+    .akun-input.ang-prefix { position: relative; }
+    .akun-input.ang-prefix .ang-prefix-tag { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font: 400 14px "Inter", system-ui, sans-serif; color: var(--ink); pointer-events: none; }
+    .akun-input.polos.ang-prefix input { padding-left: 44px; }
+
     .ang-more { margin: 8px 0 4px; border: 1px solid #f0ded4; border-radius: 10px; background: #fffaf6; }
     .ang-more > summary { cursor: pointer; padding: 14px 18px; font-size: 14px; font-weight: 600; color: #000; list-style: none; }
     .ang-more > summary::-webkit-details-marker { display: none; }
@@ -67,7 +73,7 @@
         @else
             <div class="akun-info-box ang-lebar" role="note">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-                Kolom bertanda bintang (*) wajib diisi. Nama lengkap dan bidang terisi otomatis dari akun yang dipilih. Data tambahan boleh dikosongkan dan dapat dilengkapi anggota sendiri.
+                Kolom bertanda bintang (*) wajib diisi. Nama lengkap dan bidang terisi otomatis dari akun yang dipilih; bidang dikosongkan untuk peran yang tidak terikat bidang. Data tambahan boleh dikosongkan dan dapat dilengkapi anggota sendiri.
             </div>
         @endif
 
@@ -116,14 +122,15 @@
                     <p class="akun-error" id="err-nama" role="alert" @if (! $errors->has('nama')) hidden @endif>{!! $ikonSalah !!} <span>{{ $errors->first('nama') }}</span></p>
                 </div>
 
+                {{-- Bidang TIDAK wajib: Penasihat, Ketua DWP, dan Wakil DWP tidak terikat bidang --}}
                 <div class="akun-field {{ $errors->has('id_bidang') ? 'has-error' : '' }}">
-                    <label for="bidang_tampil">Bidang <em>*</em></label>
+                    <label for="bidang_tampil">Bidang</label>
                     <div class="akun-input">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="12" height="18" rx="1"/><path d="M16 9h4v12h-4M8 7h4M8 11h4M8 15h4"/></svg>
                         <input type="text" id="bidang_tampil" value="" placeholder="-" readonly aria-describedby="err-id_bidang">
                         <input type="hidden" id="id_bidang" name="id_bidang" value="{{ old('id_bidang') }}">
                     </div>
-                    <p class="akun-hint">Diambil dari akun.</p>
+                    <p class="akun-hint">Diambil dari akun. Kosong untuk peran yang tidak terikat bidang.</p>
                     <p class="akun-error" id="err-id_bidang" role="alert" @if (! $errors->has('id_bidang')) hidden @endif>{!! $ikonSalah !!} <span>{{ $errors->first('id_bidang') }}</span></p>
                 </div>
             </div>
@@ -147,9 +154,14 @@
 
                     <h3>1. Data pribadi</h3>
                     <div class="akun-baris">
+                        {{-- Nama panggilan: "Ny." tampil tetap sebagai label; input hanya berisi nama, server menambahkan "Ny. " --}}
                         <div class="akun-field {{ $errors->has('nama_panggilan') ? 'has-error' : '' }}">
                             <label for="nama_panggilan">Nama Panggilan</label>
-                            <div class="akun-input polos"><input type="text" id="nama_panggilan" name="nama_panggilan" maxlength="255" value="{{ old('nama_panggilan') }}" placeholder="Contoh: Ny. Wiwik Suryo"></div>
+                            <div class="akun-input polos ang-prefix">
+                                <span class="ang-prefix-tag" aria-hidden="true">Ny.</span>
+                                <input type="text" id="nama_panggilan" name="nama_panggilan" maxlength="255"
+                                       value="{{ old('nama_panggilan') }}" placeholder="Wiwik Suryo">
+                            </div>
                             @error('nama_panggilan') <p class="akun-error">{!! $ikonSalah !!} <span>{{ $message }}</span></p> @enderror
                         </div>
                         <div class="akun-field {{ $errors->has('email') ? 'has-error' : '' }}">
@@ -216,8 +228,8 @@
                         </div>
                     </div>
                     <div class="akun-field {{ $errors->has('keahlian') ? 'has-error' : '' }}">
-                        <label for="keahlian">Keahlian / Keterampilan yang Bisa Dibagikan</label>
-                        <div class="akun-input"><textarea id="keahlian" name="keahlian" maxlength="1000" placeholder="Tuliskan keahlian atau keterampilan yang dapat dibagikan kepada anggota lain...">{{ old('keahlian') }}</textarea></div>
+                        <label for="keahlian">Keahlian / Keterampilan / Pengetahuan yang Bisa Dibagikan</label>
+                        <div class="akun-input"><textarea id="keahlian" name="keahlian" maxlength="1000" placeholder="Tuliskan keahlian, keterampilan, atau pengetahuan yang dapat dibagikan kepada anggota lain...">{{ old('keahlian') }}</textarea></div>
                         @error('keahlian') <p class="akun-error">{!! $ikonSalah !!} <span>{{ $message }}</span></p> @enderror
                     </div>
                     <div class="akun-baris">
@@ -226,11 +238,22 @@
                             <div class="akun-input polos"><input type="text" id="bidang_usaha" name="bidang_usaha" maxlength="255" value="{{ old('bidang_usaha') }}" placeholder="Kosongkan jika tidak memiliki bidang usaha"></div>
                             @error('bidang_usaha') <p class="akun-error">{!! $ikonSalah !!} <span>{{ $message }}</span></p> @enderror
                         </div>
-                        <div class="akun-field {{ $errors->has('instansi_kerja') ? 'has-error' : '' }}">
-                            <label for="instansi_kerja">Instansi Tempat Bekerja</label>
-                            <div class="akun-input polos"><input type="text" id="instansi_kerja" name="instansi_kerja" maxlength="255" value="{{ old('instansi_kerja') }}" placeholder="Nama instansi/perusahaan tempat bekerja"></div>
-                            @error('instansi_kerja') <p class="akun-error">{!! $ikonSalah !!} <span>{{ $message }}</span></p> @enderror
+                        <div class="akun-field {{ $errors->has('bekerja') ? 'has-error' : '' }}">
+                            <label for="bekerja">Bekerja</label>
+                            <div class="akun-input polos">
+                                <select id="bekerja" name="bekerja">
+                                    <option value="">Pilih</option>
+                                    <option value="Ya" @selected(old('bekerja') === 'Ya')>Ya</option>
+                                    <option value="Tidak" @selected(old('bekerja') === 'Tidak')>Tidak</option>
+                                </select>
+                            </div>
+                            @error('bekerja') <p class="akun-error">{!! $ikonSalah !!} <span>{{ $message }}</span></p> @enderror
                         </div>
+                    </div>
+                    <div class="akun-field {{ $errors->has('instansi_kerja') ? 'has-error' : '' }}">
+                        <label for="instansi_kerja">Instansi Tempat Bekerja</label>
+                        <div class="akun-input polos"><input type="text" id="instansi_kerja" name="instansi_kerja" maxlength="255" value="{{ old('instansi_kerja') }}" placeholder="Nama instansi/perusahaan tempat bekerja"></div>
+                        @error('instansi_kerja') <p class="akun-error">{!! $ikonSalah !!} <span>{{ $message }}</span></p> @enderror
                     </div>
 
                     <h3>4. Kepengurusan</h3>
@@ -278,9 +301,19 @@
     var PESAN = {
         akun: 'Akun wajib dipilih.',
         nama: 'Nama wajib diisi.',
-        bidang: 'Bidang tidak tersedia.',
         telpKosong: 'Nomor telepon wajib diisi.',
         telpFormat: 'Nomor telepon harus 8 sampai 15 digit angka.'
+    };
+
+    // Peran yang tidak terikat bidang (Penasihat, Ketua DWP, Wakil DWP) memang tidak punya bidang.
+    var TANPA_BIDANG = 'Tidak terikat bidang';
+
+    // Peran akun -> pilihan "Posisi di Kepengurusan" pada Template Database Pengurus.
+    // Peran yang tidak ada di peta ditampilkan apa adanya.
+    var POSISI = {
+        'Penasihat': 'Penasihat/Wakil Penasihat',
+        'Pimpinan Bidang': 'Ketua Bidang',
+        'Anggota Bidang': 'Anggota Bidang'
     };
 
     function tampilkanError(input, errId, pesan) {
@@ -303,11 +336,12 @@
     function isiDariAkun() {
         var opt = akun.options[akun.selectedIndex];
         var ada = opt && opt.value !== '';
+        var bidang = ada ? (opt.dataset.bidang || TANPA_BIDANG) : '';
         nama.value   = ada ? opt.dataset.nama : '';
-        idBid.value  = ada ? opt.dataset.idBidang : '';
-        bidTam.value = ada ? opt.dataset.bidang : '';
-        bidKep.value = ada ? opt.dataset.bidang : '';
-        posisi.value = ada ? opt.dataset.peran : '';
+        idBid.value  = ada ? opt.dataset.idBidang : '';   // kosong untuk peran tanpa bidang (dikirim sebagai kosong)
+        bidTam.value = bidang;
+        bidKep.value = bidang;
+        posisi.value = ada ? (POSISI[opt.dataset.peran] || opt.dataset.peran) : '';
     }
 
     akun.addEventListener('change', function () {
@@ -320,6 +354,30 @@
     telp.addEventListener('input', function () {
         bersihkanError(telp, 'err-nomor_telepon');
     });
+
+    // Nama panggilan: "Ny." sudah tampil tetap sebagai label, jadi input hanya berisi nama.
+    // Kalau pengguna mengetik atau paste "Ny. ..." sendiri, awalannya dibuang supaya tidak dobel.
+    // Awalan harus diikuti titik atau spasi, supaya nama seperti "Nyoman" tidak ikut terpotong.
+    // Server (rapikanPanggilan) yang menambahkan "Ny. " saat menyimpan.
+    var panggilan = document.getElementById('nama_panggilan');
+    function bersihkanPanggilan(v) {
+        return v.replace(/\s+/g, ' ').trim().replace(/^(nyonya|ny)(\.\s*|\s+)/i, '');
+    }
+    panggilan.addEventListener('blur', function () {
+        panggilan.value = bersihkanPanggilan(panggilan.value);
+    });
+    panggilan.value = bersihkanPanggilan(panggilan.value);   // old input setelah redirect balik
+
+    // Instansi tempat bekerja hanya relevan bila Bekerja = Ya (input nonaktif tidak ikut terkirim)
+    var bekerja  = document.getElementById('bekerja');
+    var instansi = document.getElementById('instansi_kerja');
+    function aturInstansi() {
+        var tidak = bekerja.value === 'Tidak';
+        if (tidak) { instansi.value = ''; }
+        instansi.disabled = tidak;
+    }
+    bekerja.addEventListener('change', aturInstansi);
+    aturInstansi();
 
     function validasi() {
         var pertamaSalah = null;
@@ -334,10 +392,8 @@
                 tampilkanError(nama, 'err-nama', PESAN.nama);
                 tandai(nama);
             }
-            if (idBid.value === '') {
-                tampilkanError(bidTam, 'err-id_bidang', PESAN.bidang);
-                tandai(bidTam);
-            }
+            // Bidang tidak divalidasi di sini: boleh kosong untuk peran yang tidak terikat bidang.
+            // Aturan "wajib untuk peran berbidang" ditegakkan di server (AnggotaController).
         }
 
         var t = telp.value.trim();
