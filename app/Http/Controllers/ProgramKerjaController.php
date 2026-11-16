@@ -106,6 +106,58 @@ class ProgramKerjaController extends Controller
         return redirect()->back()->with('sukses', 'Program kerja berhasil ditambahkan.');
     }
 
+        /**
+     * T-88 (B-042): daftar program kerja bidang LAIN. Hanya baca.
+     *
+     * Akses : semua akun yang masuk [ASUMSI]; route hanya memakai middleware auth.
+     * Bidang: bidang "saya" selalu diambil dari akun yang masuk. Tidak ada
+     *         parameter bidang dari request, jadi tidak bisa dipalsukan.
+     * Akun tanpa bidang (id_bidang null) melihat semua program.
+     */
+    public function bidangLain(Request $request)
+    {
+        $idBidangSaya = Auth::user()->id_bidang;
+
+        try {
+            $program = DB::table('program_kerja')
+                ->join('bidang', 'bidang.id_bidang', '=', 'program_kerja.id_bidang')
+                ->when($idBidangSaya, fn ($q) => $q->where('program_kerja.id_bidang', '!=', $idBidangSaya))
+                ->select([
+                    'program_kerja.id_program_kerja',
+                    'program_kerja.nama_program',
+                    'program_kerja.tanggal_mulai',
+                    'program_kerja.tanggal_selesai',
+                    'bidang.id_bidang',
+                    'bidang.nama_bidang',
+                ])
+                ->orderByDesc('program_kerja.tanggal_mulai')
+                ->orderByDesc('program_kerja.id_program_kerja')
+                ->paginate(20)
+                ->withQueryString();
+        } catch (QueryException $e) {
+            // Detail teknis hanya ke log, pengguna cukup melihat pesan umum.
+            Log::error('Gagal memuat daftar program kerja bidang lain', [
+                'pengguna_id'  => Auth::id(),
+                'kode_galat'   => $e->getCode(),
+                'dicatat_pada' => now()->toDateTimeString(),
+            ]);
+
+            abort(500, 'Terjadi kesalahan. Silakan coba lagi.');
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'data'    => $program->items(),
+                'total'   => $program->total(),
+                'halaman' => $program->currentPage(),
+                'pesan'   => $program->total() === 0 ? 'Belum ada program kerja' : null,
+            ]);
+        }
+
+        // View dibuat di T-89. Bidang kosong: tampilkan "Belum ada program kerja".
+        return view('program-kerja.bidang-lain', ['programKerja' => $program]);
+    }
+
     private function gagal(Request $request, string $pesan, int $status)
     {
         if ($request->expectsJson()) {

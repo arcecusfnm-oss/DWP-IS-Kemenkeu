@@ -99,12 +99,20 @@ Route::middleware(['auth', 'role:Penasihat', NoCache::class])
         Route::get('/dashboard', [PenasihatDashboardController::class, 'index'])->name('dashboard');
     });
 
-    // Program Kerja (hanya Pimpinan Bidang)
+// Program Kerja (hanya Pimpinan Bidang)
 Route::middleware(['auth', 'role:Pimpinan Bidang', NoCache::class])
     ->prefix('program-kerja')
     ->name('program-kerja.')
     ->group(function () {
         Route::post('/', [ProgramKerjaController::class, 'store'])->name('store');
+    });
+
+// Program Kerja bidang lain (hanya baca, semua akun yang masuk) [ASUMSI] - T-88
+Route::middleware(['auth', NoCache::class])
+    ->prefix('program-kerja')
+    ->name('program-kerja.')
+    ->group(function () {
+        Route::get('/bidang-lain', [ProgramKerjaController::class, 'bidangLain'])->name('bidang-lain');
     });
 
 // Kelola Anggota (hanya Admin)
