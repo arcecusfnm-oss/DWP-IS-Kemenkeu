@@ -54,7 +54,7 @@ class LoginController extends Controller
             ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
     }
 
-    public function login(Request $request): RedirectResponse
+    public function login(Request $request)
     {
         $credentials = $request->validate([
             'username' => ['required', 'string', 'max:50'],
@@ -85,13 +85,23 @@ class LoginController extends Controller
                     $username
                 );
 
-                return redirect()
-                    ->route('login')
-                    ->withErrors([
-                        'throttle' =>
-                        'Terlalu banyak percobaan masuk. Silakan coba lagi dalam 5 menit.',
+                $request->session()->put(
+                    '_old_input',
+                    $request->only('username')
+                );
+
+                $errors = new \Illuminate\Support\ViewErrorBag();
+
+                $errors->put(
+                    'default',
+                    new \Illuminate\Support\MessageBag([
+                        'throttle' => 'Terlalu banyak percobaan masuk. Silakan coba lagi dalam 15 menit.',
                     ])
-                    ->withInput($request->only('username'));
+                );
+
+                return response()
+                    ->view('auth.login', ['errors' => $errors], 429)
+                    ->header('Retry-After', (string) $remaining);
             }
 
             Cache::forget($lockKey);
@@ -118,18 +128,18 @@ class LoginController extends Controller
             );
 
             // Tambahkan hitungan kegagalan.
-            Cache::add($key, 0, now()->addMinutes(5));
+            Cache::add($key, 0, now()->addMinutes(15));
 
             $attempts = Cache::increment($key);
 
             // Kegagalan kelima langsung mengaktifkan lockout.
             if ($attempts >= 5) {
-                $lockedUntil = now()->addMinutes(5)->timestamp;
+                $lockedUntil = now()->addMinutes(15)->timestamp;
 
                 Cache::put(
                     $lockKey,
                     $lockedUntil,
-                    now()->addMinutes(5)
+                    now()->addMinutes(15)
                 );
 
                 $request->session()->put(
@@ -146,7 +156,7 @@ class LoginController extends Controller
                     ->route('login')
                     ->withErrors([
                         'throttle' =>
-                        'Terlalu banyak percobaan masuk. Silakan coba lagi dalam 5 menit.',
+                        'Terlalu banyak percobaan masuk. Silakan coba lagi dalam 15 menit.',
                     ])
                     ->withInput($request->only('username'));
             }
@@ -167,8 +177,14 @@ class LoginController extends Controller
             );
 
             throw ValidationException::withMessages([
-                'login' => 'Akun tidak aktif. Hubungi Admin Sekretariat.',
+                'login' => 'Nama pengguna atau kata sandi salah.',
             ]);
+        }
+
+        // Perbarui hash jika masih menggunakan konfigurasi lama.
+        if (Hash::needsRehash($pengguna->kata_sandi_hash)) {
+            $pengguna->kata_sandi_hash = $credentials['password'];
+            $pengguna->save();
         }
 
         // Login berhasil: hapus hitungan kegagalan.
