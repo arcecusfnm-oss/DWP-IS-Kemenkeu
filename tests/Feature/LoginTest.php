@@ -7,6 +7,7 @@ use App\Models\Pengguna;
 use App\Models\Peran;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class LoginTest extends TestCase
@@ -35,6 +36,53 @@ class LoginTest extends TestCase
             'id_peran' => $peran->id_peran,
             'id_bidang' => $bidang->id_bidang,
         ]);
+    }
+
+    public function test_kata_sandi_disimpan_dalam_bentuk_hash(): void
+    {
+        $pengguna = $this->buatPengguna();
+
+        $hashDiDatabase = $pengguna->fresh()->kata_sandi_hash;
+
+        // Password tidak boleh tersimpan sebagai teks biasa.
+        $this->assertNotSame('password123', $hashDiDatabase);
+
+        // Hash harus bisa diverifikasi menggunakan password asli.
+        $this->assertTrue(
+            Hash::check('password123', $hashDiDatabase)
+        );
+    }
+
+    public function test_hash_lama_diperbarui_saat_login_berhasil(): void
+    {
+        $pengguna = $this->buatPengguna();
+
+        // Simulasikan hash lama dengan bcrypt rounds 4.
+        $hashLama = Hash::make('password123', ['rounds' => 4]);
+
+        config(['hashing.bcrypt.rounds' => 12]);
+        Hash::forgetDrivers();
+
+        DB::table($pengguna->getTable())
+            ->where($pengguna->getKeyName(), $pengguna->getKey())
+            ->update([
+                'kata_sandi_hash' => $hashLama,
+            ]);
+
+        $this->assertTrue(
+            Hash::needsRehash($pengguna->fresh()->kata_sandi_hash)
+        );
+
+        // Login dengan password yang benar.
+        $this->post('/login', [
+            'username' => 'fahira',
+            'password' => 'password123',
+        ])->assertRedirect(route('admin.dashboard'));
+
+        $hashBaru = $pengguna->fresh()->kata_sandi_hash;
+
+        $this->assertFalse(Hash::needsRehash($hashBaru));
+        $this->assertTrue(Hash::check('password123', $hashBaru));
     }
 
     public function test_pengguna_aktif_dapat_login_dengan_kata_sandi_benar(): void
@@ -94,12 +142,12 @@ class LoginTest extends TestCase
             'login' => 'Nama pengguna atau kata sandi salah.',
         ]);
 
-        // Password benar harus menghasilkan pesan akun nonaktif.
+        // Password benar pada akun nonaktif tetap menghasilkan pesan umum.
         $this->from('/login')->post('/login', [
             'username' => 'fahira',
             'password' => 'password123',
         ])->assertSessionHasErrors([
-            'login' => 'Akun tidak aktif. Hubungi Admin Sekretariat.',
+            'login' => 'Nama pengguna atau kata sandi salah.',
         ]);
 
         $this->assertGuest();
@@ -157,17 +205,18 @@ class LoginTest extends TestCase
             'password' => 'salah123',
         ])->assertSessionHasErrors('throttle');
 
-        // Percobaan keenam dengan password benar tetap ditolak.
+        // Percobaan keenam dengan password benar ditolak dengan HTTP 429.
         $this->from('/login')->post('/login', [
             'username' => 'fahira',
             'password' => 'password123',
-        ])->assertSessionHasErrors('throttle');
+        ])->assertStatus(429)
+            ->assertHeader('Retry-After');
 
         $this->assertGuest();
     }
 
-    // AC 6: penolakan berakhir setelah 5 menit
-    public function test_penolakan_berakhir_setelah_lima_menit(): void
+    // AC 6: penolakan berakhir setelah 15 menit
+    public function test_penolakan_berakhir_setelah_lima_belas_menit(): void
     {
         $this->buatPengguna();
 
@@ -178,7 +227,7 @@ class LoginTest extends TestCase
             ]);
         }
 
-        $this->travel(301)->seconds();
+        $this->travel(901)->seconds();
 
         $this->post('/login', [
             'username' => 'fahira',
@@ -265,7 +314,7 @@ class LoginTest extends TestCase
         $response->assertOk();
         $response->assertSee('Terlalu banyak percobaan masuk.');
         $response->assertSee('Silakan coba lagi dalam:');
-        $response->assertSee('05:00');
+        $response->assertSee('15:00');
         $response->assertSee('disabled', false);
 
         // Pastikan timestamp berhasil dipulihkan dari Cache.
@@ -279,7 +328,8 @@ class LoginTest extends TestCase
         $this->from('/login')->post('/login', [
             'username' => 'fahira',
             'password' => 'password123',
-        ])->assertSessionHasErrors('throttle');
+        ])->assertStatus(429)
+            ->assertHeader('Retry-After');
 
         $this->assertGuest();
     }

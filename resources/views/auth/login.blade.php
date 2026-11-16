@@ -47,7 +47,7 @@
                         Terlalu banyak percobaan masuk.
                         <br>
                         Silakan coba lagi dalam:
-                        <strong id="lockout-countdown">05:00</strong>
+                        <strong id="lockout-countdown">15:00</strong>
                     </span>
 
                     <svg class="ikon-warning ikon-warning-kuning" width="24" height="24" viewBox="0 0 24 24"
