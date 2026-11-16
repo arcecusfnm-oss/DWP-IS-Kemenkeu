@@ -11,6 +11,8 @@ use App\Http\Middleware\NoCache;
 use App\Http\Controllers\ProgramKerjaController;
 use App\Http\Controllers\Admin\AnggotaController;
 use App\Http\Controllers\Admin\KetuaBidangController;
+use App\Http\Middleware\AksesPersuratan;
+use App\Http\Controllers\Admin\PencarianSuratController;
 
 // Halaman utama (publik)
 Route::view('/', 'landing')
@@ -134,4 +136,11 @@ Route::middleware(['auth', 'role:Admin,Penasihat', NoCache::class])
     ->name('admin.program-kerja.')
     ->group(function () {
         Route::get('/', [ProgramKerjaController::class, 'seluruhBidang'])->name('index');
+    });
+
+Route::middleware(['auth', AksesPersuratan::class, NoCache::class])
+    ->prefix('surat')
+    ->name('surat.')
+    ->group(function () {
+        Route::get('/', [PencarianSuratController::class, 'cari'])->name('index');
     });
