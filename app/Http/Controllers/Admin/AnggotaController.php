@@ -306,8 +306,9 @@ class AnggotaController extends Controller
                 DB::table('anggota')
                     ->where('id_anggota', $id)
                     ->update([
-                        'id_bidang'  => $data['id_bidang'],
-                        'updated_at' => now(),
+                        'id_bidang'      => $data['id_bidang'],
+                        'jabatan_bidang' => null,
+                        'updated_at'     => now(),
                     ]);
 
                 if ($anggota->id_pengguna !== null) {
