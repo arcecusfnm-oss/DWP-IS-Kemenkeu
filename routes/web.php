@@ -124,3 +124,11 @@ Route::middleware(['auth', 'role:Admin', NoCache::class])
         Route::get('/tambah', [AnggotaController::class, 'create'])->name('create');
         Route::post('/', [AnggotaController::class, 'store'])->name('store');
     });
+
+// Daftar program kerja seluruh bidang (hanya baca; Admin dan Penasihat) - T-93
+Route::middleware(['auth', 'role:Admin,Penasihat', NoCache::class])
+    ->prefix('admin/program-kerja')
+    ->name('admin.program-kerja.')
+    ->group(function () {
+        Route::get('/', [ProgramKerjaController::class, 'seluruhBidang'])->name('index');
+    });

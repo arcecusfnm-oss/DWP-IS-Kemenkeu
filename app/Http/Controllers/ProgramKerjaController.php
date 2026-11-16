@@ -166,4 +166,72 @@ class ProgramKerjaController extends Controller
 
         return redirect()->back()->withInput()->with('galat', $pesan);
     }
+
+        /**
+     * T-93 (B-044): daftar program kerja SELURUH bidang, dengan filter bidang.
+     * Hanya baca.
+     *
+     * Akses : Admin dan Penasihat (dijaga middleware role di routes/web.php).
+     * Filter: ?bidang={id_bidang}, opsional; harus ada di tabel bidang.
+     */
+    public function seluruhBidang(Request $request)
+    {
+        $request->validate([
+            'bidang' => ['nullable', 'integer', 'exists:bidang,id_bidang'],
+        ], [
+            'bidang.integer' => 'Bidang tidak tersedia.',
+            'bidang.exists'  => 'Bidang tidak tersedia.',
+        ]);
+
+        $idBidang = $request->filled('bidang') ? $request->integer('bidang') : null;
+
+        try {
+            $program = DB::table('program_kerja')
+                ->join('bidang', 'bidang.id_bidang', '=', 'program_kerja.id_bidang')
+                ->when($idBidang, fn ($q) => $q->where('program_kerja.id_bidang', $idBidang))
+                ->select([
+                    'program_kerja.id_program_kerja',
+                    'program_kerja.nama_program',
+                    'program_kerja.tanggal_mulai',
+                    'program_kerja.tanggal_selesai',
+                    'bidang.id_bidang',
+                    'bidang.nama_bidang',
+                ])
+                ->orderByDesc('program_kerja.tanggal_mulai')
+                ->orderByDesc('program_kerja.id_program_kerja')
+                ->paginate(20)
+                ->withQueryString();
+
+            // Untuk pilihan filter di halaman (T-94).
+            $daftarBidang = DB::table('bidang')
+                ->orderBy('nama_bidang')
+                ->get(['id_bidang', 'nama_bidang']);
+        } catch (QueryException $e) {
+            // Detail teknis hanya ke log, pengguna cukup melihat pesan umum.
+            Log::error('Gagal memuat daftar program kerja seluruh bidang', [
+                'pengguna_id'  => Auth::id(),
+                'kode_galat'   => $e->getCode(),
+                'dicatat_pada' => now()->toDateTimeString(),
+            ]);
+
+            abort(500, 'Terjadi kesalahan. Silakan coba lagi.');
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'data'    => $program->items(),
+                'total'   => $program->total(),
+                'halaman' => $program->currentPage(),
+                'bidang'  => $idBidang,
+                'pesan'   => $program->total() === 0 ? 'Belum ada program kerja' : null,
+            ]);
+        }
+
+        // View dibuat di T-94. Hasil kosong: tampilkan "Belum ada program kerja".
+        return view('admin.program-kerja.index', [
+            'programKerja'  => $program,
+            'daftarBidang'  => $daftarBidang,
+            'bidangDipilih' => $idBidang,
+        ]);
+    }
 }
