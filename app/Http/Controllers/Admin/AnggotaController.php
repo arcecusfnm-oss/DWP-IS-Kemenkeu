@@ -31,7 +31,7 @@ class AnggotaController extends Controller
 
     // ===== T-42: daftar anggota (T-43: ditambah join peran untuk kolom Posisi) =====
 
-        public function index(Request $request)
+    public function index(Request $request)
     {
         // bidang = id_bidang, peran = id_peran, q = kata kunci. Kosong berarti tanpa filter.
         $request->validate([
@@ -209,7 +209,8 @@ class AnggotaController extends Controller
 
         return [
             'id_pengguna'        => [
-                'nullable', 'integer',
+                'nullable',
+                'integer',
                 Rule::exists('pengguna', 'id_pengguna')->whereNull('dihapus_pada'),
                 'unique:anggota,id_pengguna',
             ],
@@ -262,6 +263,106 @@ class AnggotaController extends Controller
             'bidang_usaha.regex'            => $pesanTeks,
             'instansi_kerja.regex'          => $pesanTeks,
         ];
+    }
+
+    public function pindahBidang(Request $request, $id)
+    {
+        $data = $request->validate([
+            'id_bidang' => ['required', 'integer', 'exists:bidang,id_bidang'],
+        ], [
+            'id_bidang.required' => 'Bidang tujuan wajib dipilih.',
+            'id_bidang.integer'  => 'Bidang tujuan tidak valid.',
+            'id_bidang.exists'   => 'Bidang tujuan tidak tersedia.',
+        ]);
+
+        try {
+            $hasil = DB::transaction(function () use ($id, $data) {
+                $anggota = DB::table('anggota')
+                    ->where('id_anggota', $id)
+                    ->whereNull('dihapus_pada')
+                    ->lockForUpdate()
+                    ->first();
+
+                if (! $anggota) {
+                    return ['status' => 'tidak_ditemukan'];
+                }
+
+                if ($anggota->id_bidang === null) {
+                    return ['status' => 'belum_memiliki_bidang'];
+                }
+
+                if ((int) $anggota->id_bidang === (int) $data['id_bidang']) {
+                    return ['status' => 'bidang_sama'];
+                }
+
+                $bidangLama = DB::table('bidang')
+                    ->where('id_bidang', $anggota->id_bidang)
+                    ->value('nama_bidang');
+
+                $bidangBaru = DB::table('bidang')
+                    ->where('id_bidang', $data['id_bidang'])
+                    ->value('nama_bidang');
+
+                DB::table('anggota')
+                    ->where('id_anggota', $id)
+                    ->update([
+                        'id_bidang'  => $data['id_bidang'],
+                        'updated_at' => now(),
+                    ]);
+
+                if ($anggota->id_pengguna !== null) {
+                    DB::table('pengguna')
+                        ->where('id_pengguna', $anggota->id_pengguna)
+                        ->update([
+                            'id_bidang'  => $data['id_bidang'],
+                            'updated_at' => now(),
+                        ]);
+                }
+
+                return [
+                    'status'        => 'berhasil',
+                    'nama_anggota'  => $anggota->nama_lengkap,
+                    'bidang_lama'   => $bidangLama,
+                    'bidang_baru'   => $bidangBaru,
+                    'id_bidang_lama' => $anggota->id_bidang,
+                    'id_bidang_baru' => $data['id_bidang'],
+                    'id_pengguna'   => $anggota->id_pengguna,
+                ];
+            });
+        } catch (QueryException $e) {
+            report($e);
+
+            return back()->with('error', 'Perpindahan bidang gagal. Silakan coba lagi.');
+        }
+
+        if ($hasil['status'] === 'tidak_ditemukan') {
+            return back()->with('error', 'Data anggota tidak ditemukan.');
+        }
+
+        if ($hasil['status'] === 'belum_memiliki_bidang') {
+            return back()->with('error', 'Anggota belum memiliki bidang saat ini.');
+        }
+
+        if ($hasil['status'] === 'bidang_sama') {
+            return back()->with('error', 'Bidang tujuan harus berbeda dari bidang saat ini.');
+        }
+
+        Log::info('Admin memindahkan bidang anggota', [
+            'admin_id'        => Auth::id(),
+            'admin_username'  => Auth::user()->nama_pengguna,
+            'anggota_id'      => $id,
+            'nama_anggota'    => $hasil['nama_anggota'],
+            'id_pengguna'     => $hasil['id_pengguna'],
+            'id_bidang_lama'  => $hasil['id_bidang_lama'],
+            'bidang_lama'     => $hasil['bidang_lama'],
+            'id_bidang_baru'  => $hasil['id_bidang_baru'],
+            'bidang_baru'     => $hasil['bidang_baru'],
+            'dicatat_pada'    => now()->toDateTimeString(),
+        ]);
+
+        return redirect()
+            ->route('admin.anggota.index')
+            ->with('success', 'Bidang anggota berhasil dipindahkan.');
     }
 
     // Akun yang bisa dihubungkan ke data anggota (satu akun hanya satu anggota, sesuai UK).
