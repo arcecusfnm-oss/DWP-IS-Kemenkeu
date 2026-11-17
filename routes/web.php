@@ -95,6 +95,7 @@ Route::middleware(['auth', 'role:Admin', NoCache::class])
         Route::post('/alih-admin', [AkunController::class, 'alihAdmin'])->name('alih-admin');
     });
 
+// Dashboard Penasihat
 Route::middleware(['auth', 'role:Penasihat', NoCache::class])
     ->prefix('penasihat')
     ->name('penasihat.')

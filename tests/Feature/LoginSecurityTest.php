@@ -32,6 +32,21 @@ class LoginSecurityTest extends TestCase
         $this->assertSame('lax', config('session.same_site'));
     }
 
+    public function test_session_cookie_has_secure_attributes(): void
+    {
+        $response = $this->get('/login');
+
+        $sessionCookie = collect($response->headers->getCookies())
+            ->first(
+                fn($cookie) => $cookie->getName() === config('session.cookie')
+            );
+
+        $this->assertNotNull($sessionCookie);
+        $this->assertTrue($sessionCookie->isSecure());
+        $this->assertTrue($sessionCookie->isHttpOnly());
+        $this->assertSame('lax', $sessionCookie->getSameSite());
+    }
+
     public function test_logout_expires_session_cookie(): void
     {
         $pengguna = new Pengguna();
