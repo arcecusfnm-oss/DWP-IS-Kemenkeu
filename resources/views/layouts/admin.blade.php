@@ -54,7 +54,7 @@
             ],
             ['label' => 'Kelola Program Kerja', 'icon' => 'clipboard', 'href' => null, 'route' => 'admin.proker.*'],
             ['label' => 'Laporan Kegiatan', 'icon' => 'file', 'href' => null, 'route' => 'admin.laporan.*'],
-            ['label' => 'Surat Masuk/Keluar', 'icon' => 'mail', 'href' => null, 'route' => 'admin.surat.*'],
+            ['label' => 'Surat Masuk/Keluar', 'icon' => 'mail', 'href' => 'surat.index', 'route' => 'surat.*'],
         ];
         $profilUrl = route('admin.profil');
     }
