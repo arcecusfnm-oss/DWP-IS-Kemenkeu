@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\AnggotaController;
 use App\Http\Controllers\Admin\KetuaBidangController;
 use App\Http\Middleware\AksesPersuratan;
 use App\Http\Controllers\Admin\PencarianSuratController;
+use App\Http\Controllers\AnggotaBidangController;
 
 // Halaman utama (publik)
 Route::view('/', 'landing')
@@ -143,4 +144,12 @@ Route::middleware(['auth', AksesPersuratan::class, NoCache::class])
     ->name('surat.')
     ->group(function () {
         Route::get('/', [PencarianSuratController::class, 'cari'])->name('index');
+    });
+
+// Daftar anggota bidang saya (Pimpinan Bidang dan Anggota Bidang) - T-52
+Route::middleware(['auth', 'role:Pimpinan Bidang,Anggota Bidang', NoCache::class])
+    ->prefix('anggota')
+    ->name('anggota.')
+    ->group(function () {
+        Route::get('/bidang-saya', [AnggotaBidangController::class, 'index'])->name('bidang-saya');
     });
