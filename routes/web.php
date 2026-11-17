@@ -131,13 +131,25 @@ Route::middleware(['auth', 'role:Admin', NoCache::class])
             ->name('pindah-bidang');
     });
 
+
 // Daftar program kerja seluruh bidang (hanya baca; Admin dan Penasihat) - T-93
 Route::middleware(['auth', 'role:Admin,Penasihat', NoCache::class])
     ->prefix('admin/program-kerja')
     ->name('admin.program-kerja.')
     ->group(function () {
-        Route::get('/', [ProgramKerjaController::class, 'seluruhBidang'])->name('index');
+        Route::get('/', [ProgramKerjaController::class, 'seluruhBidang'])
+            ->name('index');
     });
+
+// Daftar program kerja bidang sendiri (Pimpinan Bidang dan Anggota Bidang) - T-98
+Route::middleware(['auth', 'role:Pimpinan Bidang,Anggota Bidang', NoCache::class])
+    ->prefix('program-kerja')
+    ->name('program-kerja.')
+    ->group(function () {
+        Route::get('/bidang-saya', [ProgramKerjaController::class, 'bidangSaya'])
+            ->name('bidang-saya');
+    });
+
 
 Route::middleware(['auth', AksesPersuratan::class, NoCache::class])
     ->prefix('surat')

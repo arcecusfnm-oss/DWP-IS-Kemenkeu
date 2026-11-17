@@ -103,10 +103,12 @@ class ProgramKerjaController extends Controller
         }
 
         // TODO: arahkan ke route('program-kerja.index') setelah daftar program kerja (T-98) ada.
-        return redirect()->back()->with('sukses', 'Program kerja berhasil ditambahkan.');
+        return redirect()
+            ->route('program-kerja.bidang-saya')
+            ->with('sukses', 'Program kerja berhasil ditambahkan.');
     }
 
-        /**
+    /**
      * T-88 (B-042): daftar program kerja bidang LAIN. Hanya baca.
      *
      * Akses : semua akun yang masuk [ASUMSI]; route hanya memakai middleware auth.
@@ -114,6 +116,87 @@ class ProgramKerjaController extends Controller
      *         parameter bidang dari request, jadi tidak bisa dipalsukan.
      * Akun tanpa bidang (id_bidang null) melihat semua program.
      */
+    public function bidangSaya(Request $request)
+    {
+        $idBidangSaya = Auth::user()->id_bidang;
+
+        if (! $idBidangSaya) {
+            abort(403, 'Akun Anda belum terhubung dengan bidang.');
+        }
+
+        // Tolak permintaan yang mencoba mengakses bidang lain.
+        $diminta = $request->query('bidang');
+
+        if (
+            $diminta !== null
+            && (! is_scalar($diminta) || (string) $diminta !== (string) $idBidangSaya)
+        ) {
+            Log::warning('Akses program kerja bidang lain ditolak', [
+                'pengguna_id'    => Auth::id(),
+                'id_bidang_akun' => $idBidangSaya,
+                'dicatat_pada'   => now()->toDateTimeString(),
+            ]);
+
+            abort(403, 'Anda tidak memiliki hak akses.');
+        }
+
+        try {
+            $program = DB::table('program_kerja')
+                ->where('id_bidang', $idBidangSaya)
+                ->when($request->filled('cari'), function ($query) use ($request) {
+                    $query->where(
+                        'nama_program',
+                        'like',
+                        '%' . trim($request->input('cari')) . '%'
+                    );
+                })
+                ->select([
+                    'id_program_kerja',
+                    'nama_program',
+                    'tanggal_mulai',
+                    'tanggal_selesai',
+                    'anggaran',
+                ])
+                ->orderByDesc('tanggal_mulai')
+                ->orderByDesc('id_program_kerja')
+                ->paginate(10)
+                ->withQueryString();
+        } catch (QueryException $e) {
+            Log::error('Gagal memuat daftar program kerja bidang sendiri', [
+                'pengguna_id' => Auth::id(),
+                'kode_galat'  => $e->getCode(),
+                'dicatat_pada' => now()->toDateTimeString(),
+            ]);
+
+            abort(500, 'Daftar program kerja belum bisa dimuat. Silakan coba lagi.');
+        }
+
+        // Ambil nama bidang pengguna yang sedang login.
+        $namaBidang = DB::table('bidang')
+            ->where('id_bidang', $idBidangSaya)
+            ->value('nama_bidang');
+
+        $pesan = $program->total() === 0
+            ? 'Belum ada program kerja untuk bidang ini.'
+            : null;
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'bidang'  => $namaBidang,
+                'data'    => $program->items(),
+                'total'   => $program->total(),
+                'halaman' => $program->currentPage(),
+                'pesan'   => $pesan,
+            ]);
+        }
+
+        return view('program-kerja.bidang-saya', [
+            'programKerja' => $program,
+            'namaBidang'   => $namaBidang,
+            'pesan'        => $pesan,
+        ]);
+    }
+
     public function bidangLain(Request $request)
     {
         $idBidangSaya = Auth::user()->id_bidang;
@@ -121,7 +204,7 @@ class ProgramKerjaController extends Controller
         try {
             $program = DB::table('program_kerja')
                 ->join('bidang', 'bidang.id_bidang', '=', 'program_kerja.id_bidang')
-                ->when($idBidangSaya, fn ($q) => $q->where('program_kerja.id_bidang', '!=', $idBidangSaya))
+                ->when($idBidangSaya, fn($q) => $q->where('program_kerja.id_bidang', $idBidangSaya))
                 ->select([
                     'program_kerja.id_program_kerja',
                     'program_kerja.nama_program',
@@ -167,7 +250,7 @@ class ProgramKerjaController extends Controller
         return redirect()->back()->withInput()->with('galat', $pesan);
     }
 
-        /**
+    /**
      * T-93 (B-044): daftar program kerja SELURUH bidang, dengan filter bidang.
      * Hanya baca.
      *
@@ -188,7 +271,7 @@ class ProgramKerjaController extends Controller
         try {
             $program = DB::table('program_kerja')
                 ->join('bidang', 'bidang.id_bidang', '=', 'program_kerja.id_bidang')
-                ->when($idBidang, fn ($q) => $q->where('program_kerja.id_bidang', $idBidang))
+                ->when($idBidang, fn($q) => $q->where('program_kerja.id_bidang', $idBidang))
                 ->select([
                     'program_kerja.id_program_kerja',
                     'program_kerja.nama_program',
