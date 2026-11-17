@@ -1,0 +1,333 @@
+/* =====================================
+   TEMA KHUSUS PIMPINAN DAN ANGGOTA BIDANG
+===================================== */
+
+.bidang-topbar {
+    background: #24552d;
+}
+
+.bidang-topbar .brand,
+.bidang-topbar .brand-sub {
+    color: #fff;
+}
+
+.bidang-topbar .menu-btn,
+.bidang-topbar .icon-btn {
+    color: #fff;
+}
+
+.bidang-topbar .menu-btn:hover,
+.bidang-topbar .icon-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.bidang-topbar .profile {
+    background: #dce8d8;
+}
+
+.bidang-topbar .profile-text strong {
+    color: #173d20;
+}
+
+.bidang-topbar .profile-text span {
+    color: #58705a;
+}
+
+.bidang-topbar .avatar {
+    border-color: #24552d;
+    color: #24552d;
+}
+
+.bidang-topbar .logout-top {
+    background: #fff4ed;
+}
+
+/* Sidebar hijau */
+.bidang-sidebar {
+    background: #24552d;
+    border-right: 1px solid #1b4223;
+}
+
+.bidang-sidebar .side-brand {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.bidang-sidebar .side-brand-icon {
+    background: #dce8d8;
+    color: #24552d;
+}
+
+.bidang-sidebar .side-brand strong,
+.bidang-sidebar .side-brand small {
+    color: #fff;
+}
+
+.bidang-sidebar .side-link {
+    color: #f5f8f3;
+}
+
+.bidang-sidebar .side-link svg {
+    color: #fff;
+}
+
+.bidang-sidebar .side-link:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.bidang-sidebar .side-link.active {
+    background: #a9c0a8;
+    color: #173d20;
+    font-weight: 600;
+}
+
+.bidang-sidebar .side-link.active svg {
+    color: #173d20;
+}
+
+/* Menu yang belum difungsikan */
+.bidang-sidebar .side-link.menu-disabled {
+    cursor: default;
+    opacity: 0.75;
+}
+
+.bidang-sidebar .side-link.menu-disabled:hover {
+    background: transparent;
+}
+
+/* Responsif */
+@media (max-width: 900px) {
+    .bidang-sidebar {
+        transform: translateX(-100%);
+    }
+
+    .bidang-sidebar.open {
+        transform: translateX(0);
+    }
+
+    .main {
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 600px) {
+    .bidang-topbar {
+        padding: 0 12px;
+    }
+
+    .bidang-topbar .brand {
+        font-size: 17px;
+    }
+
+    .bidang-topbar .brand-sub {
+        font-size: 10px;
+    }
+
+    .bidang-topbar .profile {
+        padding: 5px;
+    }
+
+    .bidang-topbar .profile-text {
+        display: none;
+    }
+
+    .bidang-topbar .topbar-right {
+        gap: 8px;
+    }
+
+    .bidang-topbar .logout-top {
+        padding: 8px;
+    }
+
+    .bidang-topbar .logout-top span {
+        display: none;
+    }
+}
+
+
+/* SIDEBAR PUTIH - TAMPILAN MENU TETAP SEPERTI ADMIN */
+.bidang-sidebar {
+    background: #fff !important;
+    border-right: 1px solid #eadbd3;
+}
+
+/* Identitas sidebar */
+.bidang-sidebar .side-brand {
+    border-bottom: 1px solid #eadbd3;
+}
+
+.bidang-sidebar .side-brand strong,
+.bidang-sidebar .side-brand small {
+    color: var(--coklat-tua);
+}
+
+/* Ikon logo sidebar */
+.bidang-sidebar .side-brand-icon {
+    background: #dce8d8;
+    color: #24552d;
+}
+
+/* Semua menu */
+.bidang-sidebar .side-link {
+    color: var(--coklat-tua);
+    opacity: 1 !important;
+}
+
+.bidang-sidebar .side-link svg {
+    color: var(--coklat-tua);
+}
+
+/* Menu aktif */
+.bidang-sidebar .side-link.active {
+    background: #a9c0a8;
+    color: #173d20;
+}
+
+.bidang-sidebar .side-link.active svg {
+    color: #173d20;
+}
+
+/* Menu yang belum difungsikan */
+.bidang-sidebar .side-link.menu-disabled {
+    opacity: 1 !important;
+    color: var(--coklat-tua);
+    cursor: default;
+}
+
+.bidang-sidebar .side-link.menu-disabled svg {
+    color: var(--coklat-tua);
+}
+
+.bidang-sidebar .side-link:hover:not(.active) {
+    background: #f5f5f5;
+}
+
+/* HEADER PROGRAM KERJA */
+.program-header-info {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+}
+
+.program-bidang-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 7px 14px;
+    border-radius: 999px;
+    background: #fdf1ea;
+    color: var(--coklat-tua);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.program-btn-disabled {
+    opacity: .75;
+    cursor: not-allowed;
+}
+
+/* CARD DAFTAR PROGRAM */
+.program-daftar-card {
+    padding: 28px;
+}
+
+.program-card-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-bottom: 24px;
+}
+
+.program-card-heading h2 {
+    margin: 0;
+    color: var(--coklat-tua);
+    font-family: "Gelasio", serif;
+    font-size: 22px;
+}
+
+.program-card-heading p {
+    margin: 7px 0 0;
+    color: var(--coklat);
+    font-size: 13px;
+}
+
+/* SEARCH */
+.program-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    max-width: 340px;
+}
+
+.program-search input {
+    flex: 1;
+    min-width: 0;
+    height: 42px;
+    padding: 0 14px;
+    border: 1px solid #eadbd3;
+    border-radius: 8px;
+    outline: none;
+    background: #fff9f5;
+    font: 400 13px "Inter", sans-serif;
+}
+
+.program-search input:focus {
+    border-color: var(--peach);
+}
+
+.program-search button {
+    height: 42px;
+    padding: 0 17px;
+    border: none;
+    border-radius: 8px;
+    background: var(--coklat-tua);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.program-search button:hover {
+    background: var(--coklat);
+}
+
+.program-table {
+    min-width: 850px;
+}
+
+.program-table th:first-child,
+.program-table td:first-child {
+    width: 60px;
+}
+
+.program-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-top: 20px;
+    color: var(--coklat);
+    font-size: 13px;
+}
+
+@media (max-width: 700px) {
+    .program-daftar-card {
+        padding: 18px;
+    }
+
+    .program-card-heading {
+        align-items: stretch;
+    }
+
+    .program-search {
+        max-width: none;
+    }
+
+    .program-header-info {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 8px;
+    }
+}
