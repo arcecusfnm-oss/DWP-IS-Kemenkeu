@@ -98,6 +98,27 @@ class LoginTest extends TestCase
         $this->assertAuthenticated();
     }
 
+    public function test_id_sesi_berubah_setelah_login_berhasil(): void
+    {
+        $this->buatPengguna();
+
+        // Mulai sesi sebelum login.
+        $this->get('/login');
+
+        $idSesiSebelum = session()->getId();
+
+        // Login dengan kredensial yang benar.
+        $this->post('/login', [
+            'username' => 'fahira',
+            'password' => 'password123',
+        ])->assertRedirect(route('admin.dashboard'));
+
+        $idSesiSesudah = session()->getId();
+
+        $this->assertNotSame($idSesiSebelum, $idSesiSesudah);
+        $this->assertAuthenticated();
+    }
+
     public function test_login_gagal_jika_kata_sandi_salah(): void
     {
         $this->buatPengguna();
