@@ -3,7 +3,6 @@
 @section('content')
 @php
     $err = collect($errors->messages())->map(fn ($m) => $m[0])->all();
-    $ikonSalah = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/></svg>';
 @endphp
 
 <div class="content akun-page">
@@ -80,7 +79,7 @@
                     </select>
                 </div>
                 @isset($err['peran'])
-                    <p class="akun-error">{!! $ikonSalah !!} {{ $err['peran'] }}</p>
+                    <p class="akun-error"><x-icon name="x-circle" :size="14" /> {{ $err['peran'] }}</p>
                 @endisset
             </div>
 

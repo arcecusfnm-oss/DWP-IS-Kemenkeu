@@ -4,7 +4,6 @@
 @php
     $err = collect($errors->messages())->map(fn ($m) => $m[0])->all();
     $errBidang = $err['bidang'] ?? collect($err)->first(fn ($v, $k) => str_starts_with($k, 'bidang.'));
-    $ikonSalah = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/></svg>';
 @endphp
 
 <div class="content akun-page">
@@ -50,7 +49,7 @@
                     <input type="text" id="nama" name="nama" placeholder="Masukkan nama lengkap" value="{{ old('nama', $akun->nama_lengkap) }}">
                 </div>
                 @isset($err['nama'])
-                    <p class="akun-error">{!! $ikonSalah !!} {{ $err['nama'] }}</p>
+                    <p class="akun-error"><x-icon name="x-circle" :size="14" /> {{ $err['nama'] }}</p>
                 @endisset
             </div>
 
@@ -65,7 +64,7 @@
                     @endisset
                 </div>
                 @isset($err['username'])
-                    <p class="akun-error">{!! $ikonSalah !!} {{ $err['username'] }}</p>
+                    <p class="akun-error"><x-icon name="x-circle" :size="14" /> {{ $err['username'] }}</p>
                 @endisset
             </div>
 
@@ -109,7 +108,7 @@
                             <button type="button" id="tambahBidang" class="akun-btn-batal" style="margin-top:8px">+ Tambah bidang</button>
                         @endif
                         @if ($errBidang)
-                            <p class="akun-error">{!! $ikonSalah !!} {{ $errBidang }}</p>
+                            <p class="akun-error"><x-icon name="x-circle" :size="14" /> {{ $errBidang }}</p>
                         @endif
                     </div>
                 @else
