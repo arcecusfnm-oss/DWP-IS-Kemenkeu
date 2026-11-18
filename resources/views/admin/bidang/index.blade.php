@@ -312,7 +312,7 @@
                 nama.textContent = btn.dataset.bidangNama;
                 asal.value = id;
 
-                select.innerHTML = '';
+                select.replaceChildren();
                 const awal = document.createElement('option');
                 awal.value = '';
                 awal.textContent = 'Pilih anggota';

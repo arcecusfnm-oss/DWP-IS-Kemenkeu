@@ -9,13 +9,37 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class AkunController extends Controller
 {
+    // Allowlist format input (Tugas 2: Validasi Input)
+    private const POLA_NAMA     = '/^[\p{L}\p{M}][\p{L}\p{M}\s.,\'-]*$/u';
+    private const POLA_USERNAME = '/^[A-Za-z0-9._-]+$/';
+
     public function index(Request $request)
     {
+        // Filter dari query string juga input: periksa sebelum dipakai.
+        $cek = Validator::make($request->query(), [
+            'peran'  => ['nullable', 'string', 'max:50'],
+            'bidang' => ['nullable', 'string', 'max:100'],
+            'q'      => ['nullable', 'string', 'max:100'],
+        ], [
+            'peran.string'  => 'Filter peran tidak valid',
+            'peran.max'     => 'Filter peran tidak valid',
+            'bidang.string' => 'Filter bidang tidak valid',
+            'bidang.max'    => 'Filter bidang tidak valid',
+            'q.string'      => 'Kata kunci tidak valid',
+            'q.max'         => 'Kata kunci terlalu panjang',
+        ]);
+
+        if ($cek->fails()) {
+            return redirect()->route('admin.akun.index')
+                ->with('galat', $cek->errors()->first());
+        }
+
         $query = DB::table('pengguna')
             ->join('peran', 'pengguna.id_peran', '=', 'peran.id_peran')
             ->leftJoin('bidang', 'pengguna.id_bidang', '=', 'bidang.id_bidang')
@@ -52,7 +76,8 @@ class AkunController extends Controller
             });
         }
         if ($request->filled('q')) {
-            $q = $request->q;
+            // Escape wildcard LIKE supaya "%" dan "_" dicari sebagai teks biasa.
+            $q = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], trim($request->q));
             $query->where(function ($w) use ($q) {
                 $w->where('pengguna.nama_lengkap', 'like', "%{$q}%")
                     ->orWhere('pengguna.nama_pengguna', 'like', "%{$q}%");
@@ -227,12 +252,14 @@ class AkunController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'nama'     => 'required|string|max:255',
+            $request->validate([
+            'nama'     => ['required', 'string', 'max:255', 'regex:' . self::POLA_NAMA],
             'username' => [
                 'required',
                 'string',
+                'min:3',
                 'max:50',
+                'regex:' . self::POLA_USERNAME,
                 Rule::unique('pengguna', 'nama_pengguna'),
             ],
             'peran'    => ['required', Rule::in(config('dwp.peran_dipilih'))],
@@ -240,7 +267,10 @@ class AkunController extends Controller
             ...$this->aturanBidang($request->input('peran')),
         ], [
             'nama.required'     => 'Nama lengkap wajib diisi',
+            'nama.regex'        => 'Nama hanya boleh berisi huruf, spasi, titik, koma, apostrof, dan tanda hubung',
             'username.required' => 'Nama pengguna wajib diisi',
+            'username.min'      => 'Nama pengguna minimal 3 karakter',
+            'username.regex'    => 'Nama pengguna hanya boleh berisi huruf, angka, titik, garis bawah, dan tanda hubung',
             'username.unique'   => 'Nama pengguna sudah digunakan',
             'peran.required'    => 'Peran wajib dipilih',
             'peran.in'          => 'Peran tidak valid',
@@ -319,18 +349,23 @@ class AkunController extends Controller
 
         abort_if(!$akun, 404);
 
-        $request->validate([
-            'nama'     => 'required|string|max:255',
+            $request->validate([
+            'nama'     => ['required', 'string', 'max:255', 'regex:' . self::POLA_NAMA],
             'username' => [
                 'required',
                 'string',
+                'min:3',
                 'max:50',
+                'regex:' . self::POLA_USERNAME,
                 Rule::unique('pengguna', 'nama_pengguna')->ignore($id, 'id_pengguna'),
             ],
             ...$this->aturanBidang($akun->nama_peran, (int) $akun->id_pengguna),
         ], [
             'nama.required'     => 'Nama lengkap wajib diisi',
+            'nama.regex'        => 'Nama hanya boleh berisi huruf, spasi, titik, koma, apostrof, dan tanda hubung',
             'username.required' => 'Nama pengguna wajib diisi',
+            'username.min'      => 'Nama pengguna minimal 3 karakter',
+            'username.regex'    => 'Nama pengguna hanya boleh berisi huruf, angka, titik, garis bawah, dan tanda hubung',
             'username.unique'   => 'Nama pengguna sudah digunakan',
         ] + $this->pesanBidang());
 

@@ -16,11 +16,11 @@
         'keluar'    => 'Surat Keluar',
         'keputusan' => 'Surat Keputusan',
     ];
-    $ikon = [
-        ''          => '<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
-        'masuk'     => '<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
-        'keluar'    => '<path d="M22 2 11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/>',
-        'keputusan' => '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="m9 15 2 2 4-4"/>',
+        $ikon = [
+        ''          => 'list',
+        'masuk'     => 'inbox',
+        'keluar'    => 'send',
+        'keputusan' => 'file-check',
     ];
     $tab = [
         ''          => 'Semua',
@@ -91,7 +91,7 @@
                 @foreach ($tab as $nilai => $label)
                     <a href="{{ route('surat.index', array_filter(array_merge(request()->except(['jenis', 'page']), ['jenis' => $nilai]), fn ($v) => $v !== null && $v !== '')) }}"
                        @if ($jenisAktif === (string) $nilai) aria-current="page" @endif>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{!! $ikon[$nilai] !!}</svg>
+                        <x-icon :name="$ikon[$nilai]" :size="18" />
                         {{ $label }}
                         @if (isset($jumlahJenis[$nilai]))<span class="srt-jml">{{ $jumlahJenis[$nilai] }}</span>@endif
                     </a>

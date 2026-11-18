@@ -470,6 +470,25 @@
             const tambah = document.getElementById('alihTambah');
             const bintang = document.getElementById('alihBintang');
 
+            function kotakNonaktif(jenis, teks) {
+                const wrap = document.createElement('div');
+                wrap.className = 'akun-input';
+                let el;
+                if (jenis === 'input') {
+                    el = document.createElement('input');
+                    el.type = 'text';
+                    el.value = teks;
+                } else {
+                    el = document.createElement('select');
+                    const o = document.createElement('option');
+                    o.textContent = teks;
+                    el.appendChild(o);
+                }
+                el.disabled = true;
+                wrap.appendChild(el);
+                return wrap;
+            }
+
             function baris(boleh, terisi, terpilih, bisaHapus) {
                 const wrap = document.createElement('div');
                 wrap.className = 'akun-input';
@@ -477,7 +496,7 @@
 
                 const sel = document.createElement('select');
                 sel.name = 'bidang[]';
-                sel.innerHTML = '<option value="">Pilih Bidang</option>';
+                const kosong = document.createElement('option'); kosong.value = ''; kosong.textContent = 'Pilih Bidang'; sel.appendChild(kosong);
                 boleh.forEach(function(b) {
                     const o = document.createElement('option');
                     const isi = terisi.includes(b);
@@ -504,18 +523,16 @@
             }
 
             function render(pakaiLama) {
-                daftar.innerHTML = '';
+                daftar.replaceChildren();
                 const p = peran.value;
 
                 if (!p) {
-                    daftar.innerHTML =
-                        '<div class="akun-input"><select disabled><option>Pilih peran dulu</option></select></div>';
+                    daftar.replaceChildren(kotakNonaktif('select', 'Pilih peran dulu'));
                     tambah.hidden = true;
                     return;
                 }
                 if (tanpa.includes(p)) {
-                    daftar.innerHTML =
-                        '<div class="akun-input"><input type="text" value="Tidak memerlukan bidang" disabled></div>';
+                    daftar.replaceChildren(kotakNonaktif('input', 'Tidak memerlukan bidang'));
                     tambah.hidden = true;
                     bintang.hidden = true;
                     return;
@@ -1015,7 +1032,7 @@
                     try {
                         await navigator.clipboard.writeText(password.textContent.trim());
                         status.textContent = 'Kata sandi berhasil disalin!';
-                        salin.innerHTML = '✓';
+                        salin.textContent = '✓';
                     } catch (error) {
                         status.textContent = 'Gagal menyalin. Silakan salin secara manual.';
                     }

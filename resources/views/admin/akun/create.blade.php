@@ -7,7 +7,6 @@
     $demoError = false;
     $err = collect($errors->messages())->map(fn ($m) => $m[0])->all();
     $errBidang = $err['bidang'] ?? collect($err)->first(fn ($v, $k) => str_starts_with($k, 'bidang.'));
-    $ikonSalah = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/></svg>';
 @endphp
 
 <div class="content akun-page">
@@ -56,7 +55,7 @@
                     @endif
                 </div>
                 @isset($err['nama'])
-                    <p class="akun-error">{!! $ikonSalah !!} {{ $err['nama'] }}</p>
+                    <p class="akun-error"><x-icon name="x-circle" :size="14" /> {{ $err['nama'] }}</p>
                 @endisset
                 @if ($demoError)
                     <p class="akun-hint">Format nama sesuai dengan kartu identitas pegawai/anggota DWP.</p>
@@ -74,7 +73,7 @@
                     @endisset
                 </div>
                 @isset($err['username'])
-                    <p class="akun-error">{!! $ikonSalah !!} {{ $err['username'] }}</p>
+                    <p class="akun-error"><x-icon name="x-circle" :size="14" /> {{ $err['username'] }}</p>
                 @endisset
             </div>
 
@@ -92,7 +91,7 @@
                         </select>
                     </div>
                     @isset($err['peran'])
-                        <p class="akun-error">{!! $ikonSalah !!} {{ $err['peran'] }}</p>
+                        <p class="akun-error"><x-icon name="x-circle" :size="14" /> {{ $err['peran'] }}</p>
                     @endisset
                 </div>
 
@@ -101,7 +100,7 @@
                     <div id="daftarBidang"></div>
                     <button type="button" id="tambahBidang" class="akun-btn-batal" style="margin-top:8px" hidden>+ Tambah bidang</button>
                     @if ($errBidang)
-                        <p class="akun-error">{!! $ikonSalah !!} {{ $errBidang }}</p>
+                        <p class="akun-error"><x-icon name="x-circle" :size="14" /> {{ $errBidang }}</p>
                     @endif
                 </div>
             </div>
@@ -121,7 +120,7 @@
                     @endisset
                 </div>
                 @isset($err['password'])
-                    <p class="akun-error">{!! $ikonSalah !!} {{ $err['password'] }}</p>
+                    <p class="akun-error"><x-icon name="x-circle" :size="14" /> {{ $err['password'] }}</p>
                 @else
                     <p class="akun-hint">Minimal 8 karakter.</p>
                 @endisset
@@ -145,6 +144,7 @@
         this.setAttribute('aria-label', tampil ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi');
     });
 </script>
+<template id="tplIkonBidang"><x-icon name="building" :size="18" /></template>
 <div id="dwpData" hidden
      data-peta='@json($petaBidang)'
      data-penuh='@json($penuh)'
@@ -166,17 +166,38 @@
     const tambah = document.getElementById('tambahBidang');
     const bintang = document.getElementById('bintangBidang');
 
-    const ikon = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="12" height="18" rx="1"/><path d="M16 9h4v12h-4M8 7h4M8 11h4M8 15h4"/></svg>';
+        const tplIkon = document.getElementById('tplIkonBidang');
+    function ikonBaru() { return tplIkon.content.cloneNode(true); }
+
+    function kotakNonaktif(jenis, teks) {
+        const wrap = document.createElement('div');
+        wrap.className = 'akun-input';
+        wrap.appendChild(ikonBaru());
+        let el;
+        if (jenis === 'input') {
+            el = document.createElement('input');
+            el.type = 'text';
+            el.value = teks;
+        } else {
+            el = document.createElement('select');
+            const o = document.createElement('option');
+            o.textContent = teks;
+            el.appendChild(o);
+        }
+        el.disabled = true;
+        wrap.appendChild(el);
+        return wrap;
+    }
 
     function baris(boleh, terisi, terpilih, bisaHapus) {
         const wrap = document.createElement('div');
         wrap.className = 'akun-input';
         wrap.style.marginBottom = '8px';
-        wrap.innerHTML = ikon;
+        wrap.appendChild(ikonBaru());
 
         const sel = document.createElement('select');
         sel.name = 'bidang[]';
-        sel.innerHTML = '<option value="">Pilih Bidang</option>';
+        const kosong = document.createElement('option'); kosong.value = ''; kosong.textContent = 'Pilih Bidang'; sel.appendChild(kosong);
         boleh.forEach(function (b) {
             const o = document.createElement('option');
             const isi = terisi.includes(b);
@@ -201,11 +222,12 @@
     }
 
     function render(pakaiLama) {
-        daftar.innerHTML = '';
+        
+        daftar.replaceChildren();
         const p = peran.value;
 
         if (tanpa.includes(p)) {
-            daftar.innerHTML = '<div class="akun-input">' + ikon + '<input type="text" value="Tidak memerlukan bidang" disabled></div>';
+            daftar.replaceChildren(kotakNonaktif('input', 'Tidak memerlukan bidang'));
             tambah.hidden = true;
             if (bintang) bintang.hidden = true;
             return;
@@ -218,7 +240,7 @@
         tambah.hidden = !isMulti;
 
         if (!p) {
-            daftar.innerHTML = '<div class="akun-input">' + ikon + '<select disabled><option>Pilih peran dulu</option></select></div>';
+            daftar.replaceChildren(kotakNonaktif('select', 'Pilih peran dulu'));
             return;
         }
 
