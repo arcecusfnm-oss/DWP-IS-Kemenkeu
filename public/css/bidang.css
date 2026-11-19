@@ -312,6 +312,132 @@
     font-size: 13px;
 }
 
+/* =====================================
+   FORM PROGRAM KERJA DAN KEGIATAN
+   (mengikuti wireframe T-79)
+===================================== */
+.pk-form {
+    margin: 0;
+}
+
+.pk-form .akun-input input,
+.pk-form .akun-input select {
+    padding-left: 14px;
+}
+
+.pk-form .akun-input.akun-rp input {
+    padding-left: 46px;
+}
+
+.pk-form .akun-alert-error {
+    max-width: 100%;
+    margin: 0 0 24px;
+}
+
+/* Textarea, gaya sama dengan input */
+.akun-input textarea {
+    display: block;
+    width: 100%;
+    min-height: 110px;
+    padding: 12px 14px;
+    font:
+        400 14px/1.5 "Inter",
+        system-ui,
+        sans-serif;
+    color: var(--ink);
+    background: #fff;
+    border: 1px solid #e9d8d0;
+    border-radius: 8px;
+    outline: none;
+    resize: vertical;
+    transition:
+        border-color 0.15s,
+        box-shadow 0.15s;
+}
+
+.akun-input textarea::placeholder {
+    color: #b5a39a;
+}
+
+.akun-input textarea:focus {
+    border-color: #c2653d;
+    box-shadow: 0 0 0 3px rgba(194, 101, 61, 0.16);
+}
+
+.akun-field.has-error .akun-input textarea {
+    background: #fde2d6;
+    border-color: #f4b99a;
+}
+
+/* Prefix "Rp" */
+.akun-prefix {
+    position: absolute;
+    top: 50%;
+    left: 14px;
+    transform: translateY(-50%);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+    pointer-events: none;
+}
+
+/* Kolom terkunci (Bidang) */
+.akun-readonly input:disabled {
+    background: #fff1ea;
+    border-color: #f4d6c6;
+    color: var(--coklat-tua);
+    -webkit-text-fill-color: var(--coklat-tua);
+    opacity: 1;
+    cursor: not-allowed;
+}
+
+.akun-readonly .akun-lock {
+    position: absolute;
+    top: 50%;
+    right: 14px;
+    transform: translateY(-50%);
+    color: #a2461f;
+    pointer-events: none;
+}
+
+/* Chip info di header */
+.pk-chip-info {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 14px;
+    border-radius: 8px;
+    background: #fde2d6;
+    color: var(--coklat-tua);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* T-104: tombol ubah pada daftar program kerja bidang sendiri */
+.program-btn-edit {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 14px;
+    border: 1px solid #1f4d2b;
+    border-radius: 8px;
+    color: #1f4d2b;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.program-btn-edit:hover {
+    background: #1f4d2b;
+    color: #fff;
+}
+
+@media (max-width: 768px) {
+    .pk-chip-info {
+        align-self: stretch;
+    }
+}
+
 @media (max-width: 700px) {
     .program-daftar-card {
         padding: 18px;

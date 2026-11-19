@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\BidangController;
 use App\Http\Controllers\Admin\AkunController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Penasihat\DashboardController as PenasihatDashboardController;
+use App\Support\PeranProgramKerja;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\NoCache;
 use App\Http\Controllers\ProgramKerjaController;
@@ -79,7 +80,7 @@ Route::middleware(['auth', 'role:Admin', NoCache::class])
 
         Route::get('/{id}/edit', [AkunController::class, 'edit'])->whereNumber('id')->name('edit');
         Route::put('/{id}', [AkunController::class, 'update'])->whereNumber('id')->name('update');
-
+ 
         // Endpoint penetapan bidang
         Route::put('/{id}/bidang', [AkunController::class, 'updateBidang'])->whereNumber('id')->name('bidang.update');
 
@@ -103,15 +104,22 @@ Route::middleware(['auth', 'role:Penasihat', NoCache::class])
         Route::get('/dashboard', [PenasihatDashboardController::class, 'index'])->name('dashboard');
     });
 
-// Program Kerja (hanya Pimpinan Bidang)
-Route::middleware(['auth', 'role:Pimpinan Bidang', NoCache::class])
+// Program Kerja: tambah dan ubah (Pimpinan Bidang dan Anggota Bidang) - T-81, T-82, T-103, T-104
+Route::middleware(['auth', PeranProgramKerja::middleware(PeranProgramKerja::KELOLA_PROGRAM), NoCache::class])
     ->prefix('program-kerja')
     ->name('program-kerja.')
     ->group(function () {
+        Route::get('/tambah', [ProgramKerjaController::class, 'create'])->name('create');
+        Route::get('/{id}/edit', [ProgramKerjaController::class, 'edit'])
+            ->whereNumber('id')
+            ->name('edit');
         Route::post('/', [ProgramKerjaController::class, 'store'])->name('store');
+        Route::match(['put', 'patch'], '/{id}', [ProgramKerjaController::class, 'update'])
+            ->whereNumber('id')
+            ->name('update');
     });
 
-// Program Kerja bidang lain (hanya baca, semua akun yang masuk) [ASUMSI] - T-88
+// Program kerja bidang lain (hanya baca, semua peran yang masuk) - T-88, T-89
 Route::middleware(['auth', NoCache::class])
     ->prefix('program-kerja')
     ->name('program-kerja.')
@@ -132,7 +140,6 @@ Route::middleware(['auth', 'role:Admin', NoCache::class])
             ->name('pindah-bidang');
     });
 
-
 // Daftar program kerja seluruh bidang (hanya baca; Admin dan Penasihat) - T-93
 Route::middleware(['auth', 'role:Admin,Penasihat', NoCache::class])
     ->prefix('admin/program-kerja')
@@ -143,14 +150,13 @@ Route::middleware(['auth', 'role:Admin,Penasihat', NoCache::class])
     });
 
 // Daftar program kerja bidang sendiri (Pimpinan Bidang dan Anggota Bidang) - T-98
-Route::middleware(['auth', 'role:Pimpinan Bidang,Anggota Bidang', NoCache::class])
+Route::middleware(['auth', PeranProgramKerja::middleware(PeranProgramKerja::LIHAT_BIDANG_SENDIRI), NoCache::class])
     ->prefix('program-kerja')
     ->name('program-kerja.')
     ->group(function () {
         Route::get('/bidang-saya', [ProgramKerjaController::class, 'bidangSaya'])
             ->name('bidang-saya');
     });
-
 
 Route::middleware(['auth', AksesPersuratan::class, NoCache::class])
     ->prefix('surat')
