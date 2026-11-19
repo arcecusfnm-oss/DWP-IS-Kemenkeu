@@ -38,6 +38,13 @@
             'disabled' => true,
         ],
         [
+            'label' => 'Anggota Bidang',
+            'icon' => 'users',
+            'href' => 'anggota.bidang-saya',
+            'route' => 'anggota.bidang-saya',
+            'disabled' => false,
+        ],
+        [
             'label' => 'Program Kerja',
             'icon' => 'clipboard',
             'href' => 'program-kerja.bidang-saya',
