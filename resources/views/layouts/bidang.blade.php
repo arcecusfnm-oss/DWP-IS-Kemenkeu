@@ -21,6 +21,7 @@
 @php
     $pengguna = auth()->user();
     $namaPeran = $pengguna->peran?->nama_peran ?? 'Pengguna Bidang';
+    $bolehKegiatan = \App\Support\PeranProgramKerja::bolehKelolaKegiatan($pengguna);
 
     $menu = [
         [
@@ -61,9 +62,9 @@
         [
             'label' => 'Kegiatan',
             'icon' => 'calendar',
-            'href' => '#',
-            'route' => null,
-            'disabled' => true,
+            'href' => 'kegiatan.index',
+            'route' => ['kegiatan.index', 'kegiatan.create', 'program-kerja.kegiatan.create'],
+            'disabled' => ! $bolehKegiatan,
         ],
         [
             'label' => 'Laporan Kegiatan',

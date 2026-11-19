@@ -432,6 +432,68 @@
     color: #fff;
 }
 
+/* Filter & pencarian halaman Daftar Kegiatan */
+.kegiatan-filter-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+}
+
+.kegiatan-filter-form .program-search {
+    width: 260px;
+    max-width: none;
+    flex-shrink: 0;
+}
+
+.kegiatan-filter-select {
+    width: 240px;
+    flex-shrink: 0;
+    height: 42px;
+    padding: 0 14px;
+    border: 1px solid #eadbd3;
+    border-radius: 8px;
+    background: #fff9f5;
+    font: 400 13px "Inter", sans-serif;
+    color: var(--ink);
+    cursor: pointer;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.kegiatan-filter-select:focus {
+    outline: none;
+    border-color: var(--peach);
+}
+
+@media (max-width: 900px) {
+    .kegiatan-filter-form {
+        width: 100%;
+        flex-wrap: wrap;
+        margin-left: 0;
+    }
+
+    .kegiatan-filter-form .program-search,
+    .kegiatan-filter-select {
+        width: 100%;
+    }
+}
+
+/* Kolom Aksi sejajar & rata tengah pada tabel Program Kerja */
+.program-table th.program-col-aksi,
+.program-table td.program-col-aksi {
+    width: 210px;
+    text-align: center;
+}
+
+.program-aksi-group {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
 @media (max-width: 768px) {
     .pk-chip-info {
         align-self: stretch;

@@ -1,4 +1,3 @@
-
 <?php
 
 use Illuminate\Database\Migrations\Migration;
@@ -14,8 +13,10 @@ return new class extends Migration
 
             $table->unsignedBigInteger('id_program_kerja');
             $table->string('nama_kegiatan', 255);
-            $table->date('tanggal');
+            $table->date('tanggal_mulai');
+            $table->date('tanggal_selesai');
             $table->text('deskripsi');
+            $table->unsignedBigInteger('dibuat_oleh');
 
             $table->timestamps();
 
@@ -25,7 +26,13 @@ return new class extends Migration
                 ->on('program_kerja')
                 ->restrictOnDelete();
 
-            $table->index('tanggal');
+            // Pembuat kegiatan
+            $table->foreign('dibuat_oleh')
+                ->references('id_pengguna')
+                ->on('pengguna')
+                ->restrictOnDelete();
+
+            $table->index('tanggal_mulai');
         });
     }
 
