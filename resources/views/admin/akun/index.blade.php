@@ -254,10 +254,10 @@
                                                         <svg width="18" height="18" viewBox="0 0 24 24"
                                                             fill="none" stroke="currentColor" stroke-width="2"
                                                             stroke-linecap="round" stroke-linejoin="round">
-                                                            <path d="M17 3l4 4-4 4" />
-                                                            <path d="M3 7h18" />
-                                                            <path d="M7 21l-4-4 4-4" />
-                                                            <path d="M21 17H3" />
+                                                            <circle cx="9" cy="8" r="3" />
+                                                            <path d="M3 20v-2a6 6 0 0 1 9-5.2" />
+                                                            <path d="M16 13l5 5-5 5" />
+                                                            <path d="M21 18h-7" />
                                                         </svg>
                                                     </button>
                                                 @else
@@ -345,6 +345,24 @@
                                                         fill="none" stroke="currentColor" stroke-width="2"
                                                         stroke-linecap="round" stroke-linejoin="round">
                                                         <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6" />
+                                                    </svg>
+                                                </button>
+                                            </span>
+
+                                            {{-- Slot 6: Pindah Bidang --}}
+                                            <span class="akun-aksi-slot">
+                                                <button type="button" class="pindah-bidang-akun" title="Pindah Bidang"
+                                                    data-id="{{ $a->id_pengguna }}" data-nama="{{ $a->nama_lengkap }}"
+                                                    data-url="{{ route('admin.akun.bidang.update', $a->id_pengguna) }}"
+                                                    data-peran="{{ $a->nama_peran }}"
+                                                    data-bidang='@json($a->bidang_terpilih)'>
+                                                    <svg width="18" height="18" viewBox="0 0 24 24"
+                                                        fill="none" stroke="currentColor" stroke-width="2"
+                                                        stroke-linecap="round" stroke-linejoin="round">
+                                                        <path d="M8 3 4 7l4 4" />
+                                                        <path d="M4 7h16" />
+                                                        <path d="m16 21 4-4-4-4" />
+                                                        <path d="M20 17H4" />
                                                     </svg>
                                                 </button>
                                             </span>
@@ -496,7 +514,10 @@
 
                 const sel = document.createElement('select');
                 sel.name = 'bidang[]';
-                const kosong = document.createElement('option'); kosong.value = ''; kosong.textContent = 'Pilih Bidang'; sel.appendChild(kosong);
+                const kosong = document.createElement('option');
+                kosong.value = '';
+                kosong.textContent = 'Pilih Bidang';
+                sel.appendChild(kosong);
                 boleh.forEach(function(b) {
                     const o = document.createElement('option');
                     const isi = terisi.includes(b);
@@ -577,6 +598,146 @@
 
             render(true);
             if (d.buka === '1') overlay.hidden = false;
+        })();
+    </script>
+
+
+    {{-- Dialog pindah bidang akun --}}
+    <div class="hapus-overlay" id="pindahBidangAkunOverlay" hidden>
+        <div class="hapus-dialog" style="text-align:left" role="dialog" aria-modal="true"
+            aria-labelledby="pindahBidangAkunJudul">
+
+            <h3 id="pindahBidangAkunJudul" style="text-align:center">
+                Pindah Bidang
+            </h3>
+
+            <p id="pindahBidangAkunInfo" style="text-align:center">
+                Ubah bidang akun yang dipilih.
+            </p>
+
+            <form id="pindahBidangAkunForm" method="POST" action="">
+                @csrf
+                @method('PUT')
+
+                <div class="akun-field">
+                    <label>Bidang</label>
+                    <div id="pindahBidangAkunDaftar"></div>
+                </div>
+
+                <div class="hapus-aksi">
+                    <button type="button" class="hapus-batal" id="pindahBidangAkunBatal">
+                        Batal
+                    </button>
+
+                    <button type="submit" class="hapus-ya">
+                        Simpan Perubahan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            const overlay = document.getElementById('pindahBidangAkunOverlay');
+            const form = document.getElementById('pindahBidangAkunForm');
+            const info = document.getElementById('pindahBidangAkunInfo');
+            const daftar = document.getElementById('pindahBidangAkunDaftar');
+            const batal = document.getElementById('pindahBidangAkunBatal');
+            const data = document.getElementById('alihData');
+
+            if (!overlay || !form || !info || !daftar || !batal || !data) return;
+
+            const d = data.dataset;
+            const peta = JSON.parse(d.peta);
+            const penuh = JSON.parse(d.penuh);
+            const tanpa = JSON.parse(d.tanpa);
+            const multi = JSON.parse(d.multi);
+
+            function tutup() {
+                overlay.hidden = true;
+            }
+
+            function buka(tombol) {
+                const peran = tombol.dataset.peran;
+                const bidangLama = JSON.parse(tombol.dataset.bidang || '[]');
+
+                const simpan = form.querySelector('button[type="submit"]');
+
+                form.action = tombol.dataset.url;
+                info.textContent = tombol.dataset.nama + ' — ' + peran;
+                daftar.replaceChildren();
+
+                // Reset tombol simpan setiap modal dibuka
+                simpan.disabled = false;
+
+                // Role yang tidak membutuhkan bidang
+                if (tanpa.includes(peran)) {
+                    const pesan = document.createElement('p');
+                    pesan.textContent = 'Peran ini tidak memerlukan bidang.';
+                    daftar.appendChild(pesan);
+
+                    simpan.disabled = true;
+                    overlay.hidden = false;
+                    return;
+                }
+
+                const boleh = peta[peran] || [];
+                const terisi = penuh[peran] || [];
+
+                // Semua role menggunakan dropdown (satu bidang)
+                const wrap = document.createElement('div');
+                wrap.className = 'akun-input';
+
+                const select = document.createElement('select');
+                select.name = 'bidang[]';
+                select.required = true;
+
+                const kosong = document.createElement('option');
+                kosong.value = '';
+                kosong.textContent = 'Pilih Bidang';
+                select.appendChild(kosong);
+
+                boleh.forEach(function(bidang) {
+                    const option = document.createElement('option');
+
+                    option.value = bidang;
+                    option.textContent = bidang +
+                        (terisi.includes(bidang) && !bidangLama.includes(bidang) ?
+                            ' (sudah terisi)' :
+                            '');
+
+                    // Bidang yang sudah terisi orang lain tidak dapat dipilih
+                    option.disabled = terisi.includes(bidang) &&
+                        !bidangLama.includes(bidang);
+
+                    // Bidang yang saat ini dimiliki tetap terpilih
+                    option.selected = bidangLama.includes(bidang);
+
+                    select.appendChild(option);
+                });
+
+                wrap.appendChild(select);
+                daftar.appendChild(wrap);
+                
+                overlay.hidden = false;
+            }
+
+            document.querySelectorAll('.pindah-bidang-akun').forEach(function(tombol) {
+                tombol.addEventListener('click', function() {
+                    buka(tombol);
+                });
+            });
+
+            batal.addEventListener('click', tutup);
+
+            overlay.addEventListener('click', function(e) {
+                if (e.target === overlay) tutup();
+            });
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && !overlay.hidden) tutup();
+            });
         })();
     </script>
 

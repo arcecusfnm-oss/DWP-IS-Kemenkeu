@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Admin;
+
 use App\Rules\BidangSesuaiPeran;
 use App\Http\Controllers\Controller;
 use App\Rules\KataSandiKuat;
@@ -46,6 +47,7 @@ class AkunController extends Controller
             ->whereNull('pengguna.dihapus_pada')
             ->select(
                 'pengguna.id_pengguna',
+                'pengguna.id_bidang',
                 'pengguna.nama_lengkap',
                 'pengguna.nama_pengguna',
                 'pengguna.status',
@@ -86,6 +88,15 @@ class AkunController extends Controller
 
         $akun = $query->orderBy('pengguna.id_pengguna')->paginate(10)->withQueryString();
 
+        $akun->getCollection()->transform(function ($a) {
+            $a->bidang_terpilih = $this->bidangAkun(
+                (int) $a->id_pengguna,
+                $a->id_bidang
+            );
+
+            return $a;
+        });
+
         // Statistik (dihitung dari seluruh akun, tidak ikut filter)
         $dasar = DB::table('pengguna')->whereNull('dihapus_pada');
         $stat = [
@@ -121,8 +132,16 @@ class AkunController extends Controller
         $peranMulti  = config('dwp.peran_multi_bidang', []);
 
         return view('admin.akun.index', compact(
-            'akun', 'stat', 'daftarPeran', 'daftarBidang',
-            'tujuanAlih', 'peranTurun', 'petaBidang', 'penuh', 'tanpaBidang', 'peranMulti'
+            'akun',
+            'stat',
+            'daftarPeran',
+            'daftarBidang',
+            'tujuanAlih',
+            'peranTurun',
+            'petaBidang',
+            'penuh',
+            'tanpaBidang',
+            'peranMulti'
         ));
     }
 
@@ -201,7 +220,7 @@ class AkunController extends Controller
 
         if (BidangSesuaiPeran::multiBidang($peran)) {
             DB::table('pengguna_bidang')->insert(
-                $ids->map(fn ($b) => ['id_pengguna' => $idPengguna, 'id_bidang' => $b])->all()
+                $ids->map(fn($b) => ['id_pengguna' => $idPengguna, 'id_bidang' => $b])->all()
             );
             return null;
         }
@@ -252,7 +271,7 @@ class AkunController extends Controller
 
     public function store(Request $request)
     {
-            $request->validate([
+        $request->validate([
             'nama'     => ['required', 'string', 'max:255', 'regex:' . self::POLA_NAMA],
             'username' => [
                 'required',
@@ -349,7 +368,7 @@ class AkunController extends Controller
 
         abort_if(!$akun, 404);
 
-            $request->validate([
+        $request->validate([
             'nama'     => ['required', 'string', 'max:255', 'regex:' . self::POLA_NAMA],
             'username' => [
                 'required',
@@ -575,7 +594,7 @@ class AkunController extends Controller
             // Buang bidang yang slotnya sudah terisi (hanya berlaku untuk peran satu-per-slot).
             $bebas = array_values(array_filter(
                 $kandidat,
-                fn ($b) => ! BidangSesuaiPeran::slotTerisi($namaPeranBaru, $b, (int) $akun->id_pengguna)
+                fn($b) => ! BidangSesuaiPeran::slotTerisi($namaPeranBaru, $b, (int) $akun->id_pengguna)
             ));
 
             if (empty($bebas)) {
@@ -586,7 +605,7 @@ class AkunController extends Controller
 
             if (BidangSesuaiPeran::multiBidang($namaPeranBaru)) {
                 // PJ: pertahankan semua bidang lama yang masih bebas, kalau tidak ada ambil satu.
-                $dipertahankan = array_values(array_filter($bebas, fn ($b) => in_array($b, $bidangLama, true)));
+                $dipertahankan = array_values(array_filter($bebas, fn($b) => in_array($b, $bidangLama, true)));
                 $bidangBaru    = $dipertahankan ?: [$bebas[0]];
             } else {
                 $bidangBaru = [$bebas[0]];
