@@ -86,6 +86,24 @@ class DaftarProgramKerjaBidangSayaTest extends TestCase
             ->assertDontSee('Program Ekonomi');
     }
 
+    public function test_bidang_saya_tanpa_program_kerja_menampilkan_pesan_kosong(): void
+    {
+        $bidang = $this->buatBidang('Sosial Budaya');
+
+        $pimpinan = $this->buatPengguna(
+            'Pimpinan Bidang',
+            $bidang,
+            'pimpinan_kosong100'
+        );
+
+        $this->actingAs($pimpinan)
+            ->get(route('program-kerja.bidang-saya'))
+            ->assertOk()
+            ->assertViewIs('program-kerja.bidang-saya')
+            ->assertViewHas('pesan', 'Belum ada program kerja untuk bidang ini.')
+            ->assertSee('Belum ada program kerja untuk bidang ini.');
+    }
+
     public function test_anggota_bidang_bisa_melihat_program_kerja_bidangnya(): void
     {
         $bidang = $this->buatBidang('Sosial Budaya');
