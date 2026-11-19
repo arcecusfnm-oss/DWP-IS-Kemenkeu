@@ -57,7 +57,7 @@ class AnggotaBidangController extends Controller
                 ->orderByRaw("CASE anggota.jabatan_bidang WHEN 'ketua' THEN 0 WHEN 'wakil_ketua' THEN 1 ELSE 2 END")
                 ->orderBy('anggota.nama_lengkap')
                 ->orderBy('anggota.id_anggota')
-                ->paginate(10)
+                ->paginate(5)
                 ->withQueryString();
 
             $namaBidang = DB::table('bidang')
@@ -85,7 +85,7 @@ class AnggotaBidangController extends Controller
         }
 
         // View dibuat di T-53.
-        return view('anggota.bidang-saya', [
+        return view('pimpinan.anggota-bidang-saya', [
             'anggota'    => $anggota,
             'namaBidang' => $namaBidang,
             'pesan'      => $pesan,
