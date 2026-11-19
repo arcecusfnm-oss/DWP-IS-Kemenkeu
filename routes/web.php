@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\KetuaBidangController;
 use App\Http\Middleware\AksesPersuratan;
 use App\Http\Controllers\Admin\PencarianSuratController;
 use App\Http\Controllers\AnggotaBidangController;
+use App\Http\Controllers\Admin\UbahSuratController;
 
 // Halaman utama (publik)
 Route::view('/', 'landing')
@@ -171,4 +172,15 @@ Route::middleware(['auth', 'role:Pimpinan Bidang,Anggota Bidang', NoCache::class
     ->name('anggota.')
     ->group(function () {
         Route::get('/bidang-saya', [AnggotaBidangController::class, 'index'])->name('bidang-saya');
+    });
+
+// Ubah data surat masuk/keluar (Admin dan Sekretariat) - B-038, T-69
+Route::middleware(['auth', AksesPersuratan::class, NoCache::class])
+    ->prefix('surat')
+    ->name('surat.')
+    ->group(function () {
+        Route::put('/{jenis}/{id}', [UbahSuratController::class, 'update'])
+            ->whereIn('jenis', ['masuk', 'keluar'])
+            ->whereNumber('id')
+            ->name('update');
     });
