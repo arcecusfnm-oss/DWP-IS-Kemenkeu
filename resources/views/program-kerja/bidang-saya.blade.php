@@ -3,6 +3,10 @@
 @section('title', 'Program Kerja')
 
 @section('content')
+    @php
+        $bolehKelola = \App\Support\PeranProgramKerja::bolehKelolaProgram(auth()->user());
+    @endphp
+
     <div class="content bidang-page">
 
         {{-- HEADER --}}
@@ -15,11 +19,10 @@
                     </span>
                 </div>
 
-                @if (auth()->user()->peran?->nama_peran === 'Pimpinan Bidang')
-                    {{-- Tombol tambah akan dihubungkan setelah route form tersedia --}}
-                    <span class="bidang-btn-tambah program-btn-disabled" title="Form tambah program kerja belum tersedia">
+                @if ($bolehKelola)
+                    <a href="{{ route('program-kerja.create') }}" class="bidang-btn-tambah">
                         <span>+</span> Tambah Program Kerja
-                    </span>
+                    </a>
                 @endif
             </div>
         </div>
@@ -64,6 +67,9 @@
                             <th>Tanggal Mulai</th>
                             <th>Tanggal Selesai</th>
                             <th>Anggaran</th>
+                            @if ($bolehKelola)
+                                <th>Aksi</th>
+                            @endif
                         </tr>
                     </thead>
 
@@ -88,10 +94,16 @@
                                 <td>
                                     {{ $program->anggaran !== null ? 'Rp ' . number_format($program->anggaran, 0, ',', '.') : '-' }}
                                 </td>
+                                @if ($bolehKelola)
+                                    <td>
+                                        <a href="{{ route('program-kerja.edit', ['id' => $program->id_program_kerja]) }}"
+                                           class="program-btn-edit">Ubah</a>
+                                    </td>
+                                @endif
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="bidang-kosong">
+                                <td colspan="{{ $bolehKelola ? 7 : 6 }}" class="bidang-kosong">
                                     {{ request('cari') ? 'Program kerja tidak ditemukan.' : $pesan ?? 'Belum ada program kerja untuk bidang ini.' }}
                                 </td>
                             </tr>

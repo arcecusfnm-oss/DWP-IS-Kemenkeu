@@ -11,9 +11,8 @@ use Tests\TestCase;
 
 /**
  * T-83 (B-041): pengujian endpoint tambah program kerja (T-81).
- *
+ * Peran yang boleh: Pimpinan Bidang dan Anggota Bidang (user story US-115, US-124).
  * Skenario: berhasil, kolom kosong, tanggal terbalik, peran lain, bidang lain.
- * Ditambah: keamanan input (AC 6) dan log (AC 7).
  */
 class TambahProgramKerjaTest extends TestCase
 {
@@ -53,6 +52,11 @@ class TambahProgramKerjaTest extends TestCase
     private function buatPimpinan(int $idBidang, string $username = 'pimpinan_uji83'): Pengguna
     {
         return $this->buatPengguna('Pimpinan Bidang', $idBidang, $username);
+    }
+
+        private function buatAnggota(int $idBidang, string $username = 'anggota_uji83'): Pengguna
+    {
+        return $this->buatPengguna('Anggota Bidang', $idBidang, $username);
     }
 
     private function dataValid(array $ubah = []): array
@@ -233,19 +237,18 @@ class TambahProgramKerjaTest extends TestCase
 
     // ---------- 4. Peran lain ----------
 
-    public static function peranSelainPimpinan(): array
+    public static function peranYangDitolak(): array
     {
         return [
             'Admin'            => ['Admin'],
-            'Anggota Bidang'   => ['Anggota Bidang'],
             'Penasihat'        => ['Penasihat'],
             'Penanggung Jawab' => ['Penanggung Jawab'],
             'Bendahara'        => ['Bendahara'],
         ];
     }
 
-    #[DataProvider('peranSelainPimpinan')]
-    public function test_peran_selain_pimpinan_bidang_ditolak(string $peran): void
+    #[DataProvider('peranYangDitolak')]
+    public function test_peran_selain_pimpinan_dan_anggota_bidang_ditolak(string $peran): void
     {
         $bidang = $this->buatBidang('Sosial Budaya');
         $akun   = $this->buatPengguna($peran, $bidang, 'akun_peran_lain');
@@ -314,6 +317,49 @@ class TambahProgramKerjaTest extends TestCase
         $this->assertSame(1, DB::table('program_kerja')->where('id_bidang', $bidangSaya)->count());
     }
 
+    // ---------- 6. Anggota Bidang ----------
+        public function test_anggota_bidang_berhasil_menambah_program_kerja(): void
+    {
+        $bidang  = $this->buatBidang('Sosial Budaya');
+        $anggota = $this->buatAnggota($bidang);
+
+        $this->tambah($anggota, $this->dataValid())
+            ->assertSessionHas('sukses', 'Program kerja berhasil ditambahkan.');
+
+        $this->assertDatabaseHas('program_kerja', [
+            'id_bidang'   => $bidang,
+            'dibuat_oleh' => $anggota->id_pengguna,
+        ]);
+    }
+
+    public function test_form_tambah_tampil_untuk_pimpinan_dan_anggota(): void
+    {
+        $bidang = $this->buatBidang('Sosial Budaya');
+
+        foreach ([$this->buatPimpinan($bidang), $this->buatAnggota($bidang)] as $akun) {
+            $this->actingAs($akun)
+                ->get(route('program-kerja.create'))
+                ->assertOk()
+                ->assertViewIs('program-kerja.tambah')
+                ->assertSee('Tambah Program Kerja');
+        }
+    }
+
+        public function test_form_tambah_ditolak_untuk_peran_lain(): void
+    {
+        $bidang = $this->buatBidang('Sosial Budaya');
+
+        $this->actingAs($this->buatPengguna('Admin', $bidang, 'admin_form83'))
+            ->get(route('program-kerja.create'))
+            ->assertForbidden();
+    }
+
+    public function test_form_tambah_tanpa_sesi_diarahkan_ke_halaman_masuk(): void
+    {
+        $this->get(route('program-kerja.create'))
+            ->assertRedirect(route('login'));
+    }
+
     // ---------- AC 6: keamanan input ----------
 
     public static function inputBerbahaya(): array
@@ -352,7 +398,8 @@ class TambahProgramKerjaTest extends TestCase
             ->withArgs(function ($pesan, $konteks = []) use ($pimpinan, $bidang) {
                 $json = json_encode($konteks);
 
-                return $pesan === 'Pimpinan Bidang menambah program kerja'
+                return $pesan === 'Program kerja ditambahkan'
+                    && $konteks['peran'] === 'Pimpinan Bidang'
                     && $konteks['pembuat_id'] === $pimpinan->id_pengguna
                     && $konteks['pembuat_username'] === $pimpinan->nama_pengguna
                     && (int) $konteks['id_bidang'] === $bidang

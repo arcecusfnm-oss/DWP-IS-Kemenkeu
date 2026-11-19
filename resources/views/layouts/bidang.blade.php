@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="id">
 
@@ -42,7 +41,14 @@
             'label' => 'Program Kerja',
             'icon' => 'clipboard',
             'href' => 'program-kerja.bidang-saya',
-            'route' => 'program-kerja.bidang-saya',
+            'route' => ['program-kerja.bidang-saya', 'program-kerja.create', 'program-kerja.edit'],
+            'disabled' => false,
+        ],
+        [
+            'label' => 'Program Bidang Lain',
+            'icon' => 'list',
+            'href' => 'program-kerja.bidang-lain',
+            'route' => 'program-kerja.bidang-lain',
             'disabled' => false,
         ],
         [
@@ -119,7 +125,7 @@
         <nav class="side-nav">
             @foreach ($menu as $item)
                 @php
-                    $aktif = $item['route'] && request()->routeIs($item['route']);
+                    $aktif = $item['route'] && request()->routeIs(...(array) $item['route']);
                     $url = $item['disabled'] ? '#' : route($item['href']);
                 @endphp
 

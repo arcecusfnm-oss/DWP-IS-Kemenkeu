@@ -9,45 +9,36 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
- * T-81 (B-041): endpoint tambah program kerja.
+ * B-041: tambah program kerja (T-81 endpoint, T-82 form).
  *
- * Akses  : hanya peran Pimpinan Bidang (dijaga middleware role di routes/web.php).
+ * Akses  : peran di PeranProgramKerja::KELOLA_PROGRAM, dijaga middleware di routes/web.php.
  * Bidang : SELALU diambil dari akun yang masuk. id_bidang dan dibuat_oleh dari
- *          request tidak pernah dibaca, jadi tidak bisa dipalsukan lewat API client.
+ *          request tidak pernah dibaca, jadi tidak bisa dipalsukan.
  */
 class ProgramKerjaController extends Controller
 {
+    /**
+     * T-82: tampilkan form tambah program kerja untuk bidang akun yang masuk.
+     */
+    public function create()
+    {
+        $idBidang = Auth::user()->id_bidang;
+
+        if (! $idBidang) {
+            abort(403, 'Akun Anda belum terhubung dengan bidang.');
+        }
+
+        $namaBidang = DB::table('bidang')
+            ->where('id_bidang', $idBidang)
+            ->value('nama_bidang');
+
+        return view('program-kerja.tambah', ['namaBidang' => $namaBidang]);
+    }
+
     public function store(Request $request)
     {
-        // Hanya field di bawah ini yang diambil dari request.
-        $data = $request->validate([
-            'nama_program'    => ['required', 'string', 'max:255'],
-            'tujuan'          => ['required', 'string', 'max:5000'],
-            'sasaran_peserta' => ['nullable', 'string', 'max:255'],
-            'metode'          => ['nullable', 'string', 'max:255'],
-            'tanggal_mulai'   => ['required', 'date_format:Y-m-d'],
-            'tanggal_selesai' => ['bail', 'required', 'date_format:Y-m-d', 'after_or_equal:tanggal_mulai'],
-            'tempat'          => ['nullable', 'string', 'max:255'],
-            'anggaran'        => ['nullable', 'numeric', 'min:0', 'max:9999999999999.99'],
-            'keterangan'      => ['nullable', 'string', 'max:2000'],
-        ], [
-            'nama_program.required'          => 'Nama program wajib diisi',
-            'nama_program.max'               => 'Nama program maksimal 255 karakter',
-            'tujuan.required'                => 'Tujuan wajib diisi',
-            'tujuan.max'                     => 'Tujuan maksimal 5000 karakter',
-            'sasaran_peserta.max'            => 'Sasaran peserta maksimal 255 karakter',
-            'metode.max'                     => 'Metode maksimal 255 karakter',
-            'tanggal_mulai.required'         => 'Tanggal mulai wajib diisi',
-            'tanggal_mulai.date_format'      => 'Format tanggal mulai tidak valid',
-            'tanggal_selesai.required'       => 'Tanggal selesai wajib diisi',
-            'tanggal_selesai.date_format'    => 'Format tanggal selesai tidak valid',
-            'tanggal_selesai.after_or_equal' => 'Tanggal selesai tidak boleh sebelum tanggal mulai',
-            'tempat.max'                     => 'Tempat maksimal 255 karakter',
-            'anggaran.numeric'               => 'Anggaran harus berupa angka',
-            'anggaran.min'                   => 'Anggaran tidak boleh negatif',
-            'anggaran.max'                   => 'Anggaran terlalu besar',
-            'keterangan.max'                 => 'Keterangan maksimal 2000 karakter',
-        ]);
+        // Aturan dan pesan dipakai bersama dengan update() (T-103).
+        $data = $request->validate(self::aturan(), self::pesan());
 
         // Bidang diambil dari akun yang sedang masuk, bukan dari request.
         $idBidang = DB::table('pengguna')
@@ -86,9 +77,10 @@ class ProgramKerjaController extends Controller
             return $this->gagal($request, 'Program kerja belum bisa disimpan. Silakan coba lagi.', 500);
         }
 
-        Log::info('Pimpinan Bidang menambah program kerja', [
+        Log::info('Program kerja ditambahkan', [
             'pembuat_id'       => Auth::id(),
             'pembuat_username' => Auth::user()->nama_pengguna,
+            'peran'            => Auth::user()->peran?->nama_peran,
             'id_program_kerja' => $idBaru,
             'id_bidang'        => $idBidang,
             'nama_program'     => $data['nama_program'],
@@ -102,19 +94,195 @@ class ProgramKerjaController extends Controller
             ], 201);
         }
 
-        // TODO: arahkan ke route('program-kerja.index') setelah daftar program kerja (T-98) ada.
         return redirect()
             ->route('program-kerja.bidang-saya')
             ->with('sukses', 'Program kerja berhasil ditambahkan.');
     }
 
+        /**
+     * T-104 (B-046): tampilkan form ubah program kerja milik bidang SENDIRI.
+     * Kepemilikan dicek di server dari akun yang masuk, bukan dari request.
+     */
+    public function edit(int $id)
+    {
+        $idBidang = Auth::user()->id_bidang;
+
+        if (! $idBidang) {
+            abort(403, 'Akun Anda belum terhubung dengan bidang.');
+        }
+
+        try {
+            $program = DB::table('program_kerja')->where('id_program_kerja', $id)->first();
+
+            $namaBidang = DB::table('bidang')
+                ->where('id_bidang', $idBidang)
+                ->value('nama_bidang');
+        } catch (QueryException $e) {
+            Log::error('Gagal memuat form ubah program kerja', [
+                'pengguna_id'  => Auth::id(),
+                'kode_galat'   => $e->getCode(),
+                'dicatat_pada' => now()->toDateTimeString(),
+            ]);
+
+            abort(500, 'Terjadi kesalahan. Silakan coba lagi.');
+        }
+
+        if (! $program) {
+            abort(404, 'Program kerja tidak ditemukan.');
+        }
+
+        if ((int) $program->id_bidang !== (int) $idBidang) {
+            Log::warning('Buka form ubah program kerja bidang lain ditolak', [
+                'pengguna_id'      => Auth::id(),
+                'id_bidang_akun'   => $idBidang,
+                'id_program_kerja' => $id,
+                'dicatat_pada'     => now()->toDateTimeString(),
+            ]);
+
+            abort(403, 'Anda tidak memiliki hak akses.');
+        }
+
+        return view('program-kerja.edit', [
+            'program'    => $program,
+            'namaBidang' => $namaBidang,
+        ]);
+    }
+    
     /**
-     * T-88 (B-042): daftar program kerja bidang LAIN. Hanya baca.
+     * T-103 (B-046): ubah program kerja milik bidang SENDIRI.
      *
-     * Akses : semua akun yang masuk [ASUMSI]; route hanya memakai middleware auth.
-     * Bidang: bidang "saya" selalu diambil dari akun yang masuk. Tidak ada
-     *         parameter bidang dari request, jadi tidak bisa dipalsukan.
-     * Akun tanpa bidang (id_bidang null) melihat semua program.
+     * Akses : peran di PeranProgramKerja::KELOLA_PROGRAM (middleware di routes/web.php).
+     * Bidang: diambil dari akun yang masuk. id_bidang dan dibuat_oleh dari request
+     *         tidak pernah dibaca. Program bidang lain ditolak 403 dan data tidak berubah.
+     */
+    public function update(Request $request, int $id)
+    {
+        $idBidang = DB::table('pengguna')
+            ->where('id_pengguna', Auth::id())
+            ->whereNull('dihapus_pada')
+            ->value('id_bidang');
+
+        if (! $idBidang) {
+            return $this->gagal($request, 'Akun Anda belum terhubung dengan bidang.', 403);
+        }
+
+        try {
+            $lama = DB::table('program_kerja')->where('id_program_kerja', $id)->first();
+        } catch (QueryException $e) {
+            Log::error('Gagal memuat program kerja untuk diubah', [
+                'pengguna_id'  => Auth::id(),
+                'kode_galat'   => $e->getCode(),
+                'dicatat_pada' => now()->toDateTimeString(),
+            ]);
+
+            return $this->gagal($request, 'Program kerja belum bisa diubah. Silakan coba lagi.', 500);
+        }
+
+        if (! $lama) {
+            abort(404, 'Program kerja tidak ditemukan.');
+        }
+
+        // Cek kepemilikan di server, sebelum validasi.
+        if ((int) $lama->id_bidang !== (int) $idBidang) {
+            Log::warning('Ubah program kerja bidang lain ditolak', [
+                'pengguna_id'      => Auth::id(),
+                'id_bidang_akun'   => $idBidang,
+                'id_program_kerja' => $id,
+                'dicatat_pada'     => now()->toDateTimeString(),
+            ]);
+
+            abort(403, 'Anda tidak memiliki hak akses.');
+        }
+
+        $data = $request->validate(self::aturan(), self::pesan());
+
+        // Bandingkan dengan data lama, catat nama kolom yang berubah (tanpa nilainya).
+        $berubah = [];
+        foreach ($data as $kolom => $baru) {
+            $lamaNilai = $lama->{$kolom};
+
+            if ($kolom === 'anggaran') {
+                $sama = ($lamaNilai === null || $baru === null)
+                    ? $lamaNilai === $baru
+                    : (float) $lamaNilai === (float) $baru;
+            } elseif (in_array($kolom, ['tanggal_mulai', 'tanggal_selesai'], true)) {
+                $sama = substr((string) $lamaNilai, 0, 10) === (string) $baru;
+            } else {
+                $sama = (string) ($lamaNilai ?? '') === (string) ($baru ?? '');
+            }
+
+            if (! $sama) {
+                $berubah[] = $kolom;
+            }
+        }
+
+        if ($berubah === []) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'pesan'            => 'Tidak ada perubahan pada program kerja.',
+                    'id_program_kerja' => $id,
+                ]);
+            }
+
+            return redirect()
+                ->route('program-kerja.bidang-saya')
+                ->with('sukses', 'Tidak ada perubahan pada program kerja.');
+        }
+
+        try {
+            DB::table('program_kerja')
+                ->where('id_program_kerja', $id)
+                ->where('id_bidang', $idBidang)
+                ->update([
+                    'nama_program'    => $data['nama_program'],
+                    'tujuan'          => $data['tujuan'],
+                    'sasaran_peserta' => $data['sasaran_peserta'] ?? null,
+                    'metode'          => $data['metode'] ?? null,
+                    'tanggal_mulai'   => $data['tanggal_mulai'],
+                    'tanggal_selesai' => $data['tanggal_selesai'],
+                    'tempat'          => $data['tempat'] ?? null,
+                    'anggaran'        => $data['anggaran'] ?? null,
+                    'keterangan'      => $data['keterangan'] ?? null,
+                    'updated_at'      => now(),
+                ]);
+        } catch (QueryException $e) {
+            Log::error('Gagal mengubah program kerja', [
+                'pengguna_id'      => Auth::id(),
+                'id_program_kerja' => $id,
+                'kode_galat'       => $e->getCode(),
+                'dicatat_pada'     => now()->toDateTimeString(),
+            ]);
+
+            return $this->gagal($request, 'Program kerja belum bisa diubah. Silakan coba lagi.', 500);
+        }
+
+        Log::info('Program kerja diubah', [
+            'pengubah_id'       => Auth::id(),
+            'pengubah_username' => Auth::user()->nama_pengguna,
+            'peran'             => Auth::user()->peran?->nama_peran,
+            'id_program_kerja'  => $id,
+            'id_bidang'         => $idBidang,
+            'kolom_berubah'     => $berubah,
+            'dicatat_pada'      => now()->toDateTimeString(),
+        ]);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'pesan'            => 'Program kerja berhasil diubah.',
+                'id_program_kerja' => $id,
+            ]);
+        }
+
+        return redirect()
+            ->route('program-kerja.bidang-saya')
+            ->with('sukses', 'Program kerja berhasil diubah.');
+    }
+
+    /**
+     * T-98 (B-041): daftar program kerja bidang SENDIRI.
+     *
+     * Akses : Pimpinan Bidang dan Anggota Bidang (dijaga middleware di routes/web.php).
+     * Bidang: selalu diambil dari akun yang masuk; ?bidang= yang beda dari bidang akun ditolak 403.
      */
     public function bidangSaya(Request $request)
     {
@@ -163,8 +331,8 @@ class ProgramKerjaController extends Controller
                 ->withQueryString();
         } catch (QueryException $e) {
             Log::error('Gagal memuat daftar program kerja bidang sendiri', [
-                'pengguna_id' => Auth::id(),
-                'kode_galat'  => $e->getCode(),
+                'pengguna_id'  => Auth::id(),
+                'kode_galat'   => $e->getCode(),
                 'dicatat_pada' => now()->toDateTimeString(),
             ]);
 
@@ -197,14 +365,29 @@ class ProgramKerjaController extends Controller
         ]);
     }
 
+    /**
+     * T-88/T-89 (B-042): daftar program kerja bidang LAIN. Hanya baca.
+     *
+     * Akses : semua peran yang masuk [asumsi tim, AC B-042 poin 1]; route hanya memakai auth.
+     * Bidang: bidang "saya" selalu diambil dari akun yang masuk, tanpa parameter
+     *         bidang dari request. Akun tanpa bidang melihat semua program.
+     * Aksi  : tidak ada. Tidak ada route ubah/hapus untuk halaman ini.
+     */
     public function bidangLain(Request $request)
     {
         $idBidangSaya = Auth::user()->id_bidang;
 
+        $cari = $request->query('cari');
+        $cari = is_string($cari) ? mb_substr(trim($cari), 0, 100) : '';
+
         try {
             $program = DB::table('program_kerja')
                 ->join('bidang', 'bidang.id_bidang', '=', 'program_kerja.id_bidang')
-                ->when($idBidangSaya, fn($q) => $q->where('program_kerja.id_bidang', $idBidangSaya))
+                ->when($idBidangSaya, fn ($q) => $q->where('program_kerja.id_bidang', '!=', $idBidangSaya))
+                ->when($cari !== '', function ($q) use ($cari) {
+                    $aman = str_replace(['\\', '%', '_'], ['\\\\', '\%', '\_'], $cari);
+                    $q->where('program_kerja.nama_program', 'like', '%' . $aman . '%');
+                })
                 ->select([
                     'program_kerja.id_program_kerja',
                     'program_kerja.nama_program',
@@ -228,17 +411,21 @@ class ProgramKerjaController extends Controller
             abort(500, 'Terjadi kesalahan. Silakan coba lagi.');
         }
 
+        $pesan = $program->total() === 0 ? 'Belum ada program kerja' : null;
+
         if ($request->expectsJson()) {
             return response()->json([
                 'data'    => $program->items(),
                 'total'   => $program->total(),
                 'halaman' => $program->currentPage(),
-                'pesan'   => $program->total() === 0 ? 'Belum ada program kerja' : null,
+                'pesan'   => $pesan,
             ]);
         }
 
-        // View dibuat di T-89. Bidang kosong: tampilkan "Belum ada program kerja".
-        return view('program-kerja.bidang-lain', ['programKerja' => $program]);
+        return view('program-kerja.bidang-lain', [
+            'programKerja' => $program,
+            'pesan'        => $pesan,
+        ]);
     }
 
     private function gagal(Request $request, string $pesan, int $status)
@@ -248,6 +435,45 @@ class ProgramKerjaController extends Controller
         }
 
         return redirect()->back()->withInput()->with('galat', $pesan);
+    }
+
+        /** Aturan validasi bersama store() dan update(). */
+    private static function aturan(): array
+    {
+        return [
+            'nama_program'    => ['required', 'string', 'max:255'],
+            'tujuan'          => ['required', 'string', 'max:5000'],
+            'sasaran_peserta' => ['nullable', 'string', 'max:255'],
+            'metode'          => ['nullable', 'string', 'max:255'],
+            'tanggal_mulai'   => ['required', 'date_format:Y-m-d'],
+            'tanggal_selesai' => ['bail', 'required', 'date_format:Y-m-d', 'after_or_equal:tanggal_mulai'],
+            'tempat'          => ['nullable', 'string', 'max:255'],
+            'anggaran'        => ['nullable', 'numeric', 'min:0', 'max:9999999999999.99'],
+            'keterangan'      => ['nullable', 'string', 'max:2000'],
+        ];
+    }
+
+    /** Pesan validasi bersama store() dan update(). */
+    private static function pesan(): array
+    {
+        return [
+            'nama_program.required'          => 'Nama program wajib diisi',
+            'nama_program.max'               => 'Nama program maksimal 255 karakter',
+            'tujuan.required'                => 'Tujuan wajib diisi',
+            'tujuan.max'                     => 'Tujuan maksimal 5000 karakter',
+            'sasaran_peserta.max'            => 'Sasaran peserta maksimal 255 karakter',
+            'metode.max'                     => 'Metode maksimal 255 karakter',
+            'tanggal_mulai.required'         => 'Tanggal mulai wajib diisi',
+            'tanggal_mulai.date_format'      => 'Format tanggal mulai tidak valid',
+            'tanggal_selesai.required'       => 'Tanggal selesai wajib diisi',
+            'tanggal_selesai.date_format'    => 'Format tanggal selesai tidak valid',
+            'tanggal_selesai.after_or_equal' => 'Tanggal selesai tidak boleh sebelum tanggal mulai',
+            'tempat.max'                     => 'Tempat maksimal 255 karakter',
+            'anggaran.numeric'               => 'Anggaran harus berupa angka',
+            'anggaran.min'                   => 'Anggaran tidak boleh negatif',
+            'anggaran.max'                   => 'Anggaran terlalu besar',
+            'keterangan.max'                 => 'Keterangan maksimal 2000 karakter',
+        ];
     }
 
     /**
@@ -271,7 +497,7 @@ class ProgramKerjaController extends Controller
         try {
             $program = DB::table('program_kerja')
                 ->join('bidang', 'bidang.id_bidang', '=', 'program_kerja.id_bidang')
-                ->when($idBidang, fn($q) => $q->where('program_kerja.id_bidang', $idBidang))
+                ->when($idBidang, fn ($q) => $q->where('program_kerja.id_bidang', $idBidang))
                 ->select([
                     'program_kerja.id_program_kerja',
                     'program_kerja.nama_program',
