@@ -4,7 +4,9 @@
 
 @section('content')
     @php
-        $bolehKelola = \App\Support\PeranProgramKerja::bolehKelolaProgram(auth()->user());
+        $bolehKelola   = \App\Support\PeranProgramKerja::bolehKelolaProgram(auth()->user());
+        $bolehKegiatan = \App\Support\PeranProgramKerja::bolehKelolaKegiatan(auth()->user());
+        $adaAksi       = $bolehKelola || $bolehKegiatan;
     @endphp
 
     <div class="content bidang-page">
@@ -67,8 +69,8 @@
                             <th>Tanggal Mulai</th>
                             <th>Tanggal Selesai</th>
                             <th>Anggaran</th>
-                            @if ($bolehKelola)
-                                <th>Aksi</th>
+                            @if ($adaAksi)
+                                <th class="program-col-aksi">Aksi</th>
                             @endif
                         </tr>
                     </thead>
@@ -94,16 +96,24 @@
                                 <td>
                                     {{ $program->anggaran !== null ? 'Rp ' . number_format($program->anggaran, 0, ',', '.') : '-' }}
                                 </td>
-                                @if ($bolehKelola)
-                                    <td>
-                                        <a href="{{ route('program-kerja.edit', ['id' => $program->id_program_kerja]) }}"
-                                           class="program-btn-edit">Ubah</a>
+                                @if ($adaAksi)
+                                    <td class="program-col-aksi">
+                                        <div class="program-aksi-group">
+                                            @if ($bolehKelola)
+                                                <a href="{{ route('program-kerja.edit', ['id' => $program->id_program_kerja]) }}"
+                                                   class="program-btn-edit">Ubah</a>
+                                            @endif
+                                            @if ($bolehKegiatan)
+                                                <a href="{{ route('program-kerja.kegiatan.create', ['id' => $program->id_program_kerja]) }}"
+                                                   class="program-btn-edit">Kegiatan</a>
+                                            @endif
+                                        </div>
                                     </td>
                                 @endif
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="{{ $bolehKelola ? 7 : 6 }}" class="bidang-kosong">
+                                <td colspan="{{ $adaAksi ? 7 : 6 }}" class="bidang-kosong">
                                     {{ request('cari') ? 'Program kerja tidak ditemukan.' : $pesan ?? 'Belum ada program kerja untuk bidang ini.' }}
                                 </td>
                             </tr>

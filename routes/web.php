@@ -16,6 +16,7 @@ use App\Http\Middleware\AksesPersuratan;
 use App\Http\Controllers\Admin\PencarianSuratController;
 use App\Http\Controllers\AnggotaBidangController;
 use App\Http\Controllers\Admin\UbahSuratController;
+use App\Http\Controllers\KegiatanController;
 
 // Halaman utama (publik)
 Route::view('/', 'landing')
@@ -118,6 +119,32 @@ Route::middleware(['auth', PeranProgramKerja::middleware(PeranProgramKerja::KELO
         Route::match(['put', 'patch'], '/{id}', [ProgramKerjaController::class, 'update'])
             ->whereNumber('id')
             ->name('update');
+    });
+
+// Kegiatan: daftar & tambah (hanya Anggota Bidang, ikut user story) - T-109, T-110
+Route::middleware(['auth', PeranProgramKerja::middleware(PeranProgramKerja::KELOLA_KEGIATAN), NoCache::class])
+    ->group(function () {
+        // Halaman daftar kegiatan (dari sidebar)
+        Route::get('/kegiatan', [KegiatanController::class, 'index'])
+            ->name('kegiatan.index');
+
+        // Jalur tambah dari halaman Daftar Kegiatan (pilih program kerja lewat dropdown)
+        Route::get('/kegiatan/tambah', [KegiatanController::class, 'createDariSidebar'])
+            ->name('kegiatan.create');
+        Route::post('/kegiatan', [KegiatanController::class, 'storeDariSidebar'])
+            ->name('kegiatan.store');
+
+        // Jalur tambah dari baris tabel Program Kerja (program kerja terkunci)
+        Route::prefix('program-kerja')
+            ->name('program-kerja.')
+            ->group(function () {
+                Route::get('/{id}/kegiatan/tambah', [KegiatanController::class, 'create'])
+                    ->whereNumber('id')
+                    ->name('kegiatan.create');
+                Route::post('/{id}/kegiatan', [KegiatanController::class, 'store'])
+                    ->whereNumber('id')
+                    ->name('kegiatan.store');
+            });
     });
 
 // Program kerja bidang lain (hanya baca, semua peran yang masuk) - T-88, T-89

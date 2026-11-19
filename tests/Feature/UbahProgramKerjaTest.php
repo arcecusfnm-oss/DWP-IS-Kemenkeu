@@ -530,7 +530,7 @@ class UbahProgramKerjaTest extends TestCase
             ->get(route('program-kerja.edit', ['id' => $id]))
             ->assertForbidden();
 
-        auth()->logout();
+        $this->app['auth']->forgetGuards();
         $this->get(route('program-kerja.edit', ['id' => $id]))->assertRedirect(route('login'));
     }
 
