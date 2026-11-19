@@ -181,6 +181,41 @@ class TetapkanKetuaTest extends TestCase
         $this->assertNull($this->jabatan($dariLain));
     }
 
+    public function test_anggota_yang_sudah_pindah_bidang_ditolak_di_bidang_lama(): void
+    {
+        $bidangLama = $this->buatBidang('Sosial Budaya');
+        $bidangBaru = $this->buatBidang('Ekonomi');
+        $admin      = $this->buatAdmin();
+
+        $anggota = $this->buatAnggota($bidangLama, $admin->id_pengguna);
+
+        // Anggota dipindahkan ke bidang baru.
+        DB::table('anggota')
+            ->where('id_anggota', $anggota)
+            ->update([
+                'id_bidang'  => $bidangBaru,
+                'updated_at' => now(),
+            ]);
+
+        // Admin mencoba menetapkan anggota tersebut sebagai ketua di bidang lama.
+        $res = $this->tetapkan($admin, $bidangLama, $anggota);
+
+        $res->assertSessionHasErrors([
+            'id_anggota' => 'Anggota tidak dapat ditetapkan sebagai ketua.',
+        ]);
+
+        // Pastikan anggota tetap bukan ketua.
+        $this->assertNull($this->jabatan($anggota));
+
+        // Pastikan anggota tetap berada di bidang barunya.
+        $this->assertSame(
+            $bidangBaru,
+            (int) DB::table('anggota')
+                ->where('id_anggota', $anggota)
+                ->value('id_bidang')
+        );
+    }
+
     public function test_anggota_nonaktif_ditolak(): void
     {
         $bidang  = $this->buatBidang('Sosial Budaya');
