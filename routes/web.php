@@ -110,7 +110,7 @@ Route::middleware(['auth', 'role:Penasihat', NoCache::class])
     ->name('penasihat.')
     ->group(function () {
         // Sementara: dasbor Penasihat belum ada, arahkan ke daftar program kerja.
-        Route::get('/dashboard', fn () => redirect()->route('admin.program-kerja.index'))
+        Route::get('/dashboard', fn() => redirect()->route('admin.program-kerja.index'))
             ->name('dashboard');
     });
 
@@ -171,6 +171,9 @@ Route::middleware(['auth', 'role:Admin', NoCache::class])
         Route::get('/', [AnggotaController::class, 'index'])->name('index');
         Route::get('/tambah', [AnggotaController::class, 'create'])->name('create');
         Route::post('/', [AnggotaController::class, 'store'])->name('store');
+
+        Route::get('/{id}/edit', [AnggotaController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [AnggotaController::class, 'update'])->name('update');
 
         Route::put('/{id}/pindah-bidang', [AnggotaController::class, 'pindahBidang'])
             ->name('pindah-bidang');

@@ -23,7 +23,12 @@ class AnggotaController extends Controller
     // ===== T-26: konstanta =====
 
     private const TINGKAT_PENDIDIKAN = [
-        'SMA/SMK', 'D3', 'D4', 'S1 (Sarjana)', 'S2 (Magister)', 'S3 (Doktoral)',
+        'SMA/SMK',
+        'D3',
+        'D4',
+        'S1 (Sarjana)',
+        'S2 (Magister)',
+        'S3 (Doktoral)',
     ];
 
     // AC5 (validasi karakter): tolak < > dan karakter kontrol
@@ -263,6 +268,144 @@ class AnggotaController extends Controller
             'bidang_usaha.regex'            => $pesanTeks,
             'instansi_kerja.regex'          => $pesanTeks,
         ];
+    }
+
+    public function edit($id)
+    {
+        $anggota = DB::table('anggota')
+            ->where('id_anggota', $id)
+            ->whereNull('dihapus_pada')
+            ->first();
+
+        if (! $anggota) {
+            return redirect()
+                ->route('admin.anggota.index')
+                ->with('error', 'Data anggota tidak ditemukan.');
+        }
+
+        $namaBidang = $anggota->id_bidang
+            ? DB::table('bidang')
+            ->where('id_bidang', $anggota->id_bidang)
+            ->value('nama_bidang')
+            : '-';
+
+        $unitKerja = DB::table('unit_kerja')
+            ->orderBy('nama_unit_kerja')
+            ->get();
+
+        return view('admin.anggota.edit', compact('anggota', 'unitKerja', 'namaBidang'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $teks = "regex:" . self::POLA_TEKS;
+
+        $data = $request->validate([
+            'nomor_telepon'      => ['required', 'regex:/^[0-9]{8,15}$/'],
+            'nama_panggilan'     => ['nullable', 'string', 'max:255', $teks],
+            'tempat_lahir'       => ['nullable', 'string', 'max:255', $teks],
+            'tanggal_lahir'      => ['nullable', 'date', 'before_or_equal:today'],
+            'email'              => ['nullable', 'email', 'max:255'],
+            'alamat_lengkap'     => ['nullable', 'string', 'max:1000', $teks],
+            'nama_suami'         => ['nullable', 'string', 'max:255', $teks],
+            'id_unit_kerja'      => ['nullable', 'integer', 'exists:unit_kerja,id_unit_kerja'],
+            'tingkat_pendidikan' => ['nullable', Rule::in(self::TINGKAT_PENDIDIKAN)],
+            'bidang_pendidikan'  => ['nullable', 'string', 'max:255', $teks],
+            'keahlian'           => ['nullable', 'string', 'max:1000', $teks],
+            'bidang_usaha'       => ['nullable', 'string', 'max:255', $teks],
+            'bekerja'            => ['nullable', Rule::in(['Ya', 'Tidak'])],
+            'instansi_kerja'     => ['nullable', 'string', 'max:255', $teks],
+        ], $this->pesan());
+
+        $data['nama_panggilan'] = $this->rapikanPanggilan(
+            $data['nama_panggilan'] ?? null
+        );
+
+        if (($data['bekerja'] ?? null) === 'Tidak') {
+            $data['instansi_kerja'] = null;
+        }
+
+        try {
+            $hasil = DB::transaction(function () use ($id, $data) {
+                $anggota = DB::table('anggota')
+                    ->where('id_anggota', $id)
+                    ->whereNull('dihapus_pada')
+                    ->lockForUpdate()
+                    ->first();
+
+                if (! $anggota) {
+                    return null;
+                }
+
+                $kolom = [
+                    'nomor_telepon',
+                    'nama_panggilan',
+                    'tempat_lahir',
+                    'tanggal_lahir',
+                    'email',
+                    'alamat_lengkap',
+                    'nama_suami',
+                    'id_unit_kerja',
+                    'tingkat_pendidikan',
+                    'bidang_pendidikan',
+                    'keahlian',
+                    'bidang_usaha',
+                    'bekerja',
+                    'instansi_kerja',
+                ];
+
+                $perubahan = [];
+
+                foreach ($kolom as $field) {
+                    $lama = $anggota->{$field} ?? null;
+                    $baru = $data[$field] ?? null;
+
+                    if ((string) ($lama ?? '') !== (string) ($baru ?? '')) {
+                        $perubahan[] = $field;
+                    }
+                }
+
+                if (! empty($perubahan)) {
+                    DB::table('anggota')
+                        ->where('id_anggota', $id)
+                        ->update(array_merge($data, [
+                            'updated_at' => now(),
+                        ]));
+                }
+
+                return [
+                    'nama_anggota' => $anggota->nama_lengkap,
+                    'perubahan'     => $perubahan,
+                ];
+            });
+        } catch (QueryException $e) {
+            report($e);
+
+            return back()
+                ->withInput()
+                ->with('error', 'Data anggota gagal diperbarui. Silakan coba lagi.');
+        }
+
+        if ($hasil === null) {
+            return redirect()
+                ->route('admin.anggota.index')
+                ->with('error', 'Data anggota tidak ditemukan.');
+        }
+
+        if (! empty($hasil['perubahan'])) {
+            Log::info('Admin memperbarui data anggota', [
+                'admin_id'       => Auth::id(),
+                'admin_username' => Auth::user()->nama_pengguna,
+                'anggota_id'     => $id,
+                'nama_anggota'   => $hasil['nama_anggota'],
+                'kolom_diubah'  => $hasil['perubahan'],
+                'dicatat_pada'  => now()->toDateTimeString(),
+            ]);
+        }
+
+        return redirect()
+            ->route('admin.anggota.index')
+            ->with('success', 'Data anggota berhasil diperbarui.');
     }
 
     public function pindahBidang(Request $request, $id)
