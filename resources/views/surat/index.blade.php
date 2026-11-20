@@ -53,6 +53,12 @@
     .srt-tabel td.srt-nomor { text-align: center; }
     .srt-tabel td.srt-utama { font-weight: 600; }
 
+    .srt-flash { margin: 0 0 14px; padding: 12px 16px; color: #20491a; background: #e8f3e5; border: 1px solid #b9d9b2; border-radius: 8px; }
+    .srt-flash-galat { color: #8d3812; background: #fdf1ea; border-color: #f1d5c7; }
+    .srt-btn-ubah { width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; color: #a5471f; background: transparent; border: 0; border-radius: 8px; text-decoration: none; }
+    .srt-btn-ubah:hover { background: #fdf1ea; }
+    .srt-btn-ubah:focus-visible { outline: 2px solid #c2653d; outline-offset: 2px; }
+
     /* Layar kecil: tab bisa digeser, baris tabel menjadi kartu per surat */
     @media (max-width: 768px) {
         .srt-tab { overflow-x: auto; }
@@ -85,6 +91,13 @@
         <div class="srt-garis" aria-hidden="true"></div>
 
         <div class="srt-area">
+                    @if (session('sukses'))
+                        <div class="srt-flash" role="status">{{ session('sukses') }}</div>
+                    @endif
+                    @if (session('galat'))
+                        <div class="srt-flash srt-flash-galat" role="alert">{{ session('galat') }}</div>
+                    @endif
+
             {{-- Tab jenis surat (mengisi parameter jenis; filter lain ikut terbawa).
                  Angka jumlah tampil bila controller mengirim $jumlahJenis, mis. ['masuk' => 24, 'keluar' => 18, 'keputusan' => 6]. --}}
             <nav class="srt-tab" aria-label="Jenis surat">
@@ -226,6 +239,7 @@
                         <th>Tanggal</th>
                         <th>Asal / Tujuan</th>
                         <th>Perihal</th>
+                        <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -237,9 +251,17 @@
                             <td data-label="Tanggal">{{ $s->tanggal ? \Carbon\Carbon::parse($s->tanggal)->format('d/m/Y') : '-' }}</td>
                             <td data-label="Asal / Tujuan">{{ $s->pihak ?? '-' }}</td>
                             <td data-label="Perihal">{{ $s->perihal ?? '-' }}</td>
+                            <td data-label="Aksi">
+                                @if (in_array($s->jenis, ['masuk', 'keluar'], true))
+                                    <a href="{{ route('surat.edit', [$s->jenis, $s->id]) }}" class="srt-btn-ubah"
+                                        aria-label="Ubah surat {{ $s->nomor_surat }}" title="Ubah">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                                    </a>
+                                @endif
+                            </td>
                         </tr>
                     @empty
-                        <tr><td colspan="6" class="bidang-kosong">{{ $pesan ?? 'Tidak ada surat yang sesuai' }}</td></tr>
+                        <tr><td colspan="7" class="bidang-kosong">{{ $pesan ?? 'Tidak ada surat yang sesuai' }}</td></tr>
                     @endforelse
                 </tbody>
             </table>

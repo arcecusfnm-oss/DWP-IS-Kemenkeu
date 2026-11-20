@@ -207,11 +207,16 @@ Route::middleware(['auth', 'role:Pimpinan Bidang,Anggota Bidang', NoCache::class
         Route::get('/bidang-saya', [AnggotaBidangController::class, 'index'])->name('bidang-saya');
     });
 
-// Ubah data surat masuk/keluar (Admin dan Sekretariat) - B-038, T-69
+// Ubah data surat masuk/keluar (Admin dan Sekretariat) - B-038, T-69, T-70
 Route::middleware(['auth', AksesPersuratan::class, NoCache::class])
     ->prefix('surat')
     ->name('surat.')
     ->group(function () {
+        Route::get('/{jenis}/{id}/edit', [UbahSuratController::class, 'edit'])
+            ->whereIn('jenis', ['masuk', 'keluar'])
+            ->whereNumber('id')
+            ->name('edit');
+
         Route::put('/{jenis}/{id}', [UbahSuratController::class, 'update'])
             ->whereIn('jenis', ['masuk', 'keluar'])
             ->whereNumber('id')
