@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use App\Support\LogKeamanan;
 
 class LoginController extends Controller
 {
@@ -208,7 +209,8 @@ class LoginController extends Controller
 
         return match ($pengguna->peran->nama_peran) {
             'Admin'            => redirect()->route('admin.dashboard'),
-            'Penasihat'        => redirect()->route('penasihat.dashboard'),
+            
+            'Penasihat'        => redirect()->route('admin.program-kerja.index'),
             'Pimpinan Bidang',
             'Anggota Bidang'   => redirect()->route('program-kerja.bidang-saya'),
             default            => redirect()->route('beranda'),
@@ -217,6 +219,13 @@ class LoginController extends Controller
 
     public function logout(Request $request): RedirectResponse
     {
+        LogKeamanan::catat(
+            'logout',
+            'berhasil',
+            $request,
+            Auth::id() !== null ? (int) Auth::id() : null
+        );
+
         Auth::logout();
 
         $request->session()->invalidate();
@@ -243,7 +252,7 @@ class LoginController extends Controller
         try {
             $this->logLoginRepository->catat(
                 $pengguna?->getKey(),
-                $namaPengguna,
+                null,
                 $berhasil,
                 $alasan,
                 $request->ip(),
@@ -252,5 +261,12 @@ class LoginController extends Controller
         } catch (\Throwable $e) {
             report($e);
         }
+            LogKeamanan::catat(
+            'login',
+            $berhasil ? 'berhasil' : 'gagal',
+            $request,
+            $pengguna?->getKey(),
+            ['alasan' => $alasan]
+        );
     }
 }

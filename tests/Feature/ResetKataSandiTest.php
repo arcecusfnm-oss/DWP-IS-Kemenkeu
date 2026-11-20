@@ -226,7 +226,7 @@ class ResetKataSandiTest extends TestCase
 
         // Di log: ada catatan reset, tetapi tanpa kata sandi sementara.
         $semuaLog = implode("\n", $entriLog);
-        $this->assertStringContainsString('Admin mereset kata sandi akun', $semuaLog);
+        $this->assertStringContainsString('reset_kata_sandi', $semuaLog);
         $this->assertStringNotContainsString($sementara, $semuaLog);
     }
 

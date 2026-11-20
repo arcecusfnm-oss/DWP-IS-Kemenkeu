@@ -11,6 +11,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
+use App\Support\LogKeamanan;
 
 class AlihPeranAdminTest extends TestCase
 {
@@ -196,10 +197,13 @@ class AlihPeranAdminTest extends TestCase
         $this->kirimAlih($tujuan->id_pengguna);
 
         Log::shouldHaveReceived('info')->withArgs(function ($pesan, $konteks) use ($tujuan) {
-            return $pesan === 'Admin mengalihkan peran Admin'
-                && $konteks['admin_lama_id'] === $this->admin->id_pengguna
-                && $konteks['admin_baru_id'] === $tujuan->id_pengguna
-                && ! empty($konteks['dicatat_pada'])
+            return $pesan === 'keamanan'
+                && $konteks['aksi'] === 'perubahan_peran'
+                && $konteks['hasil'] === 'berhasil'
+                && $konteks['pengguna'] === LogKeamanan::idAnonim($this->admin->id_pengguna)
+                && $konteks['admin_baru'] === LogKeamanan::idAnonim($tujuan->id_pengguna)
+                && ! empty($konteks['waktu'])
+                && ! empty($konteks['ip'])
                 && ! array_key_exists('password', $konteks)
                 && ! array_key_exists('kata_sandi', $konteks)
                 && ! array_key_exists('token', $konteks);
