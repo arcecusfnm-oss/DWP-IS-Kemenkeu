@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\PencarianSuratController;
 use App\Http\Controllers\AnggotaBidangController;
 use App\Http\Controllers\Admin\UbahSuratController;
 use App\Http\Controllers\Admin\CatatSuratMasukController;
+use App\Http\Controllers\Admin\CatatSuratKeluarController;
 use App\Http\Controllers\KegiatanController;
 use App\Http\Controllers\Admin\WakilKetuaBidangController;
 
@@ -224,6 +225,13 @@ Route::middleware(['auth', AksesPersuratan::class, NoCache::class])
 
         Route::post('/catat-masuk', [CatatSuratMasukController::class, 'store'])
             ->name('simpan-masuk');
+        // Form catat surat keluar (B-036, T-65)
+        Route::get('/keluar/tambah', [CatatSuratKeluarController::class, 'create'])
+            ->name('keluar.create');
+
+        // Simpan surat keluar (B-036, T-64)
+        Route::post('/keluar', [CatatSuratKeluarController::class, 'store'])
+            ->name('keluar.store');
         Route::get('/{jenis}/{id}/edit', [UbahSuratController::class, 'edit'])
             ->whereIn('jenis', ['masuk', 'keluar'])
             ->whereNumber('id')

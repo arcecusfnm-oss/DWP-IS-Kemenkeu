@@ -98,6 +98,90 @@
     .srt-tabel td.srt-nomor { text-align: center; }
     .srt-tabel td.srt-utama { font-weight: 600; }
 
+    /* Empty state arsip surat */
+    .srt-empty {
+        min-height: 290px;
+        padding: 38px 24px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        background: #fff;
+        border: 1px solid #f1d5c7;
+        border-radius: 12px;
+    }
+    .srt-empty-ikon {
+        width: 64px;
+        height: 64px;
+        display: grid;
+        place-items: center;
+        margin-bottom: 16px;
+        color: #a5471f;
+        background: #fbe5d9;
+        border-radius: 50%;
+    }
+    .srt-empty-ikon svg { width: 28px; height: 28px; }
+    .srt-empty h3 {
+        margin: 0 0 8px;
+        color: #3a2a22;
+        font-size: 20px;
+        font-weight: 700;
+    }
+    .srt-empty p {
+        max-width: 420px;
+        margin: 0;
+        color: #75665c;
+        font-size: 13px;
+        line-height: 1.7;
+    }
+    .srt-empty-aksi {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 20px;
+    }
+    .srt-empty-btn {
+        min-height: 38px;
+        padding: 0 15px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        color: #fff;
+        background: #a5471f;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+    }
+    .srt-empty-btn:hover { background: #873818; }
+    .srt-empty-btn.sekunder {
+        color: #8d3812;
+        background: #fdf1ea;
+    }
+    .srt-empty-btn.sekunder:hover { background: #f8e2d5; }
+    .srt-empty-btn:focus-visible {
+        outline: 2px solid #c2653d;
+        outline-offset: 3px;
+    }
+    .srt-empty-catatan {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        margin-top: 26px;
+        color: #877368;
+        font-size: 11px;
+    }
+    .srt-empty-catatan span {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
     .srt-flash { margin: 0 0 14px; padding: 12px 16px; color: #20491a; background: #e8f3e5; border: 1px solid #b9d9b2; border-radius: 8px; }
     .srt-flash-galat { color: #8d3812; background: #fdf1ea; border-color: #f1d5c7; }
     .srt-btn-ubah { width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; color: #a5471f; background: transparent; border: 0; border-radius: 8px; text-decoration: none; }
@@ -219,7 +303,7 @@
         color: #3a2a22; background: #fff; border: 1px solid #f1d5c7; border-radius: 8px;
     }
     .srt-btn-ulang:hover { background: #fdf1ea; }
-    .srt-aksi { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+    .srt-aksi { margin-left: auto; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
     .srt-filter input[type="date"]:focus-visible, .srt-btn-terapkan:focus-visible, .srt-btn-ulang:focus-visible {
         outline: 2px solid #c2653d; outline-offset: 2px;
     }
@@ -237,6 +321,7 @@
         .srt-tanggal input[type="date"] { width: 100%; }
         .srt-btn-terapkan { flex: 1; justify-content: center; }
         .srt-aksi { margin-left: 0; flex: 1 1 100%; }
+        .srt-aksi .srt-btn-catat { flex: 1 1 auto; justify-content: center; }
     }
 </style>
 @endpush
@@ -279,6 +364,10 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
             Catat Surat Masuk
         </a>
+        <a href="{{ route('surat.keluar.create') }}" class="srt-btn-catat srt-btn-keluar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            Catat Surat Keluar
+        </a>
     </div>
 </form>
 
@@ -295,43 +384,119 @@
         </div>
 
         {{-- Tabel --}}
-        <div class="akun-tabel-wrap">
-            <table class="akun-tabel srt-tabel">
-                <thead>
-                    <tr>
-                        <th>No</th>
-                        <th>Jenis</th>
-                        <th>Nomor Surat</th>
-                        <th>Tanggal</th>
-                        <th>Asal / Tujuan</th>
-                        <th>Perihal</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($surat as $s)
+        @if ($surat->isEmpty())
+            @php
+                $sedangFilter = request()->filled('q') || request()->filled('dari') || request()->filled('sampai');
+                $jenisKosong = request('jenis', '');
+                $urlReset = route('surat.index', array_filter(['jenis' => $jenisKosong]));
+            @endphp
+
+            <section class="srt-empty" aria-live="polite">
+                <div class="srt-empty-ikon" aria-hidden="true">
+                    @if ($sedangFilter)
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/><path d="M8.5 11h5"/>
+                        </svg>
+                    @elseif ($jenisKosong === 'keluar')
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/><path d="M16 3h5v5"/>
+                        </svg>
+                    @else
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/><circle cx="18" cy="4" r="3"/>
+                        </svg>
+                    @endif
+                </div>
+
+                @if ($sedangFilter)
+                    <h3>Surat tidak ditemukan</h3>
+                    <p>Tidak ada surat yang cocok dengan kata pencarian atau rentang tanggal yang lu pilih. Coba ubah filter atau atur ulang pencarian.</p>
+                    <div class="srt-empty-aksi">
+                        <a href="{{ $urlReset }}" class="srt-empty-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                            Atur Ulang Filter
+                        </a>
+                    </div>
+                @elseif ($jenisKosong === 'masuk')
+                    <h3>Belum ada surat masuk tercatat</h3>
+                    <p>Belum ada surat masuk dalam arsip. Klik tombol di bawah untuk mencatat surat masuk baru ke dalam sistem persuratan.</p>
+                    <div class="srt-empty-aksi">
+                        <a href="{{ route('surat.catat-masuk') }}" class="srt-empty-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                            Catat Surat Masuk
+                        </a>
+                    </div>
+                @elseif ($jenisKosong === 'keluar')
+                    <h3>Belum ada surat keluar tercatat</h3>
+                    <p>Belum ada surat keluar dalam arsip. Klik tombol di bawah untuk mencatat surat keluar baru ke dalam sistem persuratan.</p>
+                    <div class="srt-empty-aksi">
+                        <a href="{{ route('surat.keluar.create') }}" class="srt-empty-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                            Catat Surat Keluar
+                        </a>
+                    </div>
+                @else
+                    <h3>Belum ada arsip surat</h3>
+                    <p>Arsip surat masuk dan surat keluar masih kosong. Mulai pencatatan surat agar administrasi persuratan terdokumentasi dengan baik.</p>
+                    <div class="srt-empty-aksi">
+                        <a href="{{ route('surat.catat-masuk') }}" class="srt-empty-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                            Catat Surat Masuk
+                        </a>
+                        <a href="{{ route('surat.keluar.create') }}" class="srt-empty-btn sekunder">
+                            Catat Surat Keluar
+                        </a>
+                    </div>
+                @endif
+
+                <div class="srt-empty-catatan">
+                    <span>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 3 7v5c0 5 4 8 9 9 5-1 9-4 9-9V7z"/><path d="m8.5 12 2.3 2.3 4.7-5"/></svg>
+                        Data tersimpan dalam sistem
+                    </span>
+                    <span>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h8M8 15h5"/></svg>
+                        Arsip persuratan resmi
+                    </span>
+                </div>
+            </section>
+        @else
+            <div class="akun-tabel-wrap">
+                <table class="akun-tabel srt-tabel">
+                    <thead>
                         <tr>
-                            <td class="srt-nomor">{{ $adaPaginasi ? $surat->firstItem() + $loop->index : $loop->iteration }}</td>
-                            <td data-label="Jenis"><span class="akun-pill">{{ $labelJenis[$s->jenis] ?? $s->jenis }}</span></td>
-                            <td data-label="Nomor Surat" class="srt-utama">{{ $s->nomor_surat ?? '-' }}</td>
-                            <td data-label="Tanggal">{{ $s->tanggal ? \Carbon\Carbon::parse($s->tanggal)->format('d/m/Y') : '-' }}</td>
-                            <td data-label="Asal / Tujuan">{{ $s->pihak ?? '-' }}</td>
-                            <td data-label="Perihal">{{ $s->perihal ?? '-' }}</td>
-                            <td data-label="Aksi">
-                                @if (in_array($s->jenis, ['masuk', 'keluar'], true))
-                                    <a href="{{ route('surat.edit', [$s->jenis, $s->id]) }}" class="srt-btn-ubah"
-                                        aria-label="Ubah surat {{ $s->nomor_surat }}" title="Ubah">
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-                                    </a>
-                                @endif
-                            </td>
+                            <th>No</th>
+                            <th>Jenis</th>
+                            <th>Nomor Surat</th>
+                            <th>Tanggal</th>
+                            <th>Asal / Tujuan</th>
+                            <th>Perihal</th>
+                            <th>Aksi</th>
                         </tr>
-                    @empty
-                        <tr><td colspan="7" class="bidang-kosong">{{ $pesan ?? 'Tidak ada surat yang sesuai' }}</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+                    </thead>
+                    <tbody>
+                        @foreach ($surat as $s)
+                            <tr>
+                                <td class="srt-nomor">{{ $adaPaginasi ? $surat->firstItem() + $loop->index : $loop->iteration }}</td>
+                                <td data-label="Jenis"><span class="akun-pill">{{ $labelJenis[$s->jenis] ?? $s->jenis }}</span></td>
+                                <td data-label="Nomor Surat" class="srt-utama">{{ $s->nomor_surat ?? '-' }}</td>
+                                <td data-label="Tanggal">{{ $s->tanggal ? \Carbon\Carbon::parse($s->tanggal)->format('d/m/Y') : '-' }}</td>
+                                <td data-label="Asal / Tujuan">{{ $s->pihak ?? '-' }}</td>
+                                <td data-label="Perihal">{{ $s->perihal ?? '-' }}</td>
+                                <td data-label="Aksi">
+                                    @if (in_array($s->jenis, ['masuk', 'keluar'], true))
+                                        <a href="{{ route('surat.edit', [$s->jenis, $s->id]) }}" class="srt-btn-ubah"
+                                            aria-label="Ubah surat {{ $s->nomor_surat }}" title="Ubah">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                                        </a>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
 
         <div class="akun-footer">
             <span>Menampilkan <b>{{ $awal }}&ndash;{{ $akhir }}</b> dari <b>{{ $total }}</b> surat</span>
