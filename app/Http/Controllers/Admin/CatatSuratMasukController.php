@@ -151,7 +151,8 @@ class CatatSuratMasukController extends Controller
 
             Log::error('Gagal mencatat surat masuk', [
                 'pengguna_id' => Auth::id(),
-                'error' => $e->getMessage(),
+                'kelas_galat' => get_class($e),
+                'kode_galat'  => $e->getCode(),
             ]);
 
             return back()->withInput()->with(
@@ -166,7 +167,8 @@ class CatatSuratMasukController extends Controller
 
             Log::error('Kesalahan pencatatan surat masuk', [
                 'pengguna_id' => Auth::id(),
-                'error' => $e->getMessage(),
+                'kelas_galat' => get_class($e),
+                'kode_galat'  => $e->getCode(),
             ]);
 
             return back()->withInput()->with(
