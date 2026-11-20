@@ -1,0 +1,61 @@
+/* ==============================
+   TAMPILAN PENASIHAT
+   Dipakai layouts/penasihat.blade.php. Dimuat setelah admin.css,
+   hanya menimpa warna header dan sidebar (hijau).
+============================== */
+body.tema-penasihat .topbar {
+    background: #2e5b2a;
+}
+
+body.tema-penasihat .brand {
+    color: #fff;
+}
+
+body.tema-penasihat .brand-sub {
+    color: #dfe9dc;
+}
+
+body.tema-penasihat .icon-btn,
+body.tema-penasihat .menu-btn {
+    color: #fff;
+}
+
+body.tema-penasihat .icon-btn:hover,
+body.tema-penasihat .menu-btn:hover {
+    background: rgba(255, 255, 255, 0.18);
+}
+
+body.tema-penasihat .profile {
+    background: #c9d5c4;
+}
+
+body.tema-penasihat .profile-text strong {
+    color: #1f3d1c;
+}
+
+body.tema-penasihat .profile-text span {
+    color: #3f5a3b;
+}
+
+body.tema-penasihat .logout-top {
+    background: #fff5f2;
+}
+
+body.tema-penasihat .logout-top:hover {
+    background: #fde8e6;
+}
+
+body.tema-penasihat .side-brand-icon {
+    background: #dfe9dc;
+    color: #2e5b2a;
+}
+
+body.tema-penasihat .side-link:hover {
+    background: #eef3ec;
+}
+
+body.tema-penasihat .side-link.active {
+    background: #a9bba3;
+    color: #2b3a28;
+    font-weight: 500;
+}

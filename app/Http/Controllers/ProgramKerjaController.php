@@ -501,6 +501,7 @@ class ProgramKerjaController extends Controller
                 ->select([
                     'program_kerja.id_program_kerja',
                     'program_kerja.nama_program',
+                    'program_kerja.tujuan',
                     'program_kerja.tanggal_mulai',
                     'program_kerja.tanggal_selesai',
                     'bidang.id_bidang',
