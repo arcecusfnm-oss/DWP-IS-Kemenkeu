@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use App\Support\LogKeamanan;
 
 class AkunController extends Controller
 {
@@ -317,11 +318,8 @@ class AkunController extends Controller
             DB::table('pengguna')->where('id_pengguna', $idBaru)->update(['id_bidang' => $idBidang]);
         });
 
-        Log::info('Admin membuat akun baru', [
-            'admin_id'       => Auth::id(),
-            'admin_username' => Auth::user()->nama_pengguna,
-            'akun_baru'      => $request->username,
-            'dicatat_pada'   => now()->toDateTimeString(),
+        LogKeamanan::catat('buat_akun', 'berhasil', $request, (int) Auth::id(), [
+            'akun' => LogKeamanan::idAnonim((int) $idBaru),
         ]);
 
         return redirect()->route('admin.akun.index')
@@ -512,12 +510,10 @@ class AkunController extends Controller
             return back()->with('galat', $e->getMessage())->withInput();
         }
 
-        Log::info('Admin mengalihkan peran Admin', [
-            'admin_lama_id' => $idAsal,
-            'admin_baru_id' => $idTujuan,
+        LogKeamanan::catat('perubahan_peran', 'berhasil', $request, (int) $idAsal, [
+            'jenis'                 => 'alih_admin',
+            'admin_baru'            => LogKeamanan::idAnonim((int) $idTujuan),
             'peran_baru_admin_lama' => $namaPeranTurun,
-            'bidang_baru_admin_lama' => implode(', ', (array) $request->input('bidang', [])),
-            'dicatat_pada'  => now()->toDateTimeString(),
         ]);
 
         $rute = $namaPeranTurun === 'Penasihat' ? 'penasihat.dashboard' : 'beranda';
@@ -624,15 +620,11 @@ class AkunController extends Controller
             ]);
         });
 
-        Log::info('Admin mengubah peran akun', [
-            'admin_id'      => Auth::id(),
-            'akun_id'       => $id,
-            'peran_lama_id' => $akun->id_peran,
-            'peran_lama'    => $akun->nama_peran,
-            'peran_baru_id' => $idPeranBaru,
-            'peran_baru'    => $namaPeranBaru,
-            'bidang_baru'   => implode(', ', $bidangBaru),
-            'dicatat_pada'  => now()->toDateTimeString(),
+        LogKeamanan::catat('perubahan_peran', 'berhasil', $request, (int) Auth::id(), [
+            'jenis'      => 'ubah_peran',
+            'akun'       => LogKeamanan::idAnonim((int) $id),
+            'peran_lama' => $akun->nama_peran,
+            'peran_baru' => $namaPeranBaru,
         ]);
 
         return redirect()->route('admin.akun.index')
@@ -662,12 +654,8 @@ class AkunController extends Controller
             'updated_at'   => now(),
         ]);
 
-        Log::info('Admin menghapus akun', [
-            'admin_id'       => Auth::id(),
-            'admin_username' => Auth::user()->nama_pengguna,
-            'akun_id'        => $akun->id_pengguna,
-            'akun_username'  => $akun->nama_pengguna,
-            'dicatat_pada'   => now()->toDateTimeString(),
+        LogKeamanan::catat('hapus_akun', 'berhasil', null, (int) Auth::id(), [
+            'akun' => LogKeamanan::idAnonim((int) $akun->id_pengguna),
         ]);
 
         return redirect()->route('admin.akun.index')
@@ -698,10 +686,8 @@ class AkunController extends Controller
                 'updated_at'             => now(),
             ]);
 
-        Log::info('Admin mereset kata sandi akun', [
-            'admin_id'     => Auth::id(),
-            'akun_id'      => $id,
-            'dicatat_pada' => now()->toDateTimeString(),
+        LogKeamanan::catat('reset_kata_sandi', 'berhasil', null, (int) Auth::id(), [
+            'akun' => LogKeamanan::idAnonim((int) $id),
         ]);
 
         return redirect()->route('admin.akun.index')
@@ -750,10 +736,8 @@ class AkunController extends Controller
             return back()->with('galat', 'Akun tersebut sudah nonaktif.');
         }
 
-        Log::info('Admin menonaktifkan akun', [
-            'admin_id'        => Auth::id(),
-            'target_id'       => $akun->id_pengguna,
-            'target_username' => $akun->nama_pengguna,
+        LogKeamanan::catat('nonaktifkan_akun', 'berhasil', null, (int) Auth::id(), [
+            'akun' => LogKeamanan::idAnonim((int) $akun->id_pengguna),
         ]);
 
         return back()->with('sukses', 'Akun berhasil dinonaktifkan.');
@@ -791,11 +775,9 @@ class AkunController extends Controller
             return back()->with('galat', 'Akun tersebut sudah aktif.');
         }
 
-        Log::info('Admin mengaktifkan kembali akun', [
-            'admin_id'        => Auth::id(),
-            'target_id'       => $akun->id_pengguna,
-            'target_username' => $akun->nama_pengguna,
-        ]);
+        LogKeamanan::catat('aktifkan_akun', 'berhasil', null, (int) Auth::id(), [
+            'akun' => LogKeamanan::idAnonim((int) $akun->id_pengguna),
+        ]);;
 
         return back()->with('sukses', 'Akun berhasil diaktifkan kembali.');
     }

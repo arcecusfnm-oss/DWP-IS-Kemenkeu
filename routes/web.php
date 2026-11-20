@@ -234,3 +234,10 @@ Route::middleware(['auth', AksesPersuratan::class, NoCache::class])
             ->whereNumber('id')
             ->name('update');
     });
+
+    // Pengujian error 500 khusus lingkungan lokal
+if (app()->environment(['local', 'testing'])) {
+    Route::get('/_test-error-500', function () {
+        throw new \RuntimeException('RAHASIA_UJI_ERROR_500');
+    });
+}
