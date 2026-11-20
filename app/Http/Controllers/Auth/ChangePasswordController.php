@@ -60,13 +60,16 @@ class ChangePasswordController extends Controller
 
         // Alur paksa (setelah reset): lanjut ke halaman tujuan sesuai peran.
         if ($wajibGanti) {
-            $tujuan = $pengguna->peran?->nama_peran === 'Admin'
-                ? route('admin.dashboard')
-                : route('beranda');
+            $tujuan = match ($pengguna->peran?->nama_peran) {
+                'Admin'            => route('admin.dashboard'),
+                'Penasihat'        => route('admin.program-kerja.index'),
+                'Pimpinan Bidang',
+                'Anggota Bidang'   => route('program-kerja.bidang-saya'),
+                default            => route('beranda'),
+            };
 
             return redirect($tujuan)->with('success', 'Kata sandi berhasil diubah.');
         }
-
         // Alur biasa (B-003, form di /admin/profil): perilaku tetap sama.
         return back()->with('success', 'Kata sandi berhasil diubah.');
     }

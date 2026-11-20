@@ -52,7 +52,7 @@
                 'href' => 'admin.bidang.index',
                 'route' => 'admin.bidang.*',
             ],
-            ['label' => 'Kelola Program Kerja', 'icon' => 'clipboard', 'href' => null, 'route' => 'admin.proker.*'],
+            ['label' => 'Kelola Program Kerja', 'icon' => 'clipboard', 'href' => 'admin.program-kerja.index', 'route' => 'admin.program-kerja.*'],
             ['label' => 'Laporan Kegiatan', 'icon' => 'file', 'href' => null, 'route' => 'admin.laporan.*'],
             ['label' => 'Surat Masuk/Keluar', 'icon' => 'mail', 'href' => 'surat.index', 'route' => 'surat.*'],
         ];

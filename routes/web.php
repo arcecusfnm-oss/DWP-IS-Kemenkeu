@@ -109,7 +109,9 @@ Route::middleware(['auth', 'role:Penasihat', NoCache::class])
     ->prefix('penasihat')
     ->name('penasihat.')
     ->group(function () {
-        Route::get('/dashboard', [PenasihatDashboardController::class, 'index'])->name('dashboard');
+        // Sementara: dasbor Penasihat belum ada, arahkan ke daftar program kerja.
+        Route::get('/dashboard', fn () => redirect()->route('admin.program-kerja.index'))
+            ->name('dashboard');
     });
 
 // Program Kerja: tambah dan ubah (Pimpinan Bidang dan Anggota Bidang) - T-81, T-82, T-103, T-104
