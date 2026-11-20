@@ -89,6 +89,30 @@ class PencarianSuratController extends Controller
 
         $pesan = $surat->total() === 0 ? 'Tidak ada surat yang sesuai' : null;
 
+        // T-76: Statistik dashboard persuratan (tidak mengikuti filter tabel).
+        $jumlahJenis = [
+            ''          => DB::table('surat_masuk')->count()
+                + DB::table('surat_keluar')->count()
+                + DB::table('surat_keputusan')->count(),
+            'masuk'     => DB::table('surat_masuk')->count(),
+            'keluar'    => DB::table('surat_keluar')->count(),
+            'keputusan' => DB::table('surat_keputusan')->count(),
+        ];
+
+        $awalBulan  = now()->startOfMonth()->toDateString();
+        $akhirBulan = now()->endOfMonth()->toDateString();
+
+        $totalMasukBulanIni = DB::table('surat_masuk')
+            ->whereBetween('tanggal_diterima', [$awalBulan, $akhirBulan])
+            ->count();
+
+        $sudahDisposisi = DB::table('surat_masuk')
+            ->whereNotNull('disposisi')
+            ->whereRaw("TRIM(disposisi) <> ''")
+            ->count();
+
+        $belumDisposisi = DB::table('surat_masuk')->count() - $sudahDisposisi;
+
         if ($request->expectsJson()) {
             return response()->json([
                 'surat' => $surat,
@@ -99,6 +123,10 @@ class PencarianSuratController extends Controller
         return view('surat.index', [
             'surat' => $surat,
             'pesan' => $pesan,
+            'jumlahJenis' => $jumlahJenis,
+            'totalMasukBulanIni' => $totalMasukBulanIni,
+            'sudahDisposisi' => $sudahDisposisi,
+            'belumDisposisi' => $belumDisposisi,
         ]);
     }
 
