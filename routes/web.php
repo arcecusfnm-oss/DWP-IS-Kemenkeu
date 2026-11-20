@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\PencarianSuratController;
 use App\Http\Controllers\AnggotaBidangController;
 use App\Http\Controllers\Admin\UbahSuratController;
 use App\Http\Controllers\KegiatanController;
+use App\Http\Controllers\Admin\WakilKetuaBidangController;
 
 // Halaman utama (publik)
 Route::view('/', 'landing')
@@ -53,7 +54,12 @@ Route::middleware(['auth', 'role:Admin', NoCache::class])
         Route::post('/', [BidangController::class, 'store'])->name('store');
         Route::get('/{id}/edit', [BidangController::class, 'edit'])->name('edit');
         Route::delete('/{id}', [BidangController::class, 'destroy'])->name('destroy');
-        Route::put('/{id}/ketua', [KetuaBidangController::class, 'update'])->whereNumber('id')->name('ketua.update');
+        Route::put('/{id}/ketua', [KetuaBidangController::class, 'update'])
+            ->whereNumber('id')
+            ->name('ketua.update');
+        Route::put('/{id}/wakil-ketua', [WakilKetuaBidangController::class, 'update'])
+            ->whereNumber('id')
+            ->name('wakil-ketua.update');
     });
 
 // Halaman profil admin (tambahan)
@@ -82,7 +88,7 @@ Route::middleware(['auth', 'role:Admin', NoCache::class])
 
         Route::get('/{id}/edit', [AkunController::class, 'edit'])->whereNumber('id')->name('edit');
         Route::put('/{id}', [AkunController::class, 'update'])->whereNumber('id')->name('update');
- 
+
         // Endpoint penetapan bidang
         Route::put('/{id}/bidang', [AkunController::class, 'updateBidang'])->whereNumber('id')->name('bidang.update');
 

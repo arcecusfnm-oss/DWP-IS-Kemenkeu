@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 
 class BidangController extends Controller
 {
-        // Menampilkan daftar bidang
+    // Menampilkan daftar bidang
     public function index()
     {
         $bidangs = Bidang::orderBy('nama_bidang')->get();
@@ -18,6 +18,13 @@ class BidangController extends Controller
         // T-33: nama ketua per bidang (hanya yang aktif dan belum dihapus)
         $ketuaBidang = DB::table('anggota')
             ->where('jabatan_bidang', 'ketua')
+            ->where('status', 'aktif')
+            ->whereNull('dihapus_pada')
+            ->pluck('nama_lengkap', 'id_bidang');
+
+        // Nama wakil ketua per bidang (hanya yang aktif dan belum dihapus)
+        $wakilKetuaBidang = DB::table('anggota')
+            ->where('jabatan_bidang', 'wakil_ketua')
             ->where('status', 'aktif')
             ->whereNull('dihapus_pada')
             ->pluck('nama_lengkap', 'id_bidang');
@@ -38,14 +45,20 @@ class BidangController extends Controller
             ->orderBy('anggota.nama_lengkap')
             ->get(['anggota.id_anggota', 'anggota.id_bidang', 'anggota.nama_lengkap', 'anggota.jabatan_bidang'])
             ->groupBy('id_bidang')
-            ->map(fn ($g) => $g->map(fn ($a) => [
+            ->map(fn($g) => $g->map(fn($a) => [
                 'id'    => $a->id_anggota,
-                'nama'  => $a->nama_lengkap,
-                'ketua' => $a->jabatan_bidang === 'ketua',
+                'nama'   => $a->nama_lengkap,
+                'ketua'  => $a->jabatan_bidang === 'ketua',
+                'wakil'  => $a->jabatan_bidang === 'wakil_ketua',
             ])->values())
             ->all();
 
-        return view('admin.bidang.index', compact('bidangs', 'ketuaBidang', 'anggotaBidang'));
+        return view('admin.bidang.index', compact(
+            'bidangs',
+            'ketuaBidang',
+            'wakilKetuaBidang',
+            'anggotaBidang'
+        ));
     }
 
     // Menampilkan form tambah bidang

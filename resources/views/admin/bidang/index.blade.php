@@ -50,7 +50,8 @@
                             <th style="width: 80px; text-align: center;">NO</th>
                             <th>NAMA BIDANG</th>
                             <th>KETUA</th>
-                            <th style="width: 320px; text-align: center;">AKSI</th>
+                            <th>WAKIL KETUA</th>
+                            <th style="width: 380px; text-align: center;">AKSI</th>
                         </tr>
                     </thead>
 
@@ -68,13 +69,18 @@
                                         <span class="ketua-belum">Belum ditetapkan</span>
                                     @endif
                                 </td>
-
+                                <td>
+                                    @if (isset($wakilKetuaBidang[$bidang->id_bidang]))
+                                        {{ $wakilKetuaBidang[$bidang->id_bidang] }}
+                                    @else
+                                        <span class="ketua-belum">Belum ditetapkan</span>
+                                    @endif
+                                </td>
                                 <td style="text-align: center;">
                                     <div class="bidang-aksi"
                                         style="display: inline-flex; align-items: center; justify-content: center; gap: 16px;">
                                         {{-- Tombol Tetapkan Ketua --}}
-                                        <button type="button" class="ketua-btn"
-                                            data-bidang-id="{{ $bidang->id_bidang }}"
+                                        <button type="button" class="ketua-btn" data-bidang-id="{{ $bidang->id_bidang }}"
                                             data-bidang-nama="{{ $bidang->nama_bidang }}"
                                             data-url="{{ route('admin.bidang.ketua.update', $bidang->id_bidang) }}"
                                             style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: 13px;">
@@ -87,7 +93,20 @@
                                             </svg>
                                             Tetapkan Ketua
                                         </button>
-
+                                        {{-- Tombol Tetapkan Wakil Ketua --}}
+                                        <button type="button" class="wakil-btn" data-bidang-id="{{ $bidang->id_bidang }}"
+                                            data-bidang-nama="{{ $bidang->nama_bidang }}"
+                                            data-url="{{ route('admin.bidang.wakil-ketua.update', $bidang->id_bidang) }}"
+                                            style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: 13px;">
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                stroke-linejoin="round">
+                                                <circle cx="9" cy="7" r="4" />
+                                                <path d="M3 21v-2a4 4 0 0 1 4-4h4" />
+                                                <path d="M16 19l2 2 4-4" />
+                                            </svg>
+                                            Tetapkan Wakil
+                                        </button>
                                         {{-- Tombol Edit --}}
                                         <a href="{{ route('admin.bidang.edit', $bidang->id_bidang) }}"
                                             aria-label="Edit bidang"
@@ -124,7 +143,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="bidang-kosong">
+                                <td colspan="5" class="bidang-kosong">
                                     Belum ada data bidang.
                                 </td>
                             </tr>
@@ -166,6 +185,39 @@
         </div>
     </div>
     <div id="ketuaData" hidden data-anggota='@json($anggotaBidang)' data-buka='@json(old('bidang_asal'))'
+        data-lama='@json(old('id_anggota'))'></div>
+
+    {{-- Dialog tetapkan wakil ketua --}}
+    <div class="ketua-overlay" id="wakilOverlay" hidden>
+        <div class="ketua-dialog" role="dialog" aria-modal="true" aria-labelledby="wakilJudul">
+            <h3 id="wakilJudul">Tetapkan Wakil Ketua Bidang</h3>
+            <p>Bidang <b id="wakilBidangNama"></b></p>
+
+            @if ($errors->has('id_anggota'))
+                <div class="pesan pesan-error" role="alert">{{ $errors->first('id_anggota') }}</div>
+            @endif
+
+            <form method="POST" id="wakilForm" action="">
+                @csrf
+                @method('PUT')
+                <input type="hidden" name="bidang_asal_wakil" id="wakilBidangAsal" value="">
+
+                <label for="wakilSelect" class="ketua-label">Anggota <span>*</span></label>
+                <select id="wakilSelect" name="id_anggota" class="ketua-select"></select>
+
+                <p class="ketua-kosong" id="wakilKosong" hidden>
+                    Belum ada anggota yang bisa dipilih sebagai wakil ketua. Tambahkan dulu lewat Kelola Anggota.
+                </p>
+
+                <div class="ketua-aksi">
+                    <button type="button" class="ketua-batal" id="wakilBatal">Batal</button>
+                    <button type="submit" class="ketua-simpan" id="wakilSimpan">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="wakilData" hidden data-anggota='@json($anggotaBidang)' data-buka='@json(old('bidang_asal_wakil'))'
         data-lama='@json(old('id_anggota'))'></div>
 @endsection
 
@@ -355,6 +407,98 @@
             // Kalau server menolak, buka lagi modal bidang yang tadi
             if (bukaId) {
                 const btn = document.querySelector('.ketua-btn[data-bidang-id="' + bukaId + '"]');
+                if (btn) bukaModal(btn, lamaId);
+            }
+        })();
+    </script>
+    <script>
+        (function() {
+            const elemenData = document.getElementById('wakilData');
+            if (!elemenData) return;
+
+            const d = elemenData.dataset;
+            const dataAnggota = JSON.parse(d.anggota);
+            const bukaId = JSON.parse(d.buka);
+            const lamaId = JSON.parse(d.lama);
+
+            const overlay = document.getElementById('wakilOverlay');
+            const form = document.getElementById('wakilForm');
+            const select = document.getElementById('wakilSelect');
+            const nama = document.getElementById('wakilBidangNama');
+            const asal = document.getElementById('wakilBidangAsal');
+            const kosong = document.getElementById('wakilKosong');
+            const simpan = document.getElementById('wakilSimpan');
+
+            if (!overlay) return;
+
+            function bukaModal(btn, pilih) {
+                const id = btn.dataset.bidangId;
+                const daftar = dataAnggota[id] || [];
+
+                // Ketua tidak boleh dipilih sebagai wakil
+                const kandidat = daftar.filter(function(a) {
+                    return !a.ketua;
+                });
+
+                form.action = btn.dataset.url;
+                nama.textContent = btn.dataset.bidangNama;
+                asal.value = id;
+
+                select.replaceChildren();
+
+                const awal = document.createElement('option');
+                awal.value = '';
+                awal.textContent = 'Pilih anggota';
+                select.appendChild(awal);
+
+                kandidat.forEach(function(a) {
+                    const o = document.createElement('option');
+                    o.value = a.id;
+                    o.textContent = a.wakil ? a.nama + ' (wakil saat ini)' : a.nama;
+
+                    if (pilih !== null && pilih !== undefined) {
+                        o.selected = String(pilih) === String(a.id);
+                    } else {
+                        o.selected = !!a.wakil;
+                    }
+
+                    select.appendChild(o);
+                });
+
+                const adaAnggota = kandidat.length > 0;
+                kosong.hidden = adaAnggota;
+                select.disabled = !adaAnggota;
+                simpan.disabled = !adaAnggota;
+
+                overlay.hidden = false;
+            }
+
+            function tutup() {
+                overlay.hidden = true;
+            }
+
+            document.querySelectorAll('.wakil-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    bukaModal(btn, null);
+                });
+            });
+
+            document.getElementById('wakilBatal').addEventListener('click', tutup);
+
+            overlay.addEventListener('click', function(e) {
+                if (e.target === overlay) tutup();
+            });
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') tutup();
+            });
+
+            // Jika validasi gagal, buka kembali modal bidang sebelumnya
+            if (bukaId) {
+                const btn = document.querySelector(
+                    '.wakil-btn[data-bidang-id="' + bukaId + '"]'
+                );
+
                 if (btn) bukaModal(btn, lamaId);
             }
         })();
