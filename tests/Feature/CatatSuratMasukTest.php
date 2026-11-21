@@ -6,11 +6,9 @@ use App\Models\Bidang;
 use App\Models\Pengguna;
 use App\Models\Peran;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
@@ -65,14 +63,17 @@ class CatatSuratMasukTest extends TestCase
 
     private function payloadValid(array $override = []): array
     {
+        $tanggalDiterima = $override['tanggal_diterima'] ?? '2032-01-12';
+
         return array_merge([
             'nomor_surat'       => 'SM-' . uniqid(),
             'asal_surat'        => 'Sekretariat Jenderal Kemenkeu',
             'tanggal_surat'     => '2032-01-10',
-            'tanggal_diterima'  => '2032-01-12',
+            'tanggal_diterima'  => $tanggalDiterima,
+            'lampiran'          => '1 berkas',
             'perihal'           => 'Undangan Rapat Koordinasi DWP',
             'disposisi'         => 'Diteruskan ke Ketua Bidang Pendidikan',
-            'tanggal_disposisi' => '2032-01-13',
+            'tanggal_disposisi' => $tanggalDiterima,
             'keterangan'        => 'Harap ditindaklanjuti sebelum Jumat',
         ], $override);
     }
@@ -81,10 +82,7 @@ class CatatSuratMasukTest extends TestCase
 
     public function test_sekretariat_berhasil_mencatat_surat_masuk_lengkap_dan_tampil_di_daftar(): void
     {
-        Storage::fake('public');
-
         $sekretariat = $this->sekretariat();
-        $file = UploadedFile::fake()->create('undangan-rapat.pdf', 200, 'application/pdf');
         $nomorSurat = 'UND-01/SJ.1/' . uniqid();
 
         $payload = $this->payloadValid([
@@ -92,7 +90,7 @@ class CatatSuratMasukTest extends TestCase
             'asal_surat'        => 'Biro Umum Kemenkeu',
             'tanggal_surat'     => '2032-01-05',
             'tanggal_diterima'  => '2032-01-06',
-            'lampiran'          => $file,
+            'lampiran'          => '2 lembar',
             'perihal'           => 'Permohonan Peserta Seminar Nasional',
             'disposisi'         => 'Koordinasikan dengan Bidang Sosial Budaya',
             'tanggal_disposisi' => '2032-01-07',
@@ -115,15 +113,13 @@ class CatatSuratMasukTest extends TestCase
         $this->assertSame('Biro Umum Kemenkeu', $tersimpan->asal_surat);
         $this->assertSame('2032-01-05', $tersimpan->tanggal_surat);
         $this->assertSame('2032-01-06', $tersimpan->tanggal_diterima);
+        $this->assertSame('2 lembar', $tersimpan->lampiran);
         $this->assertSame('Permohonan Peserta Seminar Nasional', $tersimpan->perihal);
         $this->assertSame('Koordinasikan dengan Bidang Sosial Budaya', $tersimpan->disposisi);
         $this->assertSame('2032-01-07', $tersimpan->tanggal_disposisi);
         $this->assertSame('Arsip penting', $tersimpan->keterangan);
         $this->assertSame($sekretariat->id_pengguna, (int) $tersimpan->dibuat_oleh);
-        $this->assertNotNull($tersimpan->lampiran);
-        $this->assertTrue(Storage::disk('public')->exists($tersimpan->lampiran));
-        
-        // Cek tampil di daftar surat masuk
+
         $this->actingAs($sekretariat)
             ->get(route('surat.index', ['jenis' => 'masuk']))
             ->assertOk()
@@ -143,6 +139,7 @@ class CatatSuratMasukTest extends TestCase
                 'asal_surat'       => 'Direktorat Jenderal Pajak',
                 'tanggal_surat'    => '2032-03-10',
                 'tanggal_diterima' => '2032-03-10',
+                'lampiran'         => '-',
                 'perihal'          => 'Pemberitahuan Kegiatan Bakti Sosial',
             ])
             ->assertRedirect(route('surat.index', ['jenis' => 'masuk']))
@@ -151,10 +148,10 @@ class CatatSuratMasukTest extends TestCase
         $this->assertDatabaseHas('surat_masuk', [
             'nomor_surat'       => $nomorSurat,
             'nomor_agenda'      => '001/III/2032',
+            'lampiran'          => '-',
             'disposisi'         => null,
             'tanggal_disposisi' => null,
             'keterangan'        => null,
-            'lampiran'          => null,
         ]);
     }
 
@@ -164,7 +161,6 @@ class CatatSuratMasukTest extends TestCase
     {
         $sekretariat = $this->sekretariat();
 
-        // Surat 1 di bulan Januari 2033 -> 001/I/2033
         $no1 = 'SM-JAN-1-' . uniqid();
         $this->actingAs($sekretariat)
             ->post(route('surat.simpan-masuk'), $this->payloadValid([
@@ -174,7 +170,6 @@ class CatatSuratMasukTest extends TestCase
             ]))
             ->assertSessionHasNoErrors();
 
-        // Surat 2 di bulan Januari 2033 -> 002/I/2033
         $no2 = 'SM-JAN-2-' . uniqid();
         $this->actingAs($sekretariat)
             ->post(route('surat.simpan-masuk'), $this->payloadValid([
@@ -184,7 +179,6 @@ class CatatSuratMasukTest extends TestCase
             ]))
             ->assertSessionHasNoErrors();
 
-        // Surat 3 di bulan berbeda (Februari 2033) -> 001/II/2033
         $no3 = 'SM-FEB-1-' . uniqid();
         $this->actingAs($sekretariat)
             ->post(route('surat.simpan-masuk'), $this->payloadValid([
@@ -246,6 +240,25 @@ class CatatSuratMasukTest extends TestCase
         $this->assertDatabaseMissing('surat_masuk', ['nomor_surat' => $nomorSurat]);
     }
 
+    public function test_tanggal_disposisi_sebelum_tanggal_diterima_ditolak(): void
+    {
+        $sekretariat = $this->sekretariat();
+        $nomorSurat = 'SM-DISPO-TGL-' . uniqid();
+
+        $this->actingAs($sekretariat)
+            ->post(route('surat.simpan-masuk'), $this->payloadValid([
+                'nomor_surat'       => $nomorSurat,
+                'tanggal_surat'     => '2032-05-10',
+                'tanggal_diterima'  => '2032-05-15',
+                'tanggal_disposisi' => '2032-05-14',
+            ]))
+            ->assertSessionHasErrors([
+                'tanggal_disposisi' => 'Tanggal disposisi tidak boleh lebih awal dari tanggal diterima',
+            ]);
+
+        $this->assertDatabaseMissing('surat_masuk', ['nomor_surat' => $nomorSurat]);
+    }
+
     // ---------- AC 4: Kolom wajib kosong & nomor surat ganda ditolak ----------
 
     #[DataProvider('kolomWajib')]
@@ -281,24 +294,6 @@ class CatatSuratMasukTest extends TestCase
             1,
             DB::table('surat_masuk')->where('nomor_surat', $nomorGanda)->count()
         );
-    }
-
-    public function test_format_lampiran_tidak_didukung_ditolak(): void
-    {
-        Storage::fake('public');
-
-        $sekretariat = $this->sekretariat();
-        $nomorSurat = 'SM-FILE-' . uniqid();
-        $fileIlegal = UploadedFile::fake()->create('script.exe', 100, 'application/x-msdownload');
-
-        $this->actingAs($sekretariat)
-            ->post(route('surat.simpan-masuk'), $this->payloadValid([
-                'nomor_surat' => $nomorSurat,
-                'lampiran'    => $fileIlegal,
-            ]))
-            ->assertSessionHasErrors(['lampiran' => 'Format lampiran tidak didukung']);
-
-        $this->assertDatabaseMissing('surat_masuk', ['nomor_surat' => $nomorSurat]);
     }
 
     // ---------- AC 5: Keamanan RBAC & sesi ----------
@@ -356,7 +351,6 @@ class CatatSuratMasukTest extends TestCase
             'perihal'     => $perihalBerbahaya,
         ]);
 
-        // Output di HTML harus di-escape (tag <script> mentah tidak boleh muncul)
         $this->actingAs($sekretariat)
             ->get(route('surat.index', ['jenis' => 'masuk']))
             ->assertOk()
@@ -413,6 +407,7 @@ class CatatSuratMasukTest extends TestCase
             'asal_surat'       => ['asal_surat', 'Asal surat wajib diisi'],
             'tanggal_surat'    => ['tanggal_surat', 'Tanggal surat wajib diisi'],
             'tanggal_diterima' => ['tanggal_diterima', 'Tanggal diterima wajib diisi'],
+            'lampiran'         => ['lampiran', 'Lampiran wajib diisi'],
             'perihal'          => ['perihal', 'Perihal wajib diisi'],
         ];
     }

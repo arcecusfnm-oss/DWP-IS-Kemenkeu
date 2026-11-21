@@ -216,6 +216,13 @@ class ProgramKerjaController extends Controller
             }
         }
 
+        $statusLama  = property_exists($lama, 'status') ? (string) ($lama->status ?? '') : '';
+        $ajukanUlang = strcasecmp($statusLama, 'Perlu Revisi') === 0;
+
+        if ($ajukanUlang) {
+            $berubah[] = 'status';
+        }
+
         if ($berubah === []) {
             if ($request->expectsJson()) {
                 return response()->json([
@@ -229,22 +236,28 @@ class ProgramKerjaController extends Controller
                 ->with('sukses', 'Tidak ada perubahan pada program kerja.');
         }
 
+        $payloadUpdate = [
+            'nama_program'    => $data['nama_program'],
+            'tujuan'          => $data['tujuan'],
+            'sasaran_peserta' => $data['sasaran_peserta'] ?? null,
+            'metode'          => $data['metode'] ?? null,
+            'tanggal_mulai'   => $data['tanggal_mulai'],
+            'tanggal_selesai' => $data['tanggal_selesai'],
+            'tempat'          => $data['tempat'] ?? null,
+            'anggaran'        => $data['anggaran'] ?? null,
+            'keterangan'      => $data['keterangan'] ?? null,
+            'updated_at'      => now(),
+        ];
+
+        if ($ajukanUlang && property_exists($lama, 'status')) {
+            $payloadUpdate['status'] = 'Diajukan';
+        }
+
         try {
             DB::table('program_kerja')
                 ->where('id_program_kerja', $id)
                 ->where('id_bidang', $idBidang)
-                ->update([
-                    'nama_program'    => $data['nama_program'],
-                    'tujuan'          => $data['tujuan'],
-                    'sasaran_peserta' => $data['sasaran_peserta'] ?? null,
-                    'metode'          => $data['metode'] ?? null,
-                    'tanggal_mulai'   => $data['tanggal_mulai'],
-                    'tanggal_selesai' => $data['tanggal_selesai'],
-                    'tempat'          => $data['tempat'] ?? null,
-                    'anggaran'        => $data['anggaran'] ?? null,
-                    'keterangan'      => $data['keterangan'] ?? null,
-                    'updated_at'      => now(),
-                ]);
+                ->update($payloadUpdate);
         } catch (QueryException $e) {
             Log::error('Gagal mengubah program kerja', [
                 'pengguna_id'      => Auth::id(),
@@ -266,16 +279,20 @@ class ProgramKerjaController extends Controller
             'dicatat_pada'      => now()->toDateTimeString(),
         ]);
 
+        $pesanSukses = $ajukanUlang
+            ? 'Program kerja berhasil diperbaiki dan diajukan kembali.'
+            : 'Program kerja berhasil diubah.';
+
         if ($request->expectsJson()) {
             return response()->json([
-                'pesan'            => 'Program kerja berhasil diubah.',
+                'pesan'            => $pesanSukses,
                 'id_program_kerja' => $id,
             ]);
         }
 
         return redirect()
             ->route('program-kerja.bidang-saya')
-            ->with('sukses', 'Program kerja berhasil diubah.');
+            ->with('sukses', $pesanSukses);
     }
 
     /**

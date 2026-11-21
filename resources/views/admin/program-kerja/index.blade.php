@@ -148,7 +148,7 @@
                                 <td>{{ $programKerja->firstItem() + $i }}</td>
                                 <td><strong>{{ $p->nama_program }}</strong></td>
                                 <td>
-                                    <span class="akun-pill" style="{{ $gayaPill($p->nama_bidang) }}">{{ $p->nama_bidang }}</span>
+                                    <span class="akun-pill" @style([$gayaPill($p->nama_bidang) => isset($warnaBidang[$p->nama_bidang])])>{{ $p->nama_bidang }}</span>
                                 </td>
                                 <td>
                                     <span class="skb-deskripsi" title="{{ $p->tujuan }}">{{ $p->tujuan ?: '-' }}</span>

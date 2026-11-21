@@ -223,6 +223,7 @@ class CatatSuratKeluarTest extends TestCase
             'asal_surat' => 'Instansi Pengujian',
             'tanggal_surat' => '2031-11-20',
             'tanggal_diterima' => '2031-11-20',
+            'lampiran' => '1 berkas',
             'perihal' => 'Surat masuk pengujian',
             'dibuat_oleh' => $this->admin()->id_pengguna,
             'created_at' => now(),

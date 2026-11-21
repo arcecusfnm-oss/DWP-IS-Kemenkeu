@@ -50,19 +50,19 @@
             </div>
         @endif
 
-        {{-- Bidang (hanya tampilan; bidang asli diambil dari akun di server) --}}
+        {{-- Bidang (hanya tampilan; bidang asli & status awal Diajukan diatur di server) --}}
         <div class="akun-field">
             <label for="bidang_tampil">Bidang <em>*</em></label>
             <div class="akun-input akun-readonly">
                 <input type="text" id="bidang_tampil" value="{{ $namaBidang }}" disabled>
                 <svg class="akun-lock" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
             </div>
-            <p class="akun-hint">Diisi otomatis sesuai akun Anda.</p>
+            <p class="akun-hint">Diisi otomatis sesuai akun Anda dengan status awal Diajukan.</p>
         </div>
 
-        {{-- Nama program --}}
+        {{-- 1. Proker / Kegiatan --}}
         <div class="akun-field {{ isset($err['nama_program']) ? 'has-error' : '' }}">
-            <label for="nama_program">Nama Program <em>*</em></label>
+            <label for="nama_program">Proker / Kegiatan <em>*</em></label>
             <div class="akun-input">
                 <input type="text" id="nama_program" name="nama_program" maxlength="255"
                        placeholder="Contoh: Pelatihan Literasi Keuangan Keluarga" value="{{ old('nama_program') }}">
@@ -72,7 +72,7 @@
             @endisset
         </div>
 
-        {{-- Tujuan --}}
+        {{-- 2. Tujuan --}}
         <div class="akun-field {{ isset($err['tujuan']) ? 'has-error' : '' }}">
             <label for="tujuan">Tujuan <em>*</em></label>
             <div class="akun-input">
@@ -84,10 +84,10 @@
             @endisset
         </div>
 
-        {{-- Sasaran peserta + metode --}}
+        {{-- 3. Sasaran Peserta + 4. Metode --}}
         <div class="akun-baris">
             <div class="akun-field {{ isset($err['sasaran_peserta']) ? 'has-error' : '' }}">
-                <label for="sasaran_peserta">Sasaran Peserta</label>
+                <label for="sasaran_peserta">Sasaran Peserta <em>*</em></label>
                 <div class="akun-input">
                     <input type="text" id="sasaran_peserta" name="sasaran_peserta" maxlength="255"
                            placeholder="Contoh: Anggota DWP dan keluarga" value="{{ old('sasaran_peserta') }}">
@@ -98,7 +98,7 @@
             </div>
 
             <div class="akun-field {{ isset($err['metode']) ? 'has-error' : '' }}">
-                <label for="metode">Metode</label>
+                <label for="metode">Metode <em>*</em></label>
                 <div class="akun-input">
                     <input type="text" id="metode" name="metode" maxlength="255"
                            placeholder="Contoh: Seminar dan diskusi" value="{{ old('metode') }}">
@@ -109,10 +109,10 @@
             </div>
         </div>
 
-        {{-- Tanggal mulai + selesai --}}
+        {{-- 5. Jadwal (Tanggal Mulai + Tanggal Selesai) --}}
         <div class="akun-baris">
             <div class="akun-field {{ isset($err['tanggal_mulai']) ? 'has-error' : '' }}">
-                <label for="tanggal_mulai">Tanggal Mulai <em>*</em></label>
+                <label for="tanggal_mulai">Tanggal Mulai (Jadwal) <em>*</em></label>
                 <div class="akun-input">
                     <input type="date" id="tanggal_mulai" name="tanggal_mulai" value="{{ old('tanggal_mulai') }}">
                 </div>
@@ -122,7 +122,7 @@
             </div>
 
             <div class="akun-field {{ isset($err['tanggal_selesai']) ? 'has-error' : '' }}">
-                <label for="tanggal_selesai">Tanggal Selesai <em>*</em></label>
+                <label for="tanggal_selesai">Tanggal Selesai (Jadwal) <em>*</em></label>
                 <div class="akun-input">
                     <input type="date" id="tanggal_selesai" name="tanggal_selesai" value="{{ old('tanggal_selesai') }}">
                 </div>
@@ -132,10 +132,10 @@
             </div>
         </div>
 
-        {{-- Tempat + anggaran --}}
+        {{-- 6. Tempat + 7. Anggaran (Rp) --}}
         <div class="akun-baris">
             <div class="akun-field {{ isset($err['tempat']) ? 'has-error' : '' }}">
-                <label for="tempat">Tempat</label>
+                <label for="tempat">Tempat <em>*</em></label>
                 <div class="akun-input">
                     <input type="text" id="tempat" name="tempat" maxlength="255"
                            placeholder="Contoh: Gedung Djuanda I Kemenkeu / Hybrid via Zoom" value="{{ old('tempat') }}">
@@ -146,7 +146,7 @@
             </div>
 
             <div class="akun-field {{ isset($err['anggaran']) ? 'has-error' : '' }}">
-                <label for="anggaran">Anggaran (Rp)</label>
+                <label for="anggaran">Anggaran (Rp) <em>*</em></label>
                 <div class="akun-input akun-rp">
                     <span class="akun-prefix">Rp</span>
                     <input type="number" id="anggaran" name="anggaran" min="0" step="0.01"
@@ -160,12 +160,12 @@
             </div>
         </div>
 
-        {{-- Keterangan --}}
+        {{-- 8. Keterangan (Opsional) --}}
         <div class="akun-field {{ isset($err['keterangan']) ? 'has-error' : '' }}">
-            <label for="keterangan">Keterangan</label>
+            <label for="keterangan">Keterangan (Opsional)</label>
             <div class="akun-input">
                 <textarea id="keterangan" name="keterangan" maxlength="2000" rows="4"
-                          placeholder="Catatan atau rincian tambahan (opsional)">{{ old('keterangan') }}</textarea>
+                          placeholder="Rincian anggaran atau catatan tambahan (opsional)">{{ old('keterangan') }}</textarea>
             </div>
             @isset($err['keterangan'])
                 <p class="akun-error"><x-icon name="x-circle" :size="14" /> {{ $err['keterangan'] }}</p>
