@@ -79,6 +79,7 @@ class UbahSuratTest extends TestCase
                 'asal_surat'       => 'Asal Awal',
                 'tanggal_surat'    => '2031-01-10',
                 'tanggal_diterima' => '2031-01-12',
+                'lampiran'         => '1 berkas',
                 'perihal'          => 'Perihal Awal',
                 'dibuat_oleh'      => $this->admin()->id_pengguna,
                 'created_at'       => now(),
@@ -110,15 +111,17 @@ class UbahSuratTest extends TestCase
                 'asal_surat'       => 'Asal Baru',
                 'tanggal_surat'    => '2031-02-01',
                 'tanggal_diterima' => '2031-02-03',
+                'lampiran'         => '2 lembar',
                 'perihal'          => 'Perihal Baru',
             ];
         } else {
             $data = [
-                'nomor_surat'     => 'K-BARU-' . uniqid(),
-                'tanggal'         => '2031-02-01',
-                'tujuan'          => 'Tujuan Baru',
-                'perihal'         => 'Perihal Baru',
-                'status_terkirim' => 'sudah',
+                'nomor_surat'       => 'K-BARU-' . uniqid(),
+                'tanggal'           => '2031-02-01',
+                'tujuan'            => 'Tujuan Baru',
+                'perihal'           => 'Perihal Baru',
+                'status_terkirim'   => 'sudah',
+                'id_bidang_terkait' => $this->bidang('Pendidikan')->id_bidang,
             ];
         }
 

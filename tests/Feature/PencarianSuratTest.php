@@ -92,6 +92,7 @@ class PencarianSuratTest extends TestCase
             'asal_surat'       => 'Asal Uji',
             'tanggal_surat'    => $tanggal,
             'tanggal_diterima' => $tanggal,
+            'lampiran'         => '1 berkas',
             'perihal'          => $perihal,
             'dibuat_oleh'      => $this->admin()->id_pengguna,
             'created_at'       => now(),

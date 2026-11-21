@@ -28,8 +28,8 @@
          'hint' => 'Tanggal yang tercantum pada surat'],
         ['nama' => 'tanggal_diterima', 'label' => 'Tanggal Diterima', 'wajib' => true, 'tipe' => 'date', 'ikon' => 'surel',
          'hint' => 'Tanggal surat diterima oleh sekretariat'],
-        ['nama' => 'lampiran', 'label' => 'Lampiran Digital', 'tipe' => 'file', 'ikon' => 'klip', 'penuh' => true,
-         'hint' => 'Opsional. PDF, JPG, PNG, DOC, DOCX, XLS, XLSX. Maksimal 5 MB'],
+        ['nama' => 'lampiran', 'label' => 'Lampiran', 'wajib' => true, 'ikon' => 'klip', 'penuh' => true, 'maks' => 255,
+         'hint' => 'Jumlah atau jenis lampiran surat (contoh: 1 berkas, 2 lembar, atau - jika tidak ada)'],
         ['nama' => 'perihal', 'label' => 'Perihal', 'wajib' => true, 'tipe' => 'textarea', 'penuh' => true, 'maks' => 255, 'hitung' => true,
          'hint' => 'Ringkasan pokok isi surat'],
     ];
