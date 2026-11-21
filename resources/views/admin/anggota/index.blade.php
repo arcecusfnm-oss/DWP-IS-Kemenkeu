@@ -59,6 +59,127 @@
             outline-offset: 2px;
         }
 
+        .agl-aksi button.agl-btn-pindah {
+            width: 32px;
+            height: 32px;
+            display: grid;
+            place-items: center;
+            border: 0;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--ink);
+            cursor: pointer;
+        }
+
+        .agl-aksi button.agl-btn-pindah:hover {
+            background: #fdf1ea;
+            color: var(--coklat-tua);
+        }
+
+        .agl-aksi a:focus-visible,
+        .agl-aksi button:focus-visible {
+            outline: 2px solid #c2653d;
+            outline-offset: 2px;
+        }
+
+        .agl-modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 1050;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            background: rgba(40, 20, 10, .5);
+        }
+
+        .agl-modal-overlay[hidden] {
+            display: none;
+        }
+
+        .agl-modal {
+            width: 100%;
+            max-width: 440px;
+            padding: 26px;
+            border-radius: 16px;
+            background: #fff;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, .25);
+            text-align: left;
+        }
+
+        .agl-modal h2 {
+            margin: 0 0 8px;
+            font-size: 20px;
+            color: var(--ink);
+        }
+
+        .agl-modal-deskripsi {
+            margin: 0 0 20px;
+            color: #6b625d;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .agl-modal-field {
+            margin-bottom: 20px;
+        }
+
+        .agl-modal-field label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--ink);
+        }
+
+        .agl-modal-field select {
+            width: 100%;
+            min-height: 44px;
+            padding: 10px 12px;
+            border: 1px solid #d9c9c0;
+            border-radius: 10px;
+            background: #fff;
+            color: var(--ink);
+            font: inherit;
+        }
+
+        .agl-modal-field select:focus-visible {
+            outline: 2px solid #c2653d;
+            outline-offset: 2px;
+        }
+
+        .agl-modal-aksi {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .agl-modal-batal,
+        .agl-modal-simpan {
+            padding: 10px 18px;
+            border: 1px solid transparent;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .agl-modal-batal {
+            background: #fff;
+            border-color: #d9c9c0;
+            color: #5b4a42;
+        }
+
+        .agl-modal-simpan {
+            background: #8b451f;
+            color: #fff;
+        }
+
+        .agl-modal-simpan:disabled {
+            opacity: .4;
+            cursor: not-allowed;
+        }
+
         .agl-belum {
             background: #ffe3c7;
             color: #9a4a14;
@@ -118,6 +239,31 @@
                 <button type="button" class="akun-alert-tutup" id="agl-sukses-tutup" aria-label="Tutup pesan">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                        <path d="M18 6 6 18M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+        @endif
+
+        {{-- Pesan gagal pindah bidang --}}
+        @if (session('error'))
+            <div class="akun-alert akun-alert-galat" role="alert" id="agl-galat">
+                <strong>{{ session('error') }}</strong>
+                <button type="button" class="akun-alert-tutup"
+                    onclick="document.getElementById('agl-galat').remove()" aria-label="Tutup pesan">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                        <path d="M18 6 6 18M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+        @elseif ($errors->any())
+            <div class="akun-alert akun-alert-galat" role="alert" id="agl-validasi">
+                <strong>{{ $errors->first() }}</strong>
+                <button type="button" class="akun-alert-tutup"
+                    onclick="document.getElementById('agl-validasi').remove()" aria-label="Tutup pesan">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
                         <path d="M18 6 6 18M6 6l12 12" />
                     </svg>
                 </button>
@@ -214,6 +360,24 @@
                                 </td>
                                 <td>
                                     <div class="agl-aksi">
+                                        @if ($a->id_bidang !== null)
+                                            <button type="button" class="agl-btn-pindah"
+                                                data-url="{{ route('admin.anggota.pindah-bidang', $a->id_anggota) }}"
+                                                data-nama="{{ $a->nama_lengkap }}"
+                                                data-bidang-asal="{{ $a->id_bidang }}"
+                                                aria-label="Pindah bidang {{ $a->nama_lengkap }}"
+                                                title="Pindah bidang">
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                    stroke-linejoin="round" aria-hidden="true">
+                                                    <path d="M7 7h13l-3-3" />
+                                                    <path d="M20 7l-3 3" />
+                                                    <path d="M17 17H4l3 3" />
+                                                    <path d="M4 17l3-3" />
+                                                </svg>
+                                            </button>
+                                        @endif
+
                                         <a href="{{ route('admin.anggota.edit', $a->id_anggota) }}"
                                             aria-label="Edit data {{ $a->nama_lengkap }}" title="Edit anggota">
                                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
@@ -264,11 +428,43 @@
             </div>
         </div>
     </div>
+    {{-- Modal pindah bidang anggota --}}
+    <div class="agl-modal-overlay" id="agl-modal-overlay" hidden>
+        <div class="agl-modal" role="dialog" aria-modal="true" aria-labelledby="agl-modal-title">
+            <h2 id="agl-modal-title">Pindah Bidang</h2>
+            <p class="agl-modal-deskripsi">
+                Pilih bidang baru untuk anggota <strong id="agl-modal-nama"></strong>.
+            </p>
+
+            <form id="agl-form-pindah" method="POST">
+                @csrf
+                @method('PUT')
+
+                <div class="agl-modal-field">
+                    <label for="agl-bidang-tujuan">Bidang tujuan</label>
+                    <select name="id_bidang" id="agl-bidang-tujuan" required>
+                        <option value="">Pilih bidang tujuan</option>
+                        @foreach ($daftarBidang as $b)
+                            <option value="{{ $b->id_bidang }}">{{ $b->nama_bidang }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="agl-modal-aksi">
+                    <button type="button" class="agl-modal-batal" id="agl-modal-batal">Batal</button>
+                    <button type="submit" class="agl-modal-simpan" id="agl-modal-simpan" disabled>
+                        Simpan Perubahan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
     <script>
         (function() {
+            // Tutup pesan sukses
             var tutup = document.getElementById('agl-sukses-tutup');
             var kotak = document.getElementById('agl-sukses');
             if (tutup && kotak) {
@@ -276,15 +472,75 @@
                     kotak.hidden = true;
                 });
             }
-            // Dropdown filter langsung kirim form saat diganti (tidak ada tombol submit).
-            var form = document.querySelector('form.akun-filter');
-            if (form) {
-                form.querySelectorAll('select').forEach(function(s) {
+
+            // Dropdown filter langsung submit saat diganti
+            var formFilter = document.querySelector('form.akun-filter');
+            if (formFilter) {
+                formFilter.querySelectorAll('select').forEach(function(s) {
                     s.addEventListener('change', function() {
-                        form.submit();
+                        formFilter.submit();
                     });
                 });
             }
+
+            // Modal pindah bidang
+            var overlay = document.getElementById('agl-modal-overlay');
+            var formPindah = document.getElementById('agl-form-pindah');
+            var namaAnggota = document.getElementById('agl-modal-nama');
+            var selectBidang = document.getElementById('agl-bidang-tujuan');
+            var tombolSimpan = document.getElementById('agl-modal-simpan');
+            var tombolBatal = document.getElementById('agl-modal-batal');
+            var tombolPindah = document.querySelectorAll('.agl-btn-pindah');
+            var bidangAsal = '';
+
+            function perbaruiSimpan() {
+                tombolSimpan.disabled = !selectBidang.value ||
+                    selectBidang.value === bidangAsal;
+            }
+
+            function bukaModal(button) {
+                formPindah.action = button.dataset.url;
+                namaAnggota.textContent = button.dataset.nama;
+                bidangAsal = button.dataset.bidangAsal || '';
+                selectBidang.value = '';
+                perbaruiSimpan();
+                overlay.hidden = false;
+                selectBidang.focus();
+            }
+
+            function tutupModal() {
+                overlay.hidden = true;
+                selectBidang.value = '';
+                perbaruiSimpan();
+            }
+
+            tombolPindah.forEach(function(button) {
+                button.addEventListener('click', function() {
+                    bukaModal(button);
+                });
+            });
+
+            selectBidang.addEventListener('change', perbaruiSimpan);
+            tombolBatal.addEventListener('click', tutupModal);
+
+            overlay.addEventListener('click', function(event) {
+                if (event.target === overlay) {
+                    tutupModal();
+                }
+            });
+
+            document.addEventListener('keydown', function(event) {
+                if (!overlay.hidden && event.key === 'Escape') {
+                    tutupModal();
+                }
+            });
+
+            formPindah.addEventListener('submit', function(event) {
+                if (!selectBidang.value || selectBidang.value === bidangAsal) {
+                    event.preventDefault();
+                    perbaruiSimpan();
+                }
+            });
         })();
     </script>
 @endpush
