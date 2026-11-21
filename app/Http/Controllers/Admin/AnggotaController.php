@@ -57,6 +57,7 @@ class AnggotaController extends Controller
             ->whereNull('anggota.dihapus_pada')
             ->select(
                 'anggota.id_anggota',
+                'anggota.id_bidang',
                 'anggota.nama_lengkap',
                 'anggota.nama_panggilan',
                 'anggota.nomor_telepon',
