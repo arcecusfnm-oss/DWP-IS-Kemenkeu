@@ -70,9 +70,12 @@ class DaftarProgramKerjaSeluruhBidangTest extends TestCase
 
     public function test_admin_dan_penasihat_bisa_membuka_halaman(): void
     {
-        foreach (['Admin', 'Penasihat'] as $peran) {
+        foreach ([
+            'Admin'     => 'admin.program-kerja.index',
+            'Penasihat' => 'penasihat.program-kerja.index',
+        ] as $peran => $namaRoute) {
             $this->actingAs($this->buatPengguna($peran))
-                ->get(route('admin.program-kerja.index'))
+                ->get(route($namaRoute))
                 ->assertOk()
                 ->assertViewIs('admin.program-kerja.index');
         }
@@ -161,11 +164,22 @@ class DaftarProgramKerjaSeluruhBidangTest extends TestCase
         $this->buatProgram($bidangB, $penasihat->id_pengguna, 'Program JSON B');
 
         $this->actingAs($penasihat)
-            ->getJson(route('admin.program-kerja.index', ['bidang' => $bidangA]))
+            ->getJson(route('penasihat.program-kerja.index', ['bidang' => $bidangA]))
             ->assertOk()
             ->assertJsonPath('total', 2)
             ->assertJsonPath('bidang', $bidangA)
             ->assertJsonPath('pesan', null);
+    }
+
+    public function test_penasihat_dan_admin_tidak_bisa_lintas_route(): void
+    {
+        $this->actingAs($this->buatPengguna('Penasihat'))
+            ->get(route('admin.program-kerja.index'))
+            ->assertForbidden();
+
+        $this->actingAs($this->buatPengguna('Admin'))
+            ->get(route('penasihat.program-kerja.index'))
+            ->assertForbidden();
     }
 
     public function test_filter_bidang_tidak_ada_ditolak(): void

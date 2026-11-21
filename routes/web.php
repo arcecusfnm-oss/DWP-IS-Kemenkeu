@@ -112,7 +112,7 @@ Route::middleware(['auth', 'role:Penasihat', NoCache::class])
     ->name('penasihat.')
     ->group(function () {
         // Sementara: dasbor Penasihat belum ada, arahkan ke daftar program kerja.
-        Route::get('/dashboard', fn() => redirect()->route('admin.program-kerja.index'))
+        Route::get('/dashboard', fn() => redirect()->route('penasihat.program-kerja.index'))
             ->name('dashboard');
     });
 
@@ -181,10 +181,20 @@ Route::middleware(['auth', 'role:Admin', NoCache::class])
             ->name('pindah-bidang');
     });
 
-// Daftar program kerja seluruh bidang (hanya baca; Admin dan Penasihat) - T-93
-Route::middleware(['auth', 'role:Admin,Penasihat', NoCache::class])
+// Daftar program kerja seluruh bidang (hanya baca) - T-93
+// Admin: /admin/program-kerja
+Route::middleware(['auth', 'role:Admin', NoCache::class])
     ->prefix('admin/program-kerja')
     ->name('admin.program-kerja.')
+    ->group(function () {
+        Route::get('/', [ProgramKerjaController::class, 'seluruhBidang'])
+            ->name('index');
+    });
+
+// Penasihat: /penasihat/program-kerja
+Route::middleware(['auth', 'role:Penasihat', NoCache::class])
+    ->prefix('penasihat/program-kerja')
+    ->name('penasihat.program-kerja.')
     ->group(function () {
         Route::get('/', [ProgramKerjaController::class, 'seluruhBidang'])
             ->name('index');

@@ -27,7 +27,7 @@
         ['label' => 'Dasbor', 'icon' => 'dashboard', 'href' => 'penasihat.dashboard', 'route' => 'penasihat.dashboard'],
         ['label' => 'Struktur Organisasi', 'icon' => 'org', 'href' => null, 'route' => 'penasihat.struktur.*'],
         ['label' => 'Anggota Bidang', 'icon' => 'users', 'href' => null, 'route' => 'penasihat.anggota.*'],
-        ['label' => 'Program Kerja', 'icon' => 'clipboard', 'href' => 'admin.program-kerja.index', 'route' => 'admin.program-kerja.*'],
+        ['label' => 'Program Kerja', 'icon' => 'clipboard', 'href' => 'penasihat.program-kerja.index', 'route' => 'penasihat.program-kerja.*'],
     ];
 @endphp
 
