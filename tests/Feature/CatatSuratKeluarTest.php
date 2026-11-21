@@ -67,13 +67,21 @@ class CatatSuratKeluarTest extends TestCase
             ->post(route('surat.keluar.store'), $data);
     }
 
+    private function jumlahSuratKeluar(): int
+    {
+        return DB::table('surat_keluar')->count();
+    }
+
     // ---------------------------------------------------- penyimpanan
 
     public function test_admin_berhasil_mencatat_surat_keluar(): void
     {
         Log::spy();
 
-        $data = $this->payload();
+        $data = $this->payload([
+            'tujuan' => 'RAHASIA_TUJUAN_SURAT',
+            'perihal' => 'RAHASIA_PERIHAL_SURAT',
+        ]);
 
         $response = $this->kirimSurat($data);
 
@@ -89,11 +97,17 @@ class CatatSuratKeluarTest extends TestCase
             'dibuat_oleh' => $this->admin()->id_pengguna,
         ]);
 
+        // Log memuat pencatat dan nomor surat, tetapi tidak memuat isi
+        // tujuan dan perihal (log tanpa data sensitif).
         Log::shouldHaveReceived('info')
             ->once()
             ->with('Surat keluar dicatat', \Mockery::on(function ($context) use ($data) {
+                $json = json_encode($context);
+
                 return $context['pengguna_id'] === $this->admin()->id_pengguna
-                    && $context['nomor_surat'] === $data['nomor_surat'];
+                    && $context['nomor_surat'] === $data['nomor_surat']
+                    && ! str_contains($json, 'RAHASIA_TUJUAN_SURAT')
+                    && ! str_contains($json, 'RAHASIA_PERIHAL_SURAT');
             }));
     }
 
@@ -135,46 +149,68 @@ class CatatSuratKeluarTest extends TestCase
         ]);
     }
 
+    public function test_surat_keluar_tersimpan_tampil_di_daftar_jenis_keluar(): void
+    {
+        $nomor = 'ND-DAFTAR-' . uniqid();
+        $tujuan = 'Biro Tujuan ' . uniqid();
+
+        $this->kirimSurat($this->payload([
+            'nomor_surat' => $nomor,
+            'tujuan' => $tujuan,
+        ]))->assertSessionHas('sukses');
+
+        $this->actingAs($this->admin())
+            ->get(route('surat.index', ['jenis' => 'keluar']))
+            ->assertOk()
+            ->assertSee($nomor)
+            ->assertSee($tujuan);
+    }
+
     // ------------------------------------------------------ validasi
 
     public function test_field_wajib_ditolak_jika_kosong(): void
     {
+        $awal = $this->jumlahSuratKeluar();
+
         foreach ([
-            'nomor_surat',
-            'tanggal_surat',
-            'tujuan',
-            'perihal',
-        ] as $field) {
+            'nomor_surat' => 'Nomor surat wajib diisi',
+            'tanggal_surat' => 'Tanggal surat wajib diisi',
+            'tujuan' => 'Tujuan wajib diisi',
+            'perihal' => 'Perihal wajib diisi',
+        ] as $field => $pesan) {
             $data = $this->payload([$field => '']);
 
             $this->kirimSurat($data)
-                ->assertSessionHasErrors($field);
+                ->assertSessionHasErrors([$field => $pesan]);
         }
 
-        $this->assertDatabaseCount('surat_keluar', 0);
+        $this->assertSame($awal, $this->jumlahSuratKeluar());
     }
 
     public function test_format_tanggal_tidak_valid_ditolak(): void
     {
+        $awal = $this->jumlahSuratKeluar();
+
         $this->kirimSurat($this->payload([
             'tanggal_surat' => '20-11-2031',
         ]))
             ->assertSessionHasErrors('tanggal_surat');
 
-        $this->assertDatabaseCount('surat_keluar', 0);
+        $this->assertSame($awal, $this->jumlahSuratKeluar());
     }
 
     public function test_nomor_surat_duplikat_di_surat_keluar_ditolak(): void
     {
+        $awal = $this->jumlahSuratKeluar();
         $data = $this->payload();
 
         $this->kirimSurat($data)
             ->assertSessionHas('sukses');
 
         $this->kirimSurat($data)
-            ->assertSessionHasErrors('nomor_surat');
+            ->assertSessionHasErrors(['nomor_surat' => 'Nomor surat sudah tercatat']);
 
-        $this->assertDatabaseCount('surat_keluar', 1);
+        $this->assertSame($awal + 1, $this->jumlahSuratKeluar());
     }
 
     public function test_nomor_surat_yang_sama_dengan_surat_masuk_tetap_boleh(): void
@@ -206,23 +242,66 @@ class CatatSuratKeluarTest extends TestCase
         ]);
     }
 
+    // ------------------------------------------------------- keamanan
+
+    public function test_tag_skrip_pada_tujuan_tersimpan_dan_tampil_sebagai_teks(): void
+    {
+        $nomor = 'ND-XSS-' . uniqid();
+        $tujuan = '<script>alert("xss-keluar")</script> "Uji" & \'Coba\'';
+
+        $this->kirimSurat($this->payload([
+            'nomor_surat' => $nomor,
+            'tujuan' => $tujuan,
+        ]))->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('surat_keluar', [
+            'nomor_surat' => $nomor,
+            'tujuan' => $tujuan,
+        ]);
+
+        // Output harus di-escape: tag mentah tidak boleh muncul di HTML.
+        $this->actingAs($this->admin())
+            ->get(route('surat.index', ['jenis' => 'keluar']))
+            ->assertOk()
+            ->assertDontSee('<script>alert("xss-keluar")</script>', false)
+            ->assertSee('<script>alert("xss-keluar")</script>');
+    }
+
     // ---------------------------------------------------- akses
 
     public function test_role_selain_admin_dan_sekretariat_ditolak(): void
     {
-        $user = $this->akun('Ketua');
+        $this->bidang('Sekretariat');
+        $ekonomi = $this->bidang('Bidang Ekonomi');
+        $awal = $this->jumlahSuratKeluar();
 
-        $this->kirimSurat($this->payload(), $user)
-            ->assertForbidden();
+        foreach ([
+            'Anggota Bidang',
+            'Pimpinan Bidang',
+            'Penanggung Jawab',
+            'Bendahara',
+            'Penasihat',
+        ] as $namaPeran) {
+            $user = $this->akun($namaPeran, $ekonomi);
 
-        $this->assertDatabaseCount('surat_keluar', 0);
+            $this->actingAs($user)
+                ->get(route('surat.keluar.create'))
+                ->assertForbidden();
+
+            $this->kirimSurat($this->payload(), $user)
+                ->assertForbidden();
+        }
+
+        $this->assertSame($awal, $this->jumlahSuratKeluar());
     }
 
     public function test_pengguna_belum_login_ditolak(): void
     {
+        $awal = $this->jumlahSuratKeluar();
+
         $this->postJson(route('surat.keluar.store'), $this->payload())
             ->assertUnauthorized();
 
-        $this->assertDatabaseCount('surat_keluar', 0);
+        $this->assertSame($awal, $this->jumlahSuratKeluar());
     }
 }
