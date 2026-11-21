@@ -10,29 +10,29 @@ return new class extends Migration
      * Run the migrations.
      *
      * Tabel surat masuk (B-035, T-58), mengikuti ERD revisi (SURAT_MASUK).
-     * Kolom wajib di ERD: nomor_agenda, nomor_surat, asal_surat, tanggal_surat,
-     * tanggal_diterima, perihal, dibuat_oleh.
+     * Kolom wajib: nomor_agenda, nomor_surat, asal_surat, tanggal_surat,
+     * tanggal_diterima, lampiran, perihal, dibuat_oleh.
      */
     public function up(): void
     {
         Schema::create('surat_masuk', function (Blueprint $table) {
             $table->id('id_surat_masuk');
 
-            // Format No. Urut/Bulan (romawi)/Tahun, contoh 1/I/2026. Unik (UK di ERD).
+            // Format No. Urut/Bulan (romawi)/Tahun berurutan lintas bulan, contoh 1/I/2026.
             $table->string('nomor_agenda', 50)->unique();
 
-            // Nomor surat dari pengirim. Unik sesuai AC 3 B-035 ("Nomor surat sudah tercatat").
+            // Nomor surat dari pengirim. Unik sesuai AC B-035 ("Nomor surat sudah tercatat").
             $table->string('nomor_surat', 100)->unique();
             $table->string('asal_surat');
             $table->date('tanggal_surat');
             $table->date('tanggal_diterima');
 
-            // Berkas lampiran disimpan di server; kolom ini hanya menyimpan lokasinya.
-            $table->string('lampiran')->nullable();
+            // Keterangan jumlah/jenis lampiran surat (wajib diisi sesuai AC #4 B-035).
+            $table->string('lampiran');
 
             $table->string('perihal');
 
-            // Disposisi pimpinan (opsional).
+            // Disposisi pimpinan & catatan tambahan (opsional).
             $table->text('disposisi')->nullable();
             $table->date('tanggal_disposisi')->nullable();
             $table->text('keterangan')->nullable();

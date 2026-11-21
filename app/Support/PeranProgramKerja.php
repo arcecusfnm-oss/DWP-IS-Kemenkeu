@@ -13,7 +13,8 @@ class PeranProgramKerja
     public const KELOLA_PROGRAM = ['Pimpinan Bidang', 'Anggota Bidang'];
 
     /** Boleh tambah, ubah, hapus kegiatan (US-127, 141, 142). */
-    public const KELOLA_KEGIATAN = ['Anggota Bidang'];
+    /** Boleh tambah, ubah, hapus kegiatan (AC B-048 poin 1). */
+    public const KELOLA_KEGIATAN = ['Pimpinan Bidang', 'Anggota Bidang'];
 
     /** Boleh melihat daftar program bidangnya sendiri; juga yang memakai layout bidang. */
     public const LIHAT_BIDANG_SENDIRI = ['Pimpinan Bidang', 'Anggota Bidang'];

@@ -55,6 +55,11 @@ class TambahKegiatanTest extends TestCase
         return $this->buatPengguna('Anggota Bidang', $idBidang, $username);
     }
 
+    private function buatPimpinan(int $idBidang, string $username = 'pimpinan_uji111'): Pengguna
+    {
+        return $this->buatPengguna('Pimpinan Bidang', $idBidang, $username);
+    }
+
     private function buatProgram(int $idBidang, int $dibuatOleh, array $ubah = []): int
     {
         return DB::table('program_kerja')->insertGetId(array_merge([
@@ -171,6 +176,26 @@ class TambahKegiatanTest extends TestCase
             ->assertViewIs('kegiatan.index')
             ->assertSee('Seminar Parenting Digital')
             ->assertSee('Program Literasi Anak');
+    }
+
+    public function test_pimpinan_bidang_berhasil_menambah_kegiatan_dari_program_kerja(): void
+    {
+        $bidang   = $this->buatBidang('Pendidikan');
+        $pimpinan = $this->buatPimpinan($bidang);
+        $program  = $this->buatProgram($bidang, $pimpinan->id_pengguna);
+
+        $this->kirim($pimpinan, $program, $this->dataValid([
+            'nama_kegiatan' => 'Rapat Koordinasi Pimpinan',
+        ]))
+            ->assertRedirect(route('kegiatan.index'))
+            ->assertSessionHas('sukses', 'Kegiatan berhasil ditambahkan.')
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('kegiatan', [
+            'id_program_kerja' => $program,
+            'nama_kegiatan'    => 'Rapat Koordinasi Pimpinan',
+            'dibuat_oleh'      => $pimpinan->id_pengguna,
+        ]);
     }
 
     // ---------- 2. Validasi tanggal & periode program (AC 2) ----------
@@ -329,7 +354,6 @@ class TambahKegiatanTest extends TestCase
     public static function peranYangDitolak(): array
     {
         return [
-            'Pimpinan Bidang'  => ['Pimpinan Bidang'],
             'Admin'            => ['Admin'],
             'Penasihat'        => ['Penasihat'],
             'Penanggung Jawab' => ['Penanggung Jawab'],
