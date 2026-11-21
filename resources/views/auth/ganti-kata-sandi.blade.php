@@ -21,8 +21,11 @@
                        border-radius:10px; font-size:14px; color:var(--coklat); }
         .kolom input:focus { outline:2px solid rgba(192,100,58,.35); border-color:var(--oranye); }
         .kolom input::-ms-reveal, .kolom input::-ms-clear { display:none; }
-        .mata { position:absolute; top:0; right:0; width:46px; height:46px; display:grid; place-items:center;
+        button.mata { position:absolute; top:0; right:0; width:46px; height:46px; display:grid; place-items:center;
                 border:0; background:none; cursor:pointer; color:#7a5c52; }
+        button.mata .mata-buka { display:none; }
+        button.mata.terlihat .mata-tutup { display:none; }
+        button.mata.terlihat .mata-buka { display:block; }
         .ada-error input { border-color:var(--merah); background:#fff6f4; }
         .pesan { margin:6px 0 0; font-size:12.5px; color:var(--merah); }
         .hint { margin:6px 0 0; font-size:12.5px; color:#7a5c52; }
@@ -54,7 +57,7 @@
                     <input id="kata_sandi_lama" name="kata_sandi_lama" type="password"
                            placeholder="Masukkan kata sandi sementara" autocomplete="current-password" maxlength="100" required>
                     <button type="button" class="mata" data-target="kata_sandi_lama" aria-label="Tampilkan kata sandi">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                        @include('admin.partials.ikon-mata')
                     </button>
                 </div>
                 @if ($errLama) <p class="pesan">{{ $errLama }}</p> @endif
@@ -66,7 +69,7 @@
                     <input id="kata_sandi_baru" name="kata_sandi_baru" type="password"
                            placeholder="Masukkan kata sandi baru" autocomplete="new-password" maxlength="100" required minlength="8">
                     <button type="button" class="mata" data-target="kata_sandi_baru" aria-label="Tampilkan kata sandi">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                        @include('admin.partials.ikon-mata')                    
                     </button>
                 </div>
                 @if ($errBaru)
@@ -95,11 +98,12 @@
     </main>
 
     <script>
-        document.querySelectorAll('.mata').forEach(function (btn) {
+        document.querySelectorAll('button.mata').forEach(function (btn) {
             btn.addEventListener('click', function () {
                 const input = document.getElementById(btn.dataset.target);
                 const tampil = input.type === 'password';
                 input.type = tampil ? 'text' : 'password';
+                btn.classList.toggle('terlihat', tampil);
                 btn.setAttribute('aria-label', tampil ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi');
             });
         });
