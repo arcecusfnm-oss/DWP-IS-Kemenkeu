@@ -62,7 +62,7 @@ class ChangePasswordController extends Controller
         if ($wajibGanti) {
             $tujuan = match ($pengguna->peran?->nama_peran) {
                 'Admin'            => route('admin.dashboard'),
-                'Penasihat'        => route('admin.program-kerja.index'),
+                'Penasihat'        => route('penasihat.program-kerja.index'),
                 'Pimpinan Bidang',
                 'Anggota Bidang'   => route('program-kerja.bidang-saya'),
                 default            => route('beranda'),

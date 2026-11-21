@@ -17,6 +17,10 @@
 
 @section('content')
     @php
+        $namaRouteIndex = auth()->user()->peran?->nama_peran === 'Penasihat'
+            ? 'penasihat.program-kerja.index'
+            : 'admin.program-kerja.index';
+
         $namaBidangDipilih = $bidangDipilih
             ? optional($daftarBidang->firstWhere('id_bidang', $bidangDipilih))->nama_bidang
             : null;
@@ -79,7 +83,7 @@
 
         {{-- Tabel + filter --}}
         <div class="akun-panel">
-            <form method="GET" action="{{ route('admin.program-kerja.index') }}" class="akun-filter">
+            <form method="GET" action="{{ route($namaRouteIndex) }}" class="akun-filter">
                 <div class="akun-filter-grup">
                     <label for="fBidang">Bidang</label>
                     <select name="bidang" id="fBidang">
@@ -100,7 +104,7 @@
                     Terapkan
                 </button>
 
-                <a href="{{ route('admin.program-kerja.index') }}" class="akun-btn-reset">
+                <a href="{{ route($namaRouteIndex) }}" class="akun-btn-reset">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
@@ -177,7 +181,7 @@
                     </p>
                     @if ($adaFilter)
                         <div class="akun-kosong-aksi">
-                            <a href="{{ route('admin.program-kerja.index') }}" class="akun-btn-ghost">Atur Ulang Filter</a>
+                            <a href="{{ route($namaRouteIndex) }}" class="akun-btn-ghost">Atur Ulang Filter</a>
                         </div>
                     @endif
                 </div>
