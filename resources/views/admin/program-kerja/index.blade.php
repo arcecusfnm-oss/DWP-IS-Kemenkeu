@@ -17,10 +17,15 @@
 
 @section('content')
     @php
+        $namaRouteIndex = auth()->user()->peran?->nama_peran === 'Penasihat'
+            ? 'penasihat.program-kerja.index'
+            : 'admin.program-kerja.index';
+
         $namaBidangDipilih = $bidangDipilih
             ? optional($daftarBidang->firstWhere('id_bidang', $bidangDipilih))->nama_bidang
             : null;
-        $adaFilter = $namaBidangDipilih !== null;
+        $adaFilter = $namaBidangDipilih !== null || $statusDipilih !== null;
+        $daftarStatus = ['Diajukan', 'Disetujui', 'Ditolak', 'Berjalan', 'Selesai'];
 
         $bulan = [1 => 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
         $tgl = function ($nilai) use ($bulan) {
@@ -79,7 +84,7 @@
 
         {{-- Tabel + filter --}}
         <div class="akun-panel">
-            <form method="GET" action="{{ route('admin.program-kerja.index') }}" class="akun-filter">
+            <form method="GET" action="{{ route($namaRouteIndex) }}" class="akun-filter">
                 <div class="akun-filter-grup">
                     <label for="fBidang">Bidang</label>
                     <select name="bidang" id="fBidang">
@@ -88,6 +93,15 @@
                             <option value="{{ $b->id_bidang }}" @selected((int) $bidangDipilih === (int) $b->id_bidang)>
                                 {{ $b->nama_bidang }}
                             </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="akun-filter-grup">
+                    <label for="fStatus">Status</label>
+                    <select name="status" id="fStatus">
+                        <option value="">Semua Status</option>
+                        @foreach ($daftarStatus as $s)
+                            <option value="{{ $s }}" @selected($statusDipilih === $s)>{{ $s }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -100,7 +114,7 @@
                     Terapkan
                 </button>
 
-                <a href="{{ route('admin.program-kerja.index') }}" class="akun-btn-reset">
+                <a href="{{ route($namaRouteIndex) }}" class="akun-btn-reset">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
@@ -111,7 +125,9 @@
 
                 @if ($adaFilter)
                     <div class="akun-filter-info">
-                        Filter Aktif: <span>{{ $namaBidangDipilih }}</span>
+                        Filter Aktif:
+                        @if ($namaBidangDipilih) <span>{{ $namaBidangDipilih }}</span> @endif
+                        @if ($statusDipilih) <span>{{ $statusDipilih }}</span> @endif
                     </div>
                 @endif
             </form>
@@ -120,12 +136,13 @@
             <div class="akun-tabel-wrap">
                 <table class="akun-tabel skb-tabel">
                     <colgroup>
-                        <col style="width: 6%">
-                        <col style="width: 24%">
-                        <col style="width: 16%">
-                        <col style="width: 28%">
-                        <col style="width: 13%">
-                        <col style="width: 13%">
+                        <col style="width: 5%">
+                        <col style="width: 22%">
+                        <col style="width: 14%">
+                        <col style="width: 25%">
+                        <col style="width: 12%">
+                        <col style="width: 12%">
+                        <col style="width: 10%">
                     </colgroup>
                     <thead>
                         <tr>
@@ -135,7 +152,7 @@
                             <th>Deskripsi</th>
                             <th>Tanggal Mulai</th>
                             <th>Tanggal Selesai</th>
-                            {{-- Sisa ruang: kolom Status/Aksi (B-051, B-123) --}}
+                            <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -144,13 +161,14 @@
                                 <td>{{ $programKerja->firstItem() + $i }}</td>
                                 <td><strong>{{ $p->nama_program }}</strong></td>
                                 <td>
-                                    <span class="akun-pill" style="{{ $gayaPill($p->nama_bidang) }}">{{ $p->nama_bidang }}</span>
+                                    <span class="akun-pill" @style([$gayaPill($p->nama_bidang) => isset($warnaBidang[$p->nama_bidang])])>{{ $p->nama_bidang }}</span>
                                 </td>
                                 <td>
                                     <span class="skb-deskripsi" title="{{ $p->tujuan }}">{{ $p->tujuan ?: '-' }}</span>
                                 </td>
                                 <td>{{ $tgl($p->tanggal_mulai) }}</td>
                                 <td>{{ $tgl($p->tanggal_selesai) }}</td>
+                                <td>{{ $p->status ?: '-' }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -168,16 +186,19 @@
                     </div>
                     <h3 class="serif">Belum ada program kerja</h3>
                     <p>
-                        @if ($adaFilter)
+                        @if ($namaBidangDipilih)
                             Tidak ada data program kerja untuk bidang <b>{{ $namaBidangDipilih }}</b>.
                             Pilih bidang lain atau atur ulang filter.
+                        @elseif ($statusDipilih)
+                            Tidak ada program kerja berstatus <b>{{ $statusDipilih }}</b>.
+                            Pilih status lain atau atur ulang filter.
                         @else
                             Belum ada program kerja yang tercatat di bidang mana pun.
                         @endif
                     </p>
                     @if ($adaFilter)
                         <div class="akun-kosong-aksi">
-                            <a href="{{ route('admin.program-kerja.index') }}" class="akun-btn-ghost">Atur Ulang Filter</a>
+                            <a href="{{ route($namaRouteIndex) }}" class="akun-btn-ghost">Atur Ulang Filter</a>
                         </div>
                     @endif
                 </div>

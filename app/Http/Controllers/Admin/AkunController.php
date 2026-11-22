@@ -298,7 +298,7 @@ class AkunController extends Controller
             'password.min'      => 'Kata sandi awal minimal 8 karakter',
         ] + $this->pesanBidang());
 
-        DB::transaction(function () use ($request) {
+        $idBaru = DB::transaction(function () use ($request) {
             $idPeran = DB::table('peran')->where('nama_peran', $request->peran)->value('id_peran');
 
             $idBaru = DB::table('pengguna')->insertGetId([
@@ -316,6 +316,8 @@ class AkunController extends Controller
             $idBidang = $this->simpanBidang($idBaru, $request->peran, $request->input('bidang', []));
 
             DB::table('pengguna')->where('id_pengguna', $idBaru)->update(['id_bidang' => $idBidang]);
+
+            return $idBaru;
         });
 
         LogKeamanan::catat('buat_akun', 'berhasil', $request, (int) Auth::id(), [
@@ -429,10 +431,14 @@ class AkunController extends Controller
                 'updated_at' => now(),
             ]);
 
-            DB::table('anggota')->where('id_pengguna', $id)->update([
-                'id_bidang'     => $idBidang,
-                'jabatan_bidang' => null,
-            ]);
+            DB::table('anggota')
+                ->where('id_pengguna', $id)
+                ->update([
+                    'id_bidang'      => $idBidang,
+                    'jabatan_bidang' => null,
+                    'updated_at'     => now(),
+                ]);
+
         });
 
         return redirect()->route('admin.akun.index')

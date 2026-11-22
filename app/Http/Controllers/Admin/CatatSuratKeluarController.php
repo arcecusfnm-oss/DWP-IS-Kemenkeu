@@ -16,6 +16,7 @@ class CatatSuratKeluarController extends Controller
     public function create()
     {
         $bidang = DB::table('bidang')
+            ->select('id_bidang', 'nama_bidang')
             ->orderBy('nama_bidang')
             ->get();
 
@@ -52,7 +53,7 @@ class CatatSuratKeluarController extends Controller
             ],
             'status_terkirim' => [
                 'required',
-                'in:sudah,belum,batal',
+                Rule::in(['sudah', 'belum', 'batal']),
             ],
             'keterangan' => [
                 'nullable',
@@ -66,6 +67,12 @@ class CatatSuratKeluarController extends Controller
             'tanggal_surat.date_format' => 'Format tanggal surat tidak valid',
             'tujuan.required' => 'Tujuan wajib diisi',
             'perihal.required' => 'Perihal wajib diisi',
+            'id_bidang_terkait.required' => 'Bidang terkait wajib dipilih',
+            'id_bidang_terkait.integer' => 'Bidang terkait tidak valid',
+            'id_bidang_terkait.exists' => 'Bidang terkait tidak ditemukan',
+            'status_terkirim.required' => 'Status terkirim wajib dipilih',
+            'status_terkirim.in' => 'Status terkirim tidak valid',
+            'keterangan.max' => 'Keterangan maksimal 2000 karakter',
         ]);
 
         try {

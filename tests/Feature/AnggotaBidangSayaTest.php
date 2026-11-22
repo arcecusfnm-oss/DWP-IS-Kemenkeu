@@ -94,11 +94,18 @@ class AnggotaBidangSayaTest extends TestCase
         $this->assertEqualsCanonicalizing(['Ani Ekonomi', 'Dewi Ekonomi'], $this->nama($respons));
     }
 
-    public function test_respons_hanya_memuat_nama_jabatan_dan_nomor_telepon(): void
+    public function test_respons_hanya_memuat_nama_jabatan_unit_kerja_dan_keahlian(): void
     {
         $ekonomi = $this->bidang('Ekonomi');
         $akun    = $this->buatAkun('Anggota Bidang', $ekonomi->id_bidang);
+
+        $idUnit = DB::table('unit_kerja')->insertGetId([
+            'nama_unit_kerja' => 'Fakultas Teknik',
+        ], 'id_unit_kerja');
+
         $this->buatAnggota('Ani', $ekonomi->id_bidang, $akun->id_pengguna, [
+            'id_unit_kerja'  => $idUnit,
+            'keahlian'       => 'Desain Grafis',
             'email'          => 'ani@uji.id',
             'alamat_lengkap' => 'Jl. Rahasia 1',
         ]);
@@ -107,10 +114,12 @@ class AnggotaBidangSayaTest extends TestCase
         $baris   = $respons->json('anggota.data.0');
 
         $this->assertEqualsCanonicalizing(
-            ['id_anggota', 'nama_lengkap', 'jabatan_bidang', 'nomor_telepon'],
+            ['id_anggota', 'nama_lengkap', 'jabatan_bidang', 'nama_unit_kerja', 'keahlian'],
             array_keys($baris)
         );
-        $this->assertSame('081234567890', $baris['nomor_telepon']);
+        $this->assertSame('Fakultas Teknik', $baris['nama_unit_kerja']);
+        $this->assertSame('Desain Grafis', $baris['keahlian']);
+        $this->assertStringNotContainsString('081234567890', $respons->getContent());
         $this->assertStringNotContainsString('kata_sandi', $respons->getContent());
         $this->assertStringNotContainsString('ani@uji.id', $respons->getContent());
         $this->assertStringNotContainsString('Jl. Rahasia 1', $respons->getContent());
@@ -152,8 +161,14 @@ class AnggotaBidangSayaTest extends TestCase
         $pendidik = $this->bidang('Pendidikan');
         $akun     = $this->buatAkun('Pimpinan Bidang', $ekonomi->id_bidang);
 
+        $idUnit = DB::table('unit_kerja')->insertGetId([
+            'nama_unit_kerja' => 'Fakultas Teknik',
+        ], 'id_unit_kerja');
+
         $this->buatAnggota('Kiki Ketua', $ekonomi->id_bidang, $akun->id_pengguna, [
             'jabatan_bidang' => 'ketua',
+            'id_unit_kerja'  => $idUnit,
+            'keahlian'       => 'Desain Grafis',
             'nomor_telepon'  => '08111222333',
         ]);
         $this->buatAnggota('Budi Pendidikan', $pendidik->id_bidang, $akun->id_pengguna);
@@ -163,8 +178,13 @@ class AnggotaBidangSayaTest extends TestCase
             ->assertOk()
             ->assertSee('Anggota Bidang Ekonomi')
             ->assertSee('Kiki Ketua')
-            ->assertSee('08111222333')
             ->assertSee('Ketua Bidang')
+            ->assertSee('Unit Kerja Suami')
+            ->assertSee('Keahlian')
+            ->assertSee('Fakultas Teknik')
+            ->assertSee('Desain Grafis')
+            ->assertDontSee('08111222333')
+            ->assertDontSee('Nomor Telepon')
             ->assertDontSee('Budi Pendidikan');
     }
 

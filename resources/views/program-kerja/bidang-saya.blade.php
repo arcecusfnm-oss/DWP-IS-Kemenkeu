@@ -7,6 +7,13 @@
         $bolehKelola   = \App\Support\PeranProgramKerja::bolehKelolaProgram(auth()->user());
         $bolehKegiatan = \App\Support\PeranProgramKerja::bolehKelolaKegiatan(auth()->user());
         $adaAksi       = $bolehKelola || $bolehKegiatan;
+
+        $tahunAktif = (int) ($tahunAnggaran ?? now()->year);
+        $totalAnggaranTahun = isset($totalAnggaran)
+            ? (float) $totalAnggaran
+            : (float) $programKerja->getCollection()
+                ->filter(fn ($p) => $p->tanggal_mulai && \Carbon\Carbon::parse($p->tanggal_mulai)->year === $tahunAktif)
+                ->sum('anggaran');
     @endphp
 
     <div class="content bidang-page">
@@ -72,10 +79,11 @@
                     <thead>
                         <tr>
                             <th>No.</th>
-                            <th>Nama Program</th>
+                            <th>Proker / Kegiatan</th>
                             <th>Bidang</th>
                             <th>Tanggal Mulai</th>
                             <th>Tanggal Selesai</th>
+                            <th>Status</th>
                             <th>Anggaran</th>
                             <th>Jumlah Kegiatan</th>
                             @if ($adaAksi)
@@ -101,6 +109,11 @@
                                 </td>
                                 <td>
                                     {{ $program->tanggal_selesai ? \Carbon\Carbon::parse($program->tanggal_selesai)->format('d-m-Y') : '-' }}
+                                </td>
+                                <td>
+                                    <span class="program-bidang-badge">
+                                        {{ $program->status ?? 'Diajukan' }}
+                                    </span>
                                 </td>
                                 <td>
                                     {{ $program->anggaran !== null ? 'Rp ' . number_format($program->anggaran, 0, ',', '.') : '-' }}
@@ -138,6 +151,15 @@
                             </tr>
                         @endforelse
                     </tbody>
+
+                    <tfoot>
+                        <tr>
+                            <td colspan="6"><strong>TOTAL ANGGARAN ({{ $tahunAktif }})</strong></td>
+                            <td colspan="{{ $adaAksi ? 2 : 1 }}">
+                                <strong>Rp {{ number_format($totalAnggaranTahun, 0, ',', '.') }}</strong>
+                            </td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
 

@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
-use Illuminate\Database\QueryException;
 use Throwable;
 
 class CatatSuratMasukController extends Controller
@@ -45,17 +45,19 @@ class CatatSuratMasukController extends Controller
                 'after_or_equal:tanggal_diterima',
             ],
             'keterangan' => ['nullable', 'string', 'max:2000'],
-        ], [
-            'nomor_surat.required' => 'Nomor surat wajib diisi',
-            'nomor_surat.unique' => 'Nomor surat sudah tercatat',
-            'asal_surat.required' => 'Asal surat wajib diisi',
-            'tanggal_surat.required' => 'Tanggal surat wajib diisi',
-            'tanggal_diterima.required' => 'Tanggal diterima wajib diisi',
-            'tanggal_diterima.after_or_equal' => 'Tanggal diterima tidak boleh sebelum tanggal surat',
-            'tanggal_disposisi.after_or_equal' => 'Tanggal disposisi tidak boleh lebih awal dari tanggal diterima.',
-            'perihal.required' => 'Perihal wajib diisi',
-            'lampiran.required' => 'Lampiran wajib diisi',
-        ]);
+], [
+    'nomor_surat.required' => 'Nomor surat wajib diisi',
+    'nomor_surat.unique' => 'Nomor surat sudah tercatat',
+    'asal_surat.required' => 'Asal surat wajib diisi',
+    'tanggal_surat.required' => 'Tanggal surat wajib diisi',
+    'tanggal_diterima.required' => 'Tanggal diterima wajib diisi',
+    'tanggal_diterima.after_or_equal' => 'Tanggal diterima tidak boleh sebelum tanggal surat',
+    'tanggal_disposisi.after_or_equal' => 'Tanggal disposisi tidak boleh lebih awal dari tanggal diterima',
+    'perihal.required' => 'Perihal wajib diisi',
+    'lampiran.required' => 'Lampiran wajib diisi',
+    'lampiran.string' => 'Lampiran harus berupa teks',
+    'lampiran.max' => 'Lampiran maksimal 255 karakter',
+]);
 
         $tanggal = \Carbon\Carbon::parse($data['tanggal_diterima']);
         $bulan = (int) $tanggal->format('m');

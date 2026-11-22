@@ -21,13 +21,14 @@ return new class extends Migration
             $table->unsignedBigInteger('id_bidang');
             $table->string('nama_program', 255);
             $table->text('tujuan');
-            $table->string('sasaran_peserta', 255)->nullable();
-            $table->string('metode', 255)->nullable();
+            $table->string('sasaran_peserta', 255);
+            $table->string('metode', 255);
             $table->date('tanggal_mulai');
             $table->date('tanggal_selesai');
-            $table->string('tempat', 255)->nullable();
-            $table->decimal('anggaran', 15, 2)->nullable();
+            $table->string('tempat', 255);
+            $table->decimal('anggaran', 15, 2);
             $table->text('keterangan')->nullable();
+            $table->string('status', 30)->default('Diajukan');
 
             $table->unsignedBigInteger('dibuat_oleh');
 

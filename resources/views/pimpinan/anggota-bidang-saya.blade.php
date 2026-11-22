@@ -44,10 +44,11 @@
             <table class="ab-table">
                 <thead>
                     <tr>
-                        <th class="ab-no">No</th>
+                        <th>No</th>
                         <th>Nama Lengkap</th>
-                        <th>Nomor Telepon</th>
                         <th>Posisi</th>
+                        <th>Unit Kerja Suami</th>
+                        <th>Keahlian</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -59,17 +60,18 @@
                                 default => ['Anggota Bidang', 'ab-anggota'],
                             };
                         @endphp
-                        <tr>
+                       <tr>
                             <td class="ab-no">{{ $anggota->firstItem() + $index }}</td>
                             <td class="ab-nama">{{ $a->nama_lengkap }}</td>
-                            <td>{{ $a->nomor_telepon }}</td>
                             <td><span class="ab-badge {{ $posisi[1] }}">{{ $posisi[0] }}</span></td>
+                            <td>{{ $a->nama_unit_kerja ?: '-' }}</td>
+                            <td>{{ $a->keahlian ?: '-' }}</td>
                         </tr>
-                    @empty
+                        @empty
                         <tr>
-                            <td colspan="4" class="ab-kosong">{{ $pesan ?? 'Tidak ada anggota yang sesuai' }}</td>
+                            <td colspan="5" class="ab-kosong">{{ $pesan ?? 'Tidak ada anggota yang sesuai' }}</td>
                         </tr>
-                    @endforelse
+                        @endforelse
                 </tbody>
             </table>
 

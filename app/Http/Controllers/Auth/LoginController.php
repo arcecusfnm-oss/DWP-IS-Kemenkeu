@@ -210,7 +210,7 @@ class LoginController extends Controller
         return match ($pengguna->peran->nama_peran) {
             'Admin'            => redirect()->route('admin.dashboard'),
             
-            'Penasihat'        => redirect()->route('admin.program-kerja.index'),
+            'Penasihat'        => redirect()->route('penasihat.program-kerja.index'),
             'Pimpinan Bidang',
             'Anggota Bidang'   => redirect()->route('program-kerja.bidang-saya'),
             default            => redirect()->route('beranda'),

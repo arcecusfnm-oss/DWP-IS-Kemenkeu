@@ -4,7 +4,7 @@
     Data dari PencarianSuratController::cari() (T-74), GET /surat (surat.index).
 
     Variabel: $surat (paginator; item: jenis, id, nomor_surat, tanggal, pihak, perihal),
-              $pesan ('Tidak ada surat yang sesuai' bila kosong, selain itu null)
+              $pesan ('Data tidak ditemukan' bila kosong, selain itu null)
 --}}
 @extends('layouts.admin')
 

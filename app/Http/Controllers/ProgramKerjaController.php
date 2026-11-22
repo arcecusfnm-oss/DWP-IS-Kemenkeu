@@ -62,6 +62,7 @@ class ProgramKerjaController extends Controller
                 'tempat'          => $data['tempat'] ?? null,
                 'anggaran'        => $data['anggaran'] ?? null,
                 'keterangan'      => $data['keterangan'] ?? null,
+                'status'          => 'Diajukan',
                 'dibuat_oleh'     => Auth::id(),
                 'created_at'      => now(),
                 'updated_at'      => now(),
@@ -216,6 +217,13 @@ class ProgramKerjaController extends Controller
             }
         }
 
+        $statusLama  = property_exists($lama, 'status') ? (string) ($lama->status ?? '') : '';
+        $ajukanUlang = strcasecmp($statusLama, 'Perlu Revisi') === 0;
+
+        if ($ajukanUlang) {
+            $berubah[] = 'status';
+        }
+
         if ($berubah === []) {
             if ($request->expectsJson()) {
                 return response()->json([
@@ -229,22 +237,28 @@ class ProgramKerjaController extends Controller
                 ->with('sukses', 'Tidak ada perubahan pada program kerja.');
         }
 
+        $payloadUpdate = [
+            'nama_program'    => $data['nama_program'],
+            'tujuan'          => $data['tujuan'],
+            'sasaran_peserta' => $data['sasaran_peserta'] ?? null,
+            'metode'          => $data['metode'] ?? null,
+            'tanggal_mulai'   => $data['tanggal_mulai'],
+            'tanggal_selesai' => $data['tanggal_selesai'],
+            'tempat'          => $data['tempat'] ?? null,
+            'anggaran'        => $data['anggaran'] ?? null,
+            'keterangan'      => $data['keterangan'] ?? null,
+            'updated_at'      => now(),
+        ];
+
+        if ($ajukanUlang && property_exists($lama, 'status')) {
+            $payloadUpdate['status'] = 'Diajukan';
+        }
+
         try {
             DB::table('program_kerja')
                 ->where('id_program_kerja', $id)
                 ->where('id_bidang', $idBidang)
-                ->update([
-                    'nama_program'    => $data['nama_program'],
-                    'tujuan'          => $data['tujuan'],
-                    'sasaran_peserta' => $data['sasaran_peserta'] ?? null,
-                    'metode'          => $data['metode'] ?? null,
-                    'tanggal_mulai'   => $data['tanggal_mulai'],
-                    'tanggal_selesai' => $data['tanggal_selesai'],
-                    'tempat'          => $data['tempat'] ?? null,
-                    'anggaran'        => $data['anggaran'] ?? null,
-                    'keterangan'      => $data['keterangan'] ?? null,
-                    'updated_at'      => now(),
-                ]);
+                ->update($payloadUpdate);
         } catch (QueryException $e) {
             Log::error('Gagal mengubah program kerja', [
                 'pengguna_id'      => Auth::id(),
@@ -266,16 +280,20 @@ class ProgramKerjaController extends Controller
             'dicatat_pada'      => now()->toDateTimeString(),
         ]);
 
+        $pesanSukses = $ajukanUlang
+            ? 'Program kerja berhasil diperbaiki dan diajukan kembali.'
+            : 'Program kerja berhasil diubah.';
+
         if ($request->expectsJson()) {
             return response()->json([
-                'pesan'            => 'Program kerja berhasil diubah.',
+                'pesan'            => $pesanSukses,
                 'id_program_kerja' => $id,
             ]);
         }
 
         return redirect()
             ->route('program-kerja.bidang-saya')
-            ->with('sukses', 'Program kerja berhasil diubah.');
+            ->with('sukses', $pesanSukses);
     }
 
     /**
@@ -324,6 +342,7 @@ class ProgramKerjaController extends Controller
                     'tanggal_mulai',
                     'tanggal_selesai',
                     'anggaran',
+                    'status',
                 ])
                 ->selectSub(
                     DB::table('kegiatan')
@@ -350,12 +369,12 @@ class ProgramKerjaController extends Controller
             ->where('id_bidang', $idBidangSaya)
             ->value('nama_bidang');
 
-        // Rekap anggaran program kerja bidang untuk tahun berjalan.
-        $tahunAnggaran = now()->year;
-        $totalAnggaran = DB::table('program_kerja')
-            ->where('id_bidang', $idBidangSaya)
-            ->whereYear('tanggal_mulai', $tahunAnggaran)
-            ->sum('anggaran');
+// Rekap anggaran program kerja bidang untuk tahun berjalan.
+$tahunAnggaran = now()->year;
+$totalAnggaran = (float) DB::table('program_kerja')
+    ->where('id_bidang', $idBidangSaya)
+    ->whereYear('tanggal_mulai', $tahunAnggaran)
+    ->sum('anggaran');
 
         $pesan = $program->total() === 0
             ? 'Belum ada program kerja untuk bidang ini.'
@@ -366,8 +385,8 @@ class ProgramKerjaController extends Controller
                 'bidang'  => $namaBidang,
                 'data'    => $program->items(),
                 'total'   => $program->total(),
-                'halaman'       => $program->currentPage(),
-                'pesan'         => $pesan,
+                'halaman' => $program->currentPage(),
+                'pesan'   => $pesan,
                 'totalAnggaran' => $totalAnggaran,
                 'tahunAnggaran' => $tahunAnggaran,
             ]);
@@ -376,7 +395,7 @@ class ProgramKerjaController extends Controller
         return view('program-kerja.bidang-saya', [
             'programKerja' => $program,
             'namaBidang'   => $namaBidang,
-            'pesan'         => $pesan,
+            'pesan'        => $pesan,
             'totalAnggaran' => $totalAnggaran,
             'tahunAnggaran' => $tahunAnggaran,
         ]);
@@ -460,12 +479,12 @@ class ProgramKerjaController extends Controller
         return [
             'nama_program'    => ['required', 'string', 'max:255'],
             'tujuan'          => ['required', 'string', 'max:5000'],
-            'sasaran_peserta' => ['nullable', 'string', 'max:255'],
-            'metode'          => ['nullable', 'string', 'max:255'],
+            'sasaran_peserta' => ['required', 'string', 'max:255'],
+            'metode'          => ['required', 'string', 'max:255'],
             'tanggal_mulai'   => ['required', 'date_format:Y-m-d'],
             'tanggal_selesai' => ['bail', 'required', 'date_format:Y-m-d', 'after_or_equal:tanggal_mulai'],
-            'tempat'          => ['nullable', 'string', 'max:255'],
-            'anggaran'        => ['nullable', 'numeric', 'min:0', 'max:9999999999999.99'],
+            'tempat'          => ['required', 'string', 'max:255'],
+            'anggaran'        => ['required', 'numeric', 'min:0', 'max:9999999999999.99'],
             'keterangan'      => ['nullable', 'string', 'max:2000'],
         ];
     }
@@ -478,14 +497,18 @@ class ProgramKerjaController extends Controller
             'nama_program.max'               => 'Nama program maksimal 255 karakter',
             'tujuan.required'                => 'Tujuan wajib diisi',
             'tujuan.max'                     => 'Tujuan maksimal 5000 karakter',
-            'sasaran_peserta.max'            => 'Sasaran peserta maksimal 255 karakter',
-            'metode.max'                     => 'Metode maksimal 255 karakter',
             'tanggal_mulai.required'         => 'Tanggal mulai wajib diisi',
             'tanggal_mulai.date_format'      => 'Format tanggal mulai tidak valid',
             'tanggal_selesai.required'       => 'Tanggal selesai wajib diisi',
             'tanggal_selesai.date_format'    => 'Format tanggal selesai tidak valid',
             'tanggal_selesai.after_or_equal' => 'Tanggal selesai tidak boleh sebelum tanggal mulai',
+            'sasaran_peserta.required'       => 'Sasaran peserta wajib diisi',
+            'sasaran_peserta.max'            => 'Sasaran peserta maksimal 255 karakter',
+            'metode.required'                => 'Metode wajib diisi',
+            'metode.max'                     => 'Metode maksimal 255 karakter',
+            'tempat.required'                => 'Tempat wajib diisi',
             'tempat.max'                     => 'Tempat maksimal 255 karakter',
+            'anggaran.required'              => 'Anggaran wajib diisi',
             'anggaran.numeric'               => 'Anggaran harus berupa angka',
             'anggaran.min'                   => 'Anggaran tidak boleh negatif',
             'anggaran.max'                   => 'Anggaran terlalu besar',
@@ -504,23 +527,29 @@ class ProgramKerjaController extends Controller
     {
         $request->validate([
             'bidang' => ['nullable', 'integer', 'exists:bidang,id_bidang'],
+            'status' => ['nullable', 'string', 'max:30'],
         ], [
             'bidang.integer' => 'Bidang tidak tersedia.',
             'bidang.exists'  => 'Bidang tidak tersedia.',
+            'status.string'  => 'Status tidak valid.',
+            'status.max'     => 'Status tidak valid.',
         ]);
 
         $idBidang = $request->filled('bidang') ? $request->integer('bidang') : null;
+        $statusDipilih = $request->filled('status') ? $request->input('status') : null;
 
         try {
             $program = DB::table('program_kerja')
                 ->join('bidang', 'bidang.id_bidang', '=', 'program_kerja.id_bidang')
                 ->when($idBidang, fn ($q) => $q->where('program_kerja.id_bidang', $idBidang))
+                ->when($statusDipilih, fn ($q) => $q->where('program_kerja.status', $statusDipilih))
                 ->select([
                     'program_kerja.id_program_kerja',
                     'program_kerja.nama_program',
                     'program_kerja.tujuan',
                     'program_kerja.tanggal_mulai',
                     'program_kerja.tanggal_selesai',
+                    'program_kerja.status',
                     'bidang.id_bidang',
                     'bidang.nama_bidang',
                 ])
@@ -550,6 +579,7 @@ class ProgramKerjaController extends Controller
                 'total'   => $program->total(),
                 'halaman' => $program->currentPage(),
                 'bidang'  => $idBidang,
+                'status'  => $statusDipilih,
                 'pesan'   => $program->total() === 0 ? 'Belum ada program kerja' : null,
             ]);
         }
@@ -559,6 +589,7 @@ class ProgramKerjaController extends Controller
             'programKerja'  => $program,
             'daftarBidang'  => $daftarBidang,
             'bidangDipilih' => $idBidang,
+            'statusDipilih' => $statusDipilih,
         ]);
     }
 }

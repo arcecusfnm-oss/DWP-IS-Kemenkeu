@@ -92,6 +92,7 @@ class PencarianSuratTest extends TestCase
             'asal_surat'       => 'Asal Uji',
             'tanggal_surat'    => $tanggal,
             'tanggal_diterima' => $tanggal,
+            'lampiran'         => '1 berkas',
             'perihal'          => $perihal,
             'dibuat_oleh'      => $this->admin()->id_pengguna,
             'created_at'       => now(),
@@ -236,7 +237,7 @@ class PencarianSuratTest extends TestCase
         $this->cari(['q' => 'zztidakadasama'])
             ->assertOk()
             ->assertJsonPath('surat.total', 0)
-            ->assertJsonPath('pesan', 'Tidak ada surat yang sesuai');
+            ->assertJsonPath('pesan', 'Data tidak ditemukan');
     }
 
     public function test_pesan_kosong_tidak_muncul_bila_ada_hasil(): void

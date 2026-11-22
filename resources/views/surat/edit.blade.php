@@ -43,12 +43,10 @@
              'hint' => 'Tanggal tertera pada kepala naskah dinas'],
             ['nama' => 'tanggal_diterima', 'label' => 'Tanggal Diterima', 'wajib' => true, 'tipe' => 'date', 'ikon' => 'surel',
              'hint' => 'Diterima oleh petugas loket sekretariat DWP'],
-            ['nama' => 'lampiran', 'label' => 'Lampiran', 'tipe' => 'file', 'ikon' => 'klip', 'penuh' => true,
-            'hint' => $surat->lampiran
-                ? 'Berkas saat ini: ' . basename($surat->lampiran) . '. Pilih berkas baru untuk mengganti. Maksimal 5 MB'
-                : 'Maksimal 5 MB'],
+            ['nama' => 'lampiran', 'label' => 'Lampiran', 'wajib' => true, 'ikon' => 'klip', 'penuh' => true, 'maks' => 255,
+            'hint' => 'Tuliskan keterangan lampiran, misalnya "1 berkas", atau "-" jika tidak ada'],
             ['nama' => 'perihal', 'label' => 'Perihal', 'wajib' => true, 'tipe' => 'textarea', 'penuh' => true, 'maks' => 255, 'hitung' => true,
-             'hint' => 'Ringkasan pokok permasalahan atau urgensi isi surat'],
+            'hint' => 'Ringkasan pokok permasalahan atau urgensi isi surat'],
         ];
     } else {
         $medan = [
@@ -58,10 +56,10 @@
              'hint' => 'Tanggal tertera pada kepala naskah dinas'],
             ['nama' => 'tujuan', 'label' => 'Tujuan', 'wajib' => true, 'ikon' => 'kirim', 'kiri' => true, 'penuh' => true, 'maks' => 255,
              'hint' => 'Nama instansi atau pihak tujuan surat'],
-            ['nama' => 'status_terkirim', 'label' => 'Penetapan', 'wajib' => true, 'tipe' => 'select',
+            ['nama' => 'status_terkirim', 'label' => 'Status Terkirim', 'wajib' => true, 'tipe' => 'select',
              'opsi' => ['sudah' => 'Sudah', 'belum' => 'Belum', 'batal' => 'Batal'], 'hint' => 'Posisi pengiriman surat keluar'],
             ['nama' => 'id_bidang_terkait', 'label' => 'Bidang Terkait', 'tipe' => 'select',
-             'opsi' => ['' => 'Tidak ada'] + $daftarBidang->pluck('nama_bidang', 'id_bidang')->all(),
+             'opsi' => $daftarBidang->pluck('nama_bidang', 'id_bidang')->all(),
              'hint' => 'Opsional: bidang yang berkaitan dengan surat'],
             ['nama' => 'perihal', 'label' => 'Perihal', 'wajib' => true, 'tipe' => 'textarea', 'penuh' => true, 'maks' => 255, 'hitung' => true,
              'hint' => 'Ringkasan pokok permasalahan atau urgensi isi surat'],
@@ -250,7 +248,7 @@
                 </div>
             @endif
 
-            <form action="{{ route('surat.update', [$jenis, $id]) }}" method="POST" enctype="multipart/form-data" novalidate>
+            <form action="{{ route('surat.update', [$jenis, $id]) }}" method="POST" novalidate>
                 @csrf
                 @method('PUT')
 

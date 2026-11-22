@@ -79,6 +79,7 @@ class UbahSuratTest extends TestCase
                 'asal_surat'       => 'Asal Awal',
                 'tanggal_surat'    => '2031-01-10',
                 'tanggal_diterima' => '2031-01-12',
+                'lampiran'         => '1 berkas',
                 'perihal'          => 'Perihal Awal',
                 'dibuat_oleh'      => $this->admin()->id_pengguna,
                 'created_at'       => now(),
@@ -90,7 +91,8 @@ class UbahSuratTest extends TestCase
                 'tanggal'         => '2031-01-10',
                 'tujuan'          => 'Tujuan Awal',
                 'perihal'         => 'Perihal Awal',
-                'status_terkirim' => 'belum',
+                'status_terkirim'   => 'belum',
+                'id_bidang_terkait' => $this->bidang('Bidang Awal')->id_bidang,
                 'dibuat_oleh'     => $this->admin()->id_pengguna,
                 'created_at'      => now(),
                 'updated_at'      => now(),
@@ -110,15 +112,17 @@ class UbahSuratTest extends TestCase
                 'asal_surat'       => 'Asal Baru',
                 'tanggal_surat'    => '2031-02-01',
                 'tanggal_diterima' => '2031-02-03',
+                'lampiran'         => '2 lembar',
                 'perihal'          => 'Perihal Baru',
             ];
         } else {
             $data = [
-                'nomor_surat'     => 'K-BARU-' . uniqid(),
-                'tanggal'         => '2031-02-01',
-                'tujuan'          => 'Tujuan Baru',
-                'perihal'         => 'Perihal Baru',
-                'status_terkirim' => 'sudah',
+                'nomor_surat'       => 'K-BARU-' . uniqid(),
+                'tanggal'           => '2031-02-01',
+                'tujuan'            => 'Tujuan Baru',
+                'perihal'           => 'Perihal Baru',
+                'status_terkirim'   => 'sudah',
+                'id_bidang_terkait' => $this->bidang('Pendidikan')->id_bidang,
             ];
         }
 
@@ -249,6 +253,14 @@ class UbahSuratTest extends TestCase
             ->assertJsonPath("errors.{$kolom}.0", $pesan);
 
         $this->assertTidakBerubah($jenis, $id, $sebelum);
+    }
+    
+    #[DataProvider('daftarJenis')]
+    public function test_ubah_surat_dengan_id_tidak_ada_menghasilkan_404(string $jenis): void
+    {
+        $this->actingAs($this->admin())
+            ->putJson($this->url($jenis, 999999999), $this->payload($jenis))
+            ->assertNotFound();
     }
 
     // ------------------------------------------------- AC 5: peran tidak berhak

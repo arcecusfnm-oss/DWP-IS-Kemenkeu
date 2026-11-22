@@ -71,7 +71,7 @@ class CatatSuratMasukTest extends TestCase
             'lampiran'           => '2 berkas undangan PDF',
             'perihal'           => 'Undangan Rapat Koordinasi DWP',
             'disposisi'         => 'Diteruskan ke Ketua Bidang Pendidikan',
-            'tanggal_disposisi' => '2032-01-13',
+            'tanggal_disposisi' => $tanggalDiterima,
             'keterangan'        => 'Harap ditindaklanjuti sebelum Jumat',
         ], $override);
 
@@ -80,6 +80,20 @@ class CatatSuratMasukTest extends TestCase
         }
 
         return $payload;
+    }
+
+    public function test_form_catat_surat_masuk_menampilkan_lampiran_text_wajib_maksimal_255(): void
+    {
+        $response = $this->actingAs($this->admin())
+            ->get(route('surat.catat-masuk'));
+
+        $response->assertOk()
+            ->assertSee('<input type="text" id="lampiran" name="lampiran"', false)
+            ->assertSee('required', false)
+            ->assertSee('maxlength="255"', false)
+            ->assertSee('Keterangan jumlah/jenis lampiran (isi - jika tidak ada)')
+            ->assertSee('Lampiran wajib diisi (isi - jika tidak ada).')
+            ->assertDontSee('enctype="multipart/form-data"', false);
     }
 
     // ---------- AC 1: Skenario utama (Admin & Sekretariat, lengkap 10 kolom template) ----------
@@ -117,6 +131,7 @@ class CatatSuratMasukTest extends TestCase
         $this->assertSame('Biro Umum Kemenkeu', $tersimpan->asal_surat);
         $this->assertSame('2032-01-05', $tersimpan->tanggal_surat);
         $this->assertSame('2032-01-06', $tersimpan->tanggal_diterima);
+        $this->assertSame('2 lembar', $tersimpan->lampiran);
         $this->assertSame('Permohonan Peserta Seminar Nasional', $tersimpan->perihal);
         $this->assertSame('Koordinasikan dengan Bidang Sosial Budaya', $tersimpan->disposisi);
         $this->assertSame('2032-01-07', $tersimpan->tanggal_disposisi);
@@ -144,7 +159,7 @@ class CatatSuratMasukTest extends TestCase
                 'asal_surat'       => 'Direktorat Jenderal Pajak',
                 'tanggal_surat'    => '2032-03-10',
                 'tanggal_diterima' => '2032-03-10',
-                'lampiran'          => 'Tidak ada lampiran',
+                'lampiran'         => '-',
                 'perihal'          => 'Pemberitahuan Kegiatan Bakti Sosial',
             ])
             ->assertRedirect(route('surat.index', ['jenis' => 'masuk']))
@@ -256,12 +271,12 @@ class CatatSuratMasukTest extends TestCase
         $this->actingAs($sekretariat)
             ->post(route('surat.simpan-masuk'), $this->payloadValid([
                 'nomor_surat'       => $nomorSurat,
-                'tanggal_surat'     => '2032-05-01',
-                'tanggal_diterima'  => '2032-05-10',
-                'tanggal_disposisi' => '2032-05-09',
+                'tanggal_surat'     => '2032-05-10',
+                'tanggal_diterima'  => '2032-05-15',
+                'tanggal_disposisi' => '2032-05-14',
             ]))
             ->assertSessionHasErrors([
-                'tanggal_disposisi' => 'Tanggal disposisi tidak boleh lebih awal dari tanggal diterima.',
+                'tanggal_disposisi' => 'Tanggal disposisi tidak boleh lebih awal dari tanggal diterima',
             ]);
 
         $this->assertDatabaseMissing('surat_masuk', ['nomor_surat' => $nomorSurat]);
@@ -389,7 +404,6 @@ class CatatSuratMasukTest extends TestCase
             'perihal'     => $perihalBerbahaya,
         ]);
 
-        // Output di HTML harus di-escape (tag <script> mentah tidak boleh muncul)
         $this->actingAs($sekretariat)
             ->get(route('surat.index', ['jenis' => 'masuk']))
             ->assertOk()
@@ -446,6 +460,7 @@ class CatatSuratMasukTest extends TestCase
             'asal_surat'       => ['asal_surat', 'Asal surat wajib diisi'],
             'tanggal_surat'    => ['tanggal_surat', 'Tanggal surat wajib diisi'],
             'tanggal_diterima' => ['tanggal_diterima', 'Tanggal diterima wajib diisi'],
+            'lampiran'         => ['lampiran', 'Lampiran wajib diisi'],
             'perihal'          => ['perihal', 'Perihal wajib diisi'],
         ];
     }
