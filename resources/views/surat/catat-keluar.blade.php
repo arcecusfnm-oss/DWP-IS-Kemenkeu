@@ -26,6 +26,14 @@
          'hint' => 'Instansi, unit kerja, atau penerima surat'],
         ['nama' => 'perihal', 'label' => 'Perihal', 'wajib' => true, 'tipe' => 'textarea', 'penuh' => true, 'maks' => 255, 'hitung' => true,
          'hint' => 'Ringkasan pokok isi surat'],
+        ['nama' => 'id_bidang_terkait', 'label' => 'Bidang Terkait', 'wajib' => true, 'tipe' => 'select', 'penuh' => true,
+         'opsi' => ['' => 'Pilih bidang terkait'] + $bidang->pluck('nama_bidang', 'id_bidang')->all(),
+         'hint' => 'Pilih bidang yang berkaitan dengan surat'],
+        ['nama' => 'status_terkirim', 'label' => 'Status Terkirim', 'wajib' => true, 'tipe' => 'select', 'penuh' => true,
+         'opsi' => ['' => 'Pilih status', 'sudah' => 'Sudah', 'belum' => 'Belum', 'batal' => 'Batal'],
+         'hint' => 'Pilih status pengiriman surat'],
+        ['nama' => 'keterangan', 'label' => 'Keterangan', 'wajib' => false, 'tipe' => 'textarea', 'penuh' => true, 'maks' => 2000,
+         'hint' => 'Keterangan tambahan (opsional)'],
     ];
 @endphp
 
