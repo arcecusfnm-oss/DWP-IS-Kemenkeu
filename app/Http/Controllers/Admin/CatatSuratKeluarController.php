@@ -15,7 +15,12 @@ class CatatSuratKeluarController extends Controller
 {
     public function create()
     {
-        return view('surat.catat-keluar');
+        $bidang = DB::table('bidang')
+            ->select('id_bidang', 'nama_bidang')
+            ->orderBy('nama_bidang')
+            ->get();
+
+        return view('surat.catat-keluar', compact('bidang'));
     }
 
     public function store(Request $request)
@@ -41,6 +46,20 @@ class CatatSuratKeluarController extends Controller
                 'string',
                 'max:255',
             ],
+            'id_bidang_terkait' => [
+                'required',
+                'integer',
+                'exists:bidang,id_bidang',
+            ],
+            'status_terkirim' => [
+                'required',
+                Rule::in(['sudah', 'belum', 'batal']),
+            ],
+            'keterangan' => [
+                'nullable',
+                'string',
+                'max:2000',
+            ],
         ], [
             'nomor_surat.required' => 'Nomor surat wajib diisi',
             'nomor_surat.unique' => 'Nomor surat sudah tercatat',
@@ -48,6 +67,12 @@ class CatatSuratKeluarController extends Controller
             'tanggal_surat.date_format' => 'Format tanggal surat tidak valid',
             'tujuan.required' => 'Tujuan wajib diisi',
             'perihal.required' => 'Perihal wajib diisi',
+            'id_bidang_terkait.required' => 'Bidang terkait wajib dipilih',
+            'id_bidang_terkait.integer' => 'Bidang terkait tidak valid',
+            'id_bidang_terkait.exists' => 'Bidang terkait tidak ditemukan',
+            'status_terkirim.required' => 'Status terkirim wajib dipilih',
+            'status_terkirim.in' => 'Status terkirim tidak valid',
+            'keterangan.max' => 'Keterangan maksimal 2000 karakter',
         ]);
 
         try {
@@ -56,7 +81,9 @@ class CatatSuratKeluarController extends Controller
                 'tanggal' => $data['tanggal_surat'],
                 'tujuan' => $data['tujuan'],
                 'perihal' => $data['perihal'],
-                'status_terkirim' => 'belum',
+                'id_bidang_terkait' => $data['id_bidang_terkait'],
+                'status_terkirim' => $data['status_terkirim'],
+                'keterangan' => $data['keterangan'] ?? null,
                 'dibuat_oleh' => Auth::id(),
                 'created_at' => now(),
                 'updated_at' => now(),

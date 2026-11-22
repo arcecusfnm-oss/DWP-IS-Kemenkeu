@@ -58,6 +58,9 @@ class CatatSuratKeluarTest extends TestCase
             'tanggal_surat' => '2031-11-20',
             'tujuan' => 'Kantor Pengujian',
             'perihal' => 'Undangan rapat pengujian',
+            'id_bidang_terkait' => $this->bidang('Sekretariat')->id_bidang,
+            'status_terkirim' => 'belum',
+            'keterangan' => null,
         ], $override);
     }
 
@@ -93,7 +96,9 @@ class CatatSuratKeluarTest extends TestCase
             'tanggal' => $data['tanggal_surat'],
             'tujuan' => $data['tujuan'],
             'perihal' => $data['perihal'],
-            'status_terkirim' => 'belum',
+            'id_bidang_terkait' => $data['id_bidang_terkait'],
+            'status_terkirim' => $data['status_terkirim'],
+            'keterangan' => $data['keterangan'],
             'dibuat_oleh' => $this->admin()->id_pengguna,
         ]);
 
@@ -177,11 +182,30 @@ class CatatSuratKeluarTest extends TestCase
             'tanggal_surat' => 'Tanggal surat wajib diisi',
             'tujuan' => 'Tujuan wajib diisi',
             'perihal' => 'Perihal wajib diisi',
+            'id_bidang_terkait' => 'Bidang terkait wajib dipilih',
+            'status_terkirim' => 'Status terkirim wajib dipilih',
         ] as $field => $pesan) {
             $data = $this->payload([$field => '']);
 
             $this->kirimSurat($data)
                 ->assertSessionHasErrors([$field => $pesan]);
+        }
+
+        $this->assertSame($awal, $this->jumlahSuratKeluar());
+    }
+
+    public function test_field_baru_dengan_nilai_tidak_valid_ditolak(): void
+    {
+        $awal = $this->jumlahSuratKeluar();
+
+        foreach ([
+            'id_bidang_terkait' => 999999,
+            'status_terkirim' => 'invalid',
+            'keterangan' => str_repeat('a', 2001),
+        ] as $field => $nilai) {
+            $this->kirimSurat($this->payload([
+                $field => $nilai,
+            ]))->assertSessionHasErrors($field);
         }
 
         $this->assertSame($awal, $this->jumlahSuratKeluar());

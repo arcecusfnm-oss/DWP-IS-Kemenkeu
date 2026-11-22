@@ -46,6 +46,8 @@ class CatatSuratKeluarFormTest extends TestCase
     public function test_admin_bisa_membuka_form_catat_surat_keluar(): void
     {
         $admin = $this->akun('Admin');
+        $sekretariat = $this->bidang('Sekretariat');
+        $ekonomi = $this->bidang('Bidang Ekonomi');
 
         $this->actingAs($admin)
             ->get(route('surat.keluar.create'))
@@ -55,7 +57,18 @@ class CatatSuratKeluarFormTest extends TestCase
             ->assertSee('nomor_surat')
             ->assertSee('tanggal_surat')
             ->assertSee('tujuan')
-            ->assertSee('perihal');
+            ->assertSee('perihal')
+            ->assertSee('id_bidang_terkait')
+            ->assertSee('Bidang Terkait')
+            ->assertSee($sekretariat->nama_bidang)
+            ->assertSee($ekonomi->nama_bidang)
+            ->assertSee('status_terkirim')
+            ->assertSee('Status Terkirim')
+            ->assertSee('Sudah')
+            ->assertSee('Belum')
+            ->assertSee('Batal')
+            ->assertSee('keterangan')
+            ->assertSee('Keterangan');
     }
 
     public function test_sekretariat_bisa_membuka_form_catat_surat_keluar(): void

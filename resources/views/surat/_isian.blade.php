@@ -18,12 +18,14 @@
 
     @if ($tipe === 'textarea')
         <textarea class="ubs-textarea" id="{{ $n }}" name="{{ $n }}" rows="{{ $m['baris'] ?? 3 }}"
-                  maxlength="{{ $m['maks'] }}" aria-describedby="{{ $desc }}"
+                  maxlength="{{ $m['maks'] ?? 255 }}" aria-describedby="{{ $desc }}"
+                  @if ($m['wajib'] ?? false) required @endif
                   @if ($ada) aria-invalid="true" @endif>{{ $nilaiIni }}</textarea>
     @else
         <div class="ubs-input {{ ($m['kiri'] ?? false) ? 'ubs-kiri' : '' }}">
             @if ($tipe === 'select')
                 <select id="{{ $n }}" name="{{ $n }}" aria-describedby="{{ $desc }}"
+                        @if ($m['wajib'] ?? false) required @endif
                         @if ($ada) aria-invalid="true" @endif>
                     @foreach ($m['opsi'] as $v => $t)
                         <option value="{{ $v }}" @selected((string) $nilaiIni === (string) $v)>{{ $t }}</option>
