@@ -24,7 +24,8 @@
         $namaBidangDipilih = $bidangDipilih
             ? optional($daftarBidang->firstWhere('id_bidang', $bidangDipilih))->nama_bidang
             : null;
-        $adaFilter = $namaBidangDipilih !== null;
+        $adaFilter = $namaBidangDipilih !== null || $statusDipilih !== null;
+        $daftarStatus = ['Diajukan', 'Disetujui', 'Ditolak', 'Berjalan', 'Selesai'];
 
         $bulan = [1 => 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
         $tgl = function ($nilai) use ($bulan) {
@@ -95,6 +96,15 @@
                         @endforeach
                     </select>
                 </div>
+                <div class="akun-filter-grup">
+                    <label for="fStatus">Status</label>
+                    <select name="status" id="fStatus">
+                        <option value="">Semua Status</option>
+                        @foreach ($daftarStatus as $s)
+                            <option value="{{ $s }}" @selected($statusDipilih === $s)>{{ $s }}</option>
+                        @endforeach
+                    </select>
+                </div>
 
                 <button type="submit" class="skb-terapkan">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -115,7 +125,9 @@
 
                 @if ($adaFilter)
                     <div class="akun-filter-info">
-                        Filter Aktif: <span>{{ $namaBidangDipilih }}</span>
+                        Filter Aktif:
+                        @if ($namaBidangDipilih) <span>{{ $namaBidangDipilih }}</span> @endif
+                        @if ($statusDipilih) <span>{{ $statusDipilih }}</span> @endif
                     </div>
                 @endif
             </form>
@@ -124,12 +136,13 @@
             <div class="akun-tabel-wrap">
                 <table class="akun-tabel skb-tabel">
                     <colgroup>
-                        <col style="width: 6%">
-                        <col style="width: 24%">
-                        <col style="width: 16%">
-                        <col style="width: 28%">
-                        <col style="width: 13%">
-                        <col style="width: 13%">
+                        <col style="width: 5%">
+                        <col style="width: 22%">
+                        <col style="width: 14%">
+                        <col style="width: 25%">
+                        <col style="width: 12%">
+                        <col style="width: 12%">
+                        <col style="width: 10%">
                     </colgroup>
                     <thead>
                         <tr>
@@ -139,7 +152,7 @@
                             <th>Deskripsi</th>
                             <th>Tanggal Mulai</th>
                             <th>Tanggal Selesai</th>
-                            {{-- Sisa ruang: kolom Status/Aksi (B-051, B-123) --}}
+                            <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -155,6 +168,7 @@
                                 </td>
                                 <td>{{ $tgl($p->tanggal_mulai) }}</td>
                                 <td>{{ $tgl($p->tanggal_selesai) }}</td>
+                                <td>{{ $p->status ?: '-' }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -172,9 +186,12 @@
                     </div>
                     <h3 class="serif">Belum ada program kerja</h3>
                     <p>
-                        @if ($adaFilter)
+                        @if ($namaBidangDipilih)
                             Tidak ada data program kerja untuk bidang <b>{{ $namaBidangDipilih }}</b>.
                             Pilih bidang lain atau atur ulang filter.
+                        @elseif ($statusDipilih)
+                            Tidak ada program kerja berstatus <b>{{ $statusDipilih }}</b>.
+                            Pilih status lain atau atur ulang filter.
                         @else
                             Belum ada program kerja yang tercatat di bidang mana pun.
                         @endif

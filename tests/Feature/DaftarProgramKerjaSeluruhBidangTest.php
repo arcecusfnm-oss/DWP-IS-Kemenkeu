@@ -50,9 +50,9 @@ class DaftarProgramKerjaSeluruhBidangTest extends TestCase
         ]);
     }
 
-    private function buatProgram(int $idBidang, int $pembuat, string $nama): void
+    private function buatProgram(int $idBidang, int $pembuat, string $nama, ?string $status = null): void
     {
-        DB::table('program_kerja')->insert([
+        DB::table('program_kerja')->insert(array_merge([
             'id_bidang'       => $idBidang,
             'nama_program'    => $nama,
             'tujuan'          => 'Tujuan pengujian',
@@ -65,7 +65,7 @@ class DaftarProgramKerjaSeluruhBidangTest extends TestCase
             'dibuat_oleh'     => $pembuat,
             'created_at'      => now(),
             'updated_at'      => now(),
-        ]);
+        ], $status !== null ? ['status' => $status] : []));
     }
 
     // ---------------------------------------------------------------
@@ -251,5 +251,102 @@ class DaftarProgramKerjaSeluruhBidangTest extends TestCase
             ->assertOk()
             ->assertDontSee($nama, false)
             ->assertSee(e($nama), false);
+    }
+
+        // ---------------------------------------------------------------
+    // Filter status (B-044 AC 2)
+    // ---------------------------------------------------------------
+
+    public function test_filter_status_hanya_menampilkan_program_berstatus_itu(): void
+    {
+        $admin  = $this->buatPengguna('Admin');
+        $bidang = $this->buatBidang('Bidang Status');
+        $tag    = Str::random(6);
+
+        $this->buatProgram($bidang, $admin->id_pengguna, "Program Setuju $tag", 'Disetujui');
+        $this->buatProgram($bidang, $admin->id_pengguna, "Program Tolak $tag", 'Ditolak');
+
+        $this->actingAs($admin)
+            ->get(route('admin.program-kerja.index', ['status' => 'Disetujui']))
+            ->assertOk()
+            ->assertSee("Program Setuju $tag")
+            ->assertDontSee("Program Tolak $tag");
+    }
+
+    public function test_tanpa_filter_status_semua_status_tampil_dan_default_diajukan(): void
+    {
+        $admin  = $this->buatPengguna('Admin');
+        $bidang = $this->buatBidang('Bidang Semua Status');
+        $tag    = Str::random(6);
+
+        $this->buatProgram($bidang, $admin->id_pengguna, "Program Setuju $tag", 'Disetujui');
+        $this->buatProgram($bidang, $admin->id_pengguna, "Program Baru $tag");
+
+        $res = $this->actingAs($admin)
+            ->getJson(route('admin.program-kerja.index', ['bidang' => $bidang]))
+            ->assertOk()
+            ->assertJsonPath('total', 2)
+            ->assertJsonPath('status', null);
+
+        $baru = collect($res->json('data'))->firstWhere('nama_program', "Program Baru $tag");
+        $this->assertSame('Diajukan', $baru['status']);
+    }
+
+    public function test_filter_status_lewat_json_mengembalikan_data_dan_status_terpilih(): void
+    {
+        $admin  = $this->buatPengguna('Admin');
+        $bidang = $this->buatBidang('Bidang Json Status');
+        $tag    = Str::random(6);
+
+        $this->buatProgram($bidang, $admin->id_pengguna, "JSON Selesai $tag", 'Selesai');
+        $this->buatProgram($bidang, $admin->id_pengguna, "JSON Berjalan $tag", 'Berjalan');
+
+        $this->actingAs($admin)
+            ->getJson(route('admin.program-kerja.index', ['status' => 'Selesai', 'bidang' => $bidang]))
+            ->assertOk()
+            ->assertJsonPath('status', 'Selesai')
+            ->assertJsonPath('total', 1)
+            ->assertJsonFragment(['nama_program' => "JSON Selesai $tag"])
+            ->assertJsonMissing(['nama_program' => "JSON Berjalan $tag"]);
+    }
+
+    public function test_filter_bidang_dan_status_bisa_dipadukan(): void
+    {
+        $admin   = $this->buatPengguna('Admin');
+        $bidangA = $this->buatBidang('Bidang A');
+        $bidangB = $this->buatBidang('Bidang B');
+        $tag     = Str::random(6);
+
+        $this->buatProgram($bidangA, $admin->id_pengguna, "Program A Setuju $tag", 'Disetujui');
+        $this->buatProgram($bidangA, $admin->id_pengguna, "Program A Tolak $tag", 'Ditolak');
+        $this->buatProgram($bidangB, $admin->id_pengguna, "Program B Setuju $tag", 'Disetujui');
+
+        $this->actingAs($admin)
+            ->getJson(route('admin.program-kerja.index', ['bidang' => $bidangA, 'status' => 'Disetujui']))
+            ->assertOk()
+            ->assertJsonPath('total', 1)
+            ->assertJsonFragment(['nama_program' => "Program A Setuju $tag"])
+            ->assertJsonMissing(['nama_program' => "Program A Tolak $tag"])
+            ->assertJsonMissing(['nama_program' => "Program B Setuju $tag"]);
+    }
+
+    public function test_status_tanpa_hasil_menampilkan_pesan_kosong_tanpa_error(): void
+    {
+        $admin = $this->buatPengguna('Admin');
+
+        $this->actingAs($admin)
+            ->get(route('admin.program-kerja.index', ['status' => 'TidakAda_' . Str::random(8)]))
+            ->assertOk()
+            ->assertSee('Tidak ada program kerja berstatus');
+    }
+
+    public function test_status_lebih_dari_30_karakter_ditolak_validasi(): void
+    {
+        $admin = $this->buatPengguna('Admin');
+
+        $this->actingAs($admin)
+            ->getJson(route('admin.program-kerja.index', ['status' => str_repeat('a', 31)]))
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('status');
     }
 }
