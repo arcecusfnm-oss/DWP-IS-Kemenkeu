@@ -163,12 +163,12 @@ class LoginTest extends TestCase
             'login' => 'Nama pengguna atau kata sandi salah.',
         ]);
 
-        // Password benar pada akun nonaktif tetap menghasilkan pesan umum.
+        // Password benar pada akun nonaktif menghasilkan pesan khusus.
         $this->from('/login')->post('/login', [
             'username' => 'fahira',
             'password' => 'password123',
         ])->assertSessionHasErrors([
-            'login' => 'Nama pengguna atau kata sandi salah.',
+            'login' => 'Akun tidak aktif',
         ]);
 
         $this->assertGuest();
