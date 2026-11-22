@@ -62,6 +62,7 @@ class ProgramKerjaController extends Controller
                 'tempat'          => $data['tempat'] ?? null,
                 'anggaran'        => $data['anggaran'] ?? null,
                 'keterangan'      => $data['keterangan'] ?? null,
+                'status'          => 'Diajukan',
                 'dibuat_oleh'     => Auth::id(),
                 'created_at'      => now(),
                 'updated_at'      => now(),
@@ -341,6 +342,7 @@ class ProgramKerjaController extends Controller
                     'tanggal_mulai',
                     'tanggal_selesai',
                     'anggaran',
+                    'status',
                 ])
                 ->orderByDesc('tanggal_mulai')
                 ->orderByDesc('id_program_kerja')
@@ -361,6 +363,12 @@ class ProgramKerjaController extends Controller
             ->where('id_bidang', $idBidangSaya)
             ->value('nama_bidang');
 
+        $tahunAnggaran = now()->year;
+        $totalAnggaran = (float) DB::table('program_kerja')
+            ->where('id_bidang', $idBidangSaya)
+            ->whereYear('tanggal_mulai', $tahunAnggaran)
+            ->sum('anggaran');
+
         $pesan = $program->total() === 0
             ? 'Belum ada program kerja untuk bidang ini.'
             : null;
@@ -372,6 +380,8 @@ class ProgramKerjaController extends Controller
                 'total'   => $program->total(),
                 'halaman' => $program->currentPage(),
                 'pesan'   => $pesan,
+                'totalAnggaran' => $totalAnggaran,
+                'tahunAnggaran' => $tahunAnggaran,
             ]);
         }
 
@@ -379,6 +389,8 @@ class ProgramKerjaController extends Controller
             'programKerja' => $program,
             'namaBidang'   => $namaBidang,
             'pesan'        => $pesan,
+            'totalAnggaran' => $totalAnggaran,
+            'tahunAnggaran' => $tahunAnggaran,
         ]);
     }
 
@@ -460,12 +472,12 @@ class ProgramKerjaController extends Controller
         return [
             'nama_program'    => ['required', 'string', 'max:255'],
             'tujuan'          => ['required', 'string', 'max:5000'],
-            'sasaran_peserta' => ['nullable', 'string', 'max:255'],
-            'metode'          => ['nullable', 'string', 'max:255'],
+            'sasaran_peserta' => ['required', 'string', 'max:255'],
+            'metode'          => ['required', 'string', 'max:255'],
             'tanggal_mulai'   => ['required', 'date_format:Y-m-d'],
             'tanggal_selesai' => ['bail', 'required', 'date_format:Y-m-d', 'after_or_equal:tanggal_mulai'],
-            'tempat'          => ['nullable', 'string', 'max:255'],
-            'anggaran'        => ['nullable', 'numeric', 'min:0', 'max:9999999999999.99'],
+            'tempat'          => ['required', 'string', 'max:255'],
+            'anggaran'        => ['required', 'numeric', 'min:0', 'max:9999999999999.99'],
             'keterangan'      => ['nullable', 'string', 'max:2000'],
         ];
     }
@@ -478,14 +490,18 @@ class ProgramKerjaController extends Controller
             'nama_program.max'               => 'Nama program maksimal 255 karakter',
             'tujuan.required'                => 'Tujuan wajib diisi',
             'tujuan.max'                     => 'Tujuan maksimal 5000 karakter',
-            'sasaran_peserta.max'            => 'Sasaran peserta maksimal 255 karakter',
-            'metode.max'                     => 'Metode maksimal 255 karakter',
             'tanggal_mulai.required'         => 'Tanggal mulai wajib diisi',
             'tanggal_mulai.date_format'      => 'Format tanggal mulai tidak valid',
             'tanggal_selesai.required'       => 'Tanggal selesai wajib diisi',
             'tanggal_selesai.date_format'    => 'Format tanggal selesai tidak valid',
             'tanggal_selesai.after_or_equal' => 'Tanggal selesai tidak boleh sebelum tanggal mulai',
+            'sasaran_peserta.required'       => 'Sasaran peserta wajib diisi',
+            'sasaran_peserta.max'            => 'Sasaran peserta maksimal 255 karakter',
+            'metode.required'                => 'Metode wajib diisi',
+            'metode.max'                     => 'Metode maksimal 255 karakter',
+            'tempat.required'                => 'Tempat wajib diisi',
             'tempat.max'                     => 'Tempat maksimal 255 karakter',
+            'anggaran.required'              => 'Anggaran wajib diisi',
             'anggaran.numeric'               => 'Anggaran harus berupa angka',
             'anggaran.min'                   => 'Anggaran tidak boleh negatif',
             'anggaran.max'                   => 'Anggaran terlalu besar',

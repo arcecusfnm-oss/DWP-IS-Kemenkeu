@@ -104,6 +104,7 @@ class TambahProgramKerjaTest extends TestCase
             'tanggal_mulai'   => '2026-12-01',
             'tanggal_selesai' => '2026-12-10',
             'dibuat_oleh'     => $pimpinan->id_pengguna,
+            'status'          => 'Diajukan',
         ]);
     }
 
@@ -132,18 +133,18 @@ class TambahProgramKerjaTest extends TestCase
         $res = $this->tambah($pimpinan, [
             'nama_program'    => 'Program Minimal',
             'tujuan'          => 'Uji kolom opsional.',
+            'sasaran_peserta' => 'Anggota DWP',
+            'metode'          => 'Pelatihan luring',
             'tanggal_mulai'   => '2026-12-01',
             'tanggal_selesai' => '2026-12-10',
+            'tempat'          => 'Aula Kemenkeu',
+            'anggaran'        => 1000000,
         ]);
 
         $res->assertSessionHasNoErrors();
         $this->assertDatabaseHas('program_kerja', [
-            'nama_program'    => 'Program Minimal',
-            'sasaran_peserta' => null,
-            'metode'          => null,
-            'tempat'          => null,
-            'anggaran'        => null,
-            'keterangan'      => null,
+            'nama_program' => 'Program Minimal',
+            'keterangan'   => null,
         ]);
     }
 
@@ -160,6 +161,43 @@ class TambahProgramKerjaTest extends TestCase
         $this->assertSame(1, $this->jumlahProgram());
     }
 
+    public function test_total_anggaran_bidang_menjumlahkan_program_tahun_berjalan(): void
+    {
+        $tahun      = now()->year;
+        $bidangSaya = $this->buatBidang('Sosial Budaya');
+        $bidangLain = $this->buatBidang('Ekonomi');
+        $pimpinan   = $this->buatPimpinan($bidangSaya);
+
+        $isi = fn (int $idBidang, string $mulai, string $selesai, int $anggaran) =>
+            DB::table('program_kerja')->insert([
+                'id_bidang'       => $idBidang,
+                'nama_program'    => 'Program ' . $anggaran,
+                'tujuan'          => 'Uji total anggaran.',
+                'sasaran_peserta' => 'Anggota DWP',
+                'metode'          => 'Luring',
+                'tanggal_mulai'   => $mulai,
+                'tanggal_selesai' => $selesai,
+                'tempat'          => 'Aula',
+                'anggaran'        => $anggaran,
+                'dibuat_oleh'     => $pimpinan->id_pengguna,
+                'created_at'      => now(),
+                'updated_at'      => now(),
+            ]);
+
+        // Dijumlahkan: dua program bidang saya, tahun ini.
+        $isi($bidangSaya, "$tahun-03-01", "$tahun-03-10", 1000000);
+        $isi($bidangSaya, "$tahun-05-01", "$tahun-05-10", 2500000);
+        // Tidak ikut: bidang saya tahun lalu, dan bidang lain tahun ini.
+        $isi($bidangSaya, ($tahun - 1) . '-03-01', ($tahun - 1) . '-03-10', 7000000);
+        $isi($bidangLain, "$tahun-03-01", "$tahun-03-10", 9000000);
+
+        $res = $this->actingAs($pimpinan)->getJson(route('program-kerja.bidang-saya'));
+
+        $res->assertOk();
+        $this->assertEquals(3500000, $res->json('totalAnggaran'));
+        $this->assertSame($tahun, $res->json('tahunAnggaran'));
+    }
+
     // ---------- 2. Kolom kosong ----------
 
     public static function kolomWajib(): array
@@ -169,6 +207,10 @@ class TambahProgramKerjaTest extends TestCase
             'tujuan'          => ['tujuan', 'Tujuan wajib diisi'],
             'tanggal mulai'   => ['tanggal_mulai', 'Tanggal mulai wajib diisi'],
             'tanggal selesai' => ['tanggal_selesai', 'Tanggal selesai wajib diisi'],
+            'sasaran peserta' => ['sasaran_peserta', 'Sasaran peserta wajib diisi'],
+            'metode'          => ['metode', 'Metode wajib diisi'],
+            'tempat'          => ['tempat', 'Tempat wajib diisi'],
+            'anggaran'        => ['anggaran', 'Anggaran wajib diisi'],
         ];
     }
 
@@ -191,7 +233,10 @@ class TambahProgramKerjaTest extends TestCase
 
         $res = $this->tambah($pimpinan, []);
 
-        $res->assertSessionHasErrors(['nama_program', 'tujuan', 'tanggal_mulai', 'tanggal_selesai']);
+        $res->assertSessionHasErrors([
+            'nama_program', 'tujuan', 'sasaran_peserta', 'metode',
+            'tanggal_mulai', 'tanggal_selesai', 'tempat', 'anggaran',
+        ]);
         $this->assertSame(0, $this->jumlahProgram());
     }
 
