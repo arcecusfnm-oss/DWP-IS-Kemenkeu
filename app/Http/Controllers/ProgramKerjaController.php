@@ -326,15 +326,19 @@ class ProgramKerjaController extends Controller
             abort(403, 'Anda tidak memiliki hak akses.');
         }
 
+        $request->validate([
+            'cari' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $kataCari = trim((string) $request->input('cari', ''));
+        // Escape wildcard LIKE agar % dan _ dicari sebagai karakter literal.
+        $kataCari = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $kataCari);
+
         try {
             $program = DB::table('program_kerja')
                 ->where('id_bidang', $idBidangSaya)
-                ->when($request->filled('cari'), function ($query) use ($request) {
-                    $query->where(
-                        'nama_program',
-                        'like',
-                        '%' . trim($request->input('cari')) . '%'
-                    );
+                ->when($kataCari !== '', function ($query) use ($kataCari) {
+                    $query->where('nama_program', 'like', '%' . $kataCari . '%');
                 })
                 ->select([
                     'id_program_kerja',

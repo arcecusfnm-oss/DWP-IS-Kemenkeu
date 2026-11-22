@@ -262,4 +262,39 @@ class DaftarProgramKerjaBidangSayaTest extends TestCase
                 'nama_program' => 'Program JSON Lain',
             ]);
     }
+
+    public function test_parameter_cari_array_ditolak_dengan_validasi_bukan_error_500(): void
+    {
+        $bidang = $this->buatBidang('Sosial Budaya');
+        $pimpinan = $this->buatPengguna('Pimpinan Bidang', $bidang, 'pimpinan_cariarray101');
+
+        $this->actingAs($pimpinan)
+            ->get(route('program-kerja.bidang-saya') . '?cari%5B%5D=a')
+            ->assertRedirect()
+            ->assertSessionHasErrors('cari');
+    }
+
+    public function test_pencarian_percent_dan_underscore_diperlakukan_literal(): void
+    {
+        $bidang = $this->buatBidang('Sosial Budaya');
+        $pimpinan = $this->buatPengguna('Pimpinan Bidang', $bidang, 'pimpinan_wildcard101');
+
+        $this->buatProgram($bidang, $pimpinan->id_pengguna, 'Program 100% Nyata');
+        $this->buatProgram($bidang, $pimpinan->id_pengguna, 'Program A_B Khusus');
+        $this->buatProgram($bidang, $pimpinan->id_pengguna, 'Program Biasa');
+
+        $this->actingAs($pimpinan)
+            ->get(route('program-kerja.bidang-saya', ['cari' => '%']))
+            ->assertOk()
+            ->assertSee('Program 100% Nyata')
+            ->assertDontSee('Program A_B Khusus')
+            ->assertDontSee('Program Biasa');
+
+        $this->get(route('program-kerja.bidang-saya', ['cari' => '_']))
+            ->assertOk()
+            ->assertSee('Program A_B Khusus')
+            ->assertDontSee('Program 100% Nyata')
+            ->assertDontSee('Program Biasa');
+    }
+
 }
