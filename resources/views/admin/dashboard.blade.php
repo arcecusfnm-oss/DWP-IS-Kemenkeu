@@ -25,7 +25,8 @@
             'icon' => 'calendar',
             'badge' => 'Diperiksa Berkala',
             'badgeIcon' => 'trend',
-            'badgeClass' => 'badge-blue'
+            'badgeClass' => 'badge-blue',
+            'href' => route('admin.program-kerja.index'),
         ],
         [
             'label' => 'Surat Masuk',
@@ -34,7 +35,8 @@
             'icon' => 'mail',
             'badge' => 'Diajukan',
             'badgeIcon' => 'send',
-            'badgeClass' => 'badge-yellow'
+            'badgeClass' => 'badge-yellow',
+            'href' => route('surat.index', ['jenis' => 'masuk']),
         ],
         [
             'label' => 'Laporan Kegiatan',
