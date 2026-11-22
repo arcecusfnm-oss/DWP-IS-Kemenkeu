@@ -41,7 +41,7 @@
              'hint' => 'Nama unit kementerian, lembaga, atau instansi pengirim resmi'],
             ['nama' => 'tanggal_surat', 'label' => 'Tanggal Surat', 'wajib' => true, 'tipe' => 'date', 'ikon' => 'kalender',
              'hint' => 'Tanggal tertera pada kepala naskah dinas'],
-            ['nama' => 'tanggal_diterima', 'label' => 'Tanggal Diterima', 'wajib' => true, 'tipe' => 'date', 'ikon' => 'surel',
+            ['nama' => 'tanggal_diterima', 'label' => 'Tanggal Diterima', 'wajib' => true, 'tipe' => 'date', 'ikon' => 'kalender',
              'hint' => 'Diterima oleh petugas loket sekretariat DWP'],
             ['nama' => 'lampiran', 'label' => 'Lampiran', 'wajib' => true, 'ikon' => 'klip', 'penuh' => true, 'maks' => 255,
             'hint' => 'Tuliskan keterangan lampiran, misalnya "1 berkas", atau "-" jika tidak ada'],
