@@ -78,6 +78,20 @@ class CatatSuratMasukTest extends TestCase
         ], $override);
     }
 
+    public function test_form_catat_surat_masuk_menampilkan_lampiran_text_wajib_maksimal_255(): void
+    {
+        $response = $this->actingAs($this->admin())
+            ->get(route('surat.catat-masuk'));
+
+        $response->assertOk()
+            ->assertSee('<input type="text" id="lampiran" name="lampiran"', false)
+            ->assertSee('required', false)
+            ->assertSee('maxlength="255"', false)
+            ->assertSee('Keterangan jumlah/jenis lampiran (isi - jika tidak ada)')
+            ->assertSee('Lampiran wajib diisi (isi - jika tidak ada).')
+            ->assertDontSee('enctype="multipart/form-data"', false);
+    }
+
     // ---------- AC 1: Skenario utama (Admin & Sekretariat, lengkap 10 kolom template) ----------
 
     public function test_sekretariat_berhasil_mencatat_surat_masuk_lengkap_dan_tampil_di_daftar(): void
