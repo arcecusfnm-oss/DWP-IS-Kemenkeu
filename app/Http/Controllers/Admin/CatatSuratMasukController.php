@@ -64,7 +64,7 @@ class CatatSuratMasukController extends Controller
         $tahun = (int) $tanggal->format('Y');
         $romawi = self::BULAN_ROMAWI[$bulan];
 
-        $lockName = "agenda_surat_masuk_{$tahun}_{$bulan}";
+        $lockName = "agenda_surat_masuk_{$tahun}";
         $lockAcquired = false;
 
         $data['dibuat_oleh'] = Auth::id();
@@ -88,7 +88,7 @@ class CatatSuratMasukController extends Controller
 
             $id = DB::transaction(function () use (&$data, $romawi, $tahun) {
                 $agendaLama = DB::table('surat_masuk')
-                    ->where('nomor_agenda', 'like', '%/' . $romawi . '/' . $tahun)
+                    ->where('nomor_agenda', 'like', '%/' . $tahun)
                     ->pluck('nomor_agenda');
 
                 $nomorTerbesar = 0;
@@ -98,7 +98,6 @@ class CatatSuratMasukController extends Controller
 
                     if (
                         count($bagian) === 3
-                        && $bagian[1] === $romawi
                         && $bagian[2] === (string) $tahun
                         && ctype_digit($bagian[0])
                     ) {
@@ -110,7 +109,7 @@ class CatatSuratMasukController extends Controller
                 }
 
                 $data['nomor_agenda'] = sprintf(
-                    '%03d/%s/%d',
+                    '%d/%s/%d',
                     $nomorTerbesar + 1,
                     $romawi,
                     $tahun

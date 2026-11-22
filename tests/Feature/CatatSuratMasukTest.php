@@ -109,7 +109,7 @@ class CatatSuratMasukTest extends TestCase
             ->first();
 
         $this->assertNotNull($tersimpan);
-        $this->assertSame('001/I/2032', $tersimpan->nomor_agenda);
+        $this->assertSame('1/I/2032', $tersimpan->nomor_agenda);
         $this->assertSame('Biro Umum Kemenkeu', $tersimpan->asal_surat);
         $this->assertSame('2032-01-05', $tersimpan->tanggal_surat);
         $this->assertSame('2032-01-06', $tersimpan->tanggal_diterima);
@@ -147,7 +147,7 @@ class CatatSuratMasukTest extends TestCase
 
         $this->assertDatabaseHas('surat_masuk', [
             'nomor_surat'       => $nomorSurat,
-            'nomor_agenda'      => '001/III/2032',
+            'nomor_agenda'      => '1/III/2032',
             'lampiran'          => '-',
             'disposisi'         => null,
             'tanggal_disposisi' => null,
@@ -157,7 +157,7 @@ class CatatSuratMasukTest extends TestCase
 
     // ---------- AC 2: Nomor agenda berurutan & format No. urut/Bulan Romawi/Tahun ----------
 
-    public function test_nomor_agenda_tersusun_berurutan_dan_mengikuti_bulan_romawi_tahun(): void
+    public function test_nomor_agenda_berurutan_lintas_bulan_dan_reset_tahun(): void
     {
         $sekretariat = $this->sekretariat();
 
@@ -188,14 +188,25 @@ class CatatSuratMasukTest extends TestCase
             ]))
             ->assertSessionHasNoErrors();
 
+        $no4 = 'SM-JAN-TAHUN-BARU-' . uniqid();
+        $this->actingAs($sekretariat)
+            ->post(route('surat.simpan-masuk'), $this->payloadValid([
+                'nomor_surat'      => $no4,
+                'tanggal_surat'    => '2034-01-05',
+                'tanggal_diterima' => '2034-01-06',
+            ]))
+            ->assertSessionHasNoErrors();
+
         $agenda1 = DB::table('surat_masuk')->where('nomor_surat', $no1)->value('nomor_agenda');
         $agenda2 = DB::table('surat_masuk')->where('nomor_surat', $no2)->value('nomor_agenda');
         $agenda3 = DB::table('surat_masuk')->where('nomor_surat', $no3)->value('nomor_agenda');
+        $agenda4 = DB::table('surat_masuk')->where('nomor_surat', $no4)->value('nomor_agenda');
 
-        $this->assertSame('001/I/2033', $agenda1);
-        $this->assertSame('002/I/2033', $agenda2);
-        $this->assertSame('001/II/2033', $agenda3);
-        $this->assertCount(3, array_unique([$agenda1, $agenda2, $agenda3]));
+        $this->assertSame('1/I/2033', $agenda1);
+        $this->assertSame('2/I/2033', $agenda2);
+        $this->assertSame('3/II/2033', $agenda3);
+        $this->assertSame('1/I/2034', $agenda4);
+        $this->assertCount(4, array_unique([$agenda1, $agenda2, $agenda3, $agenda4]));
     }
 
     // ---------- AC 3: Disposisi administratif & validasi urutan tanggal ----------
@@ -387,7 +398,7 @@ class CatatSuratMasukTest extends TestCase
                 return $pesan === 'Surat masuk dicatat'
                     && $konteks['pengguna_id'] === $sekretariat->id_pengguna
                     && $konteks['pengguna_username'] === $sekretariat->nama_pengguna
-                    && $konteks['nomor_agenda'] === '001/VII/2032'
+                    && $konteks['nomor_agenda'] === '1/VII/2032'
                     && $konteks['nomor_surat'] === $nomorSurat
                     && ! empty($konteks['id_surat_masuk'])
                     && ! empty($konteks['dicatat_pada'])
