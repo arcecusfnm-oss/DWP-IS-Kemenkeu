@@ -1,12 +1,12 @@
-# Kontrak HTTP Endpoint Sprint 2 DWP-IS-Kemenkeu
+# Dokumentasi HTTP Endpoint Sprint 2 DWP-IS-Kemenkeu
 
 **Tugas:** T-21 (lintas PBI B-011 sampai B-048)
-**Status:** DRAFT, menunggu persetujuan tim pada Daily Scrum Hari 1.
+**Status:** Inventaris dokumentasi endpoint yang diselaraskan dengan route implementasi per 23 November 2026.
 Tanda `[ASUMSI]` berarti belum dikonfirmasi klien (lihat bagian 7).
 
 ## 1. Pendahuluan
 
-Dokumen ini adalah kontrak HTTP endpoint Sprint 2 yang disepakati **sebelum** implementasi, supaya backend dan front-end dapat dikerjakan paralel. Cakupan: pengelolaan akun (lanjutan), anggota, jabatan bidang, surat, program kerja, dan kegiatan.
+Dokumen ini merangkum HTTP endpoint Sprint 2 berdasarkan dokumentasi kebutuhan dan route implementasi yang telah diperiksa. Cakupan: pengelolaan akun (lanjutan), anggota, jabatan bidang, surat, program kerja, dan kegiatan.
 
 Seperti Sprint 1, aplikasi memakai Laravel Web Routes. Endpoint memproses permintaan melalui browser dan mengembalikan halaman Blade, redirect, atau pesan validasi. Endpoint yang didokumentasikan **bukan REST API JSON**.
 
@@ -58,7 +58,7 @@ Fitur yang hanya dapat dilakukan satu jenis pengguna: kelola akun, anggota, dan 
 
 | Method | Endpoint                       | Route Name               | Fungsi                                 | Akses |
 | ------ | ------------------------------ | ------------------------ | -------------------------------------- | ----- |
-| POST   | `/admin/akun/{id}/alih-admin`  | `admin.akun.alih-admin`  | Mengalihkan peran Admin ke akun tujuan | Admin |
+| POST   | `/admin/akun/alih-admin`  | `admin.akun.alih-admin`  | Mengalihkan peran Admin ke akun tujuan | Admin |
 | POST   | `/admin/akun/{id}/nonaktifkan` | `admin.akun.nonaktifkan` | Menonaktifkan akun                     | Admin |
 | POST   | `/admin/akun/{id}/aktifkan`    | `admin.akun.aktifkan`    | Mengaktifkan kembali akun              | Admin |
 
@@ -71,8 +71,8 @@ Fitur yang hanya dapat dilakukan satu jenis pengguna: kelola akun, anggota, dan 
 | POST   | `/admin/anggota`             | `admin.anggota.store`         | Menyimpan anggota baru                        | Admin             |
 | GET    | `/admin/anggota/{id}/edit`   | `admin.anggota.edit`          | Formulir ubah anggota                         | Admin             |
 | PUT    | `/admin/anggota/{id}`        | `admin.anggota.update`        | Memperbarui data anggota                      | Admin             |
-| PUT    | `/admin/anggota/{id}/bidang` | `admin.anggota.bidang.update` | Memindahkan anggota ke bidang lain            | Admin             |
-| GET    | `/anggota-bidang-saya`       | `anggota.bidang-saya`         | Daftar anggota bidang akun yang login         | Pimpinan, Anggota |
+| PUT    | `/admin/anggota/{id}/pindah-bidang` | `admin.anggota.pindah-bidang` | Memindahkan anggota ke bidang lain            | Admin             |
+| GET    | `/anggota/bidang-saya`       | `anggota.bidang-saya`         | Daftar anggota bidang akun yang login         | Pimpinan, Anggota |
 
 ### 4.3 Jabatan Bidang (B-017, B-019)
 
@@ -86,22 +86,22 @@ Fitur yang hanya dapat dilakukan satu jenis pengguna: kelola akun, anggota, dan 
 | Method | Endpoint               | Route Name            | Fungsi                                      | Akses |
 | ------ | ---------------------- | --------------------- | ------------------------------------------- | ----- |
 | GET    | `/surat`               | `surat.index`         | Daftar surat, pencarian `?q=&dari=&sampai=` | Surat |
-| GET    | `/surat/masuk/tambah`  | `surat.masuk.create`  | Formulir surat masuk                        | Surat |
-| POST   | `/surat/masuk`         | `surat.masuk.store`   | Mencatat surat masuk                        | Surat |
+| GET    | `/surat/catat-masuk`  | `surat.catat-masuk`  | Formulir surat masuk                        | Surat |
+| POST   | `/surat/catat-masuk`         | `surat.simpan-masuk`   | Mencatat surat masuk                        | Surat |
 | GET    | `/surat/keluar/tambah` | `surat.keluar.create` | Formulir surat keluar                       | Surat |
 | POST   | `/surat/keluar`        | `surat.keluar.store`  | Mencatat surat keluar                       | Surat |
-| GET    | `/surat/{id}/edit`     | `surat.edit`          | Formulir ubah surat                         | Surat |
-| PUT    | `/surat/{id}`          | `surat.update`        | Memperbarui data surat                      | Surat |
+| GET    | `/surat/{jenis}/{id}/edit`     | `surat.edit`          | Formulir ubah surat                         | Surat |
+| PUT    | `/surat/{jenis}/{id}`          | `surat.update`        | Memperbarui data surat                      | Surat |
 
 ### 4.5 Program Kerja (B-041, B-042, B-044, B-045, B-046)
 
 | Method | Endpoint                     | Route Name                  | Fungsi                                        | Akses                       |
 | ------ | ---------------------------- | --------------------------- | --------------------------------------------- | --------------------------- |
-| GET    | `/program-kerja/tambah`      | `program-kerja.create`      | Formulir tambah program                       | Pimpinan                    |
-| POST   | `/program-kerja`             | `program-kerja.store`       | Menyimpan program baru                        | Pimpinan                    |
+| GET    | `/program-kerja/tambah`      | `program-kerja.create`      | Formulir tambah program                       | Pimpinan, Anggota Bidang     |
+| POST   | `/program-kerja`             | `program-kerja.store`       | Menyimpan program baru                        | Pimpinan, Anggota Bidang     |
 | GET    | `/program-kerja/bidang-saya` | `program-kerja.bidang-saya` | Program milik bidang sendiri                  | Pimpinan, Anggota           |
 | GET    | `/program-kerja/bidang-lain` | `program-kerja.bidang-lain` | Program bidang lain (hanya baca)              | Auth `[ASUMSI]`             |
-| GET    | `/admin/program-kerja`       | `admin.program-kerja.index` | Program seluruh bidang, filter `?bidang={id}` | Admin, Penasihat `[ASUMSI]` |
+| GET    | `/admin/program-kerja`       | `admin.program-kerja.index` | Program seluruh bidang, filter `?bidang={id}` | Admin |
 | GET    | `/program-kerja/{id}/edit`   | `program-kerja.edit`        | Formulir ubah program                         | Pimpinan + Pemilik          |
 | PUT    | `/program-kerja/{id}`        | `program-kerja.update`      | Memperbarui program                           | Pimpinan + Pemilik          |
 
@@ -112,7 +112,7 @@ Fitur yang hanya dapat dilakukan satu jenis pengguna: kelola akun, anggota, dan 
 | GET    | `/program-kerja/{id}/kegiatan/tambah` | `program-kerja.kegiatan.create` | Formulir tambah kegiatan        | Pimpinan + Pemilik |
 | POST   | `/program-kerja/{id}/kegiatan`        | `program-kerja.kegiatan.store`  | Menyimpan kegiatan pada program | Pimpinan + Pemilik |
 
-## 5. Detail Request dan Validasi
+### Endpoint Penasihat dan kegiatan dari sidebar\n\n| Method | Endpoint | Route Name | Fungsi | Akses |\n| --- | --- | --- | --- | --- |\n| GET | `/penasihat/program-kerja` | `penasihat.program-kerja.index` | Melihat program kerja seluruh bidang | Penasihat |\n| GET | `/kegiatan` | `kegiatan.index` | Daftar kegiatan melalui sidebar | Pimpinan Bidang, Anggota Bidang |\n| GET | `/kegiatan/tambah` | `kegiatan.create` | Form tambah kegiatan melalui sidebar | Pimpinan Bidang, Anggota Bidang |\n| POST | `/kegiatan` | `kegiatan.store` | Menambah kegiatan melalui sidebar | Pimpinan Bidang, Anggota Bidang |\n\n## 5. Detail Request dan Validasi
 
 ### 5.1 Alih Admin (B-011)
 
@@ -204,7 +204,7 @@ Perilaku:
 Perilaku:
 
 - `/admin/anggota` menampilkan nama, bidang, nomor telepon, dan status seluruh anggota; dapat difilter per bidang.
-- `/anggota-bidang-saya` menampilkan nama, jabatan bidang, dan nomor telepon. **Bidang diambil dari akun yang login, bukan dari parameter**; permintaan dengan ID bidang lain menghasilkan respons 403.
+- `/anggota/bidang-saya` menampilkan nama, jabatan bidang, dan nomor telepon. **Bidang diambil dari akun yang login, bukan dari parameter**; permintaan dengan ID bidang lain menghasilkan respons 403.
 - Bidang tanpa anggota menampilkan pesan "Tidak ada anggota yang sesuai" tanpa error.
 - Respons tidak memuat kata sandi, hash, atau token.
 

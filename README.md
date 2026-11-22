@@ -107,7 +107,7 @@ Struktur database disiapkan menggunakan fitur migrasi Laravel.
    ```
 
 ### Data Awal yang Dihasilkan Seeder:
-- **Peran:** Admin, Penanggung Jawab, Pimpinan Bidang, Anggota Bidang, Bendahara.
+- **Peran:** Admin, Penanggung Jawab, Pimpinan Bidang, Anggota Bidang, Bendahara, Penasihat.
 - **Bidang:** Ekonomi, Sosial Budaya, Pendidikan, Sekretariat, Bendahara.
 - **Akun Uji Bawaan:**
 
@@ -124,6 +124,11 @@ Struktur database disiapkan menggunakan fitur migrasi Laravel.
 
 ---
 
+### Seeder tambahan
+
+- `UnitKerjaSeeder`: menyiapkan 13 data unit kerja.
+- `AnggotaSeeder`: seeder 10 data anggota contoh, tidak otomatis dijalankan oleh `DatabaseSeeder`. Jalankan terpisah dengan `php artisan db:seed --class=AnggotaSeeder`.
+
 ## 5. Menjalankan Aplikasi
 
 1. **Jalankan Server Lokal:**
@@ -137,7 +142,7 @@ Struktur database disiapkan menggunakan fitur migrasi Laravel.
 
 ---
 
-## 6. Daftar Endpoint Sprint 1
+## 6. Daftar Endpoint Web (Sprint 1 & 2)
 
 ### Akses Pengguna & Otentikasi
 | Metode | Alamat | Fungsi |
@@ -177,6 +182,10 @@ Struktur database disiapkan menggunakan fitur migrasi Laravel.
 
 ---
 
+### Dokumentasi endpoint Sprint 2
+
+Inventaris route, HTTP method, middleware, dan endpoint fitur Sprint 2 dijelaskan lebih lengkap di [`docs/API-Sprint2.md`](docs/API-Sprint2.md). Aplikasi menggunakan web route/session, bukan REST API JSON. Untuk melihat route aktual jalankan `php artisan route:list -v`.
+
 ## 7. Pengujian (Testing)
 
 Proyek ini dilengkapi dengan pengujian otomatis (*Feature & Unit Testing*).
@@ -198,6 +207,7 @@ Dokumen teknis pendukung yang tersedia pada direktori `docs/`:
 - `ENVIRONMENT.md` - Panduan detail variabel lingkungan.
 - `HTTPS-UJI.md` - Panduan setup HTTPS di lingkungan lokal.
 - `TESTING.md` - Panduan penulisan & eksekusi pengujian.
+- `API-Sprint2.md` - Dokumentasi endpoint web Sprint 2.
 
 ---
 
