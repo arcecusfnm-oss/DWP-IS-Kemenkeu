@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Log;
  *          Tanpa sesi ditolak oleh middleware auth (AC4).
  * Bidang : SELALU diambil dari akun yang masuk. Kalau request membawa ?bidang=
  *          yang bukan bidang akun, ditolak 403 di server (AC2).
- * Respons: hanya nama lengkap, jabatan bidang, dan nomor telepon (AC1).
+ * Respons: hanya nama lengkap, jabatan bidang, nama unit kerja, dan keahlian (AC1).
  *          Tidak ada data akun, kata sandi, atau data pribadi lain yang ikut terbaca.
  */
 class AnggotaBidangController extends Controller
@@ -45,13 +45,15 @@ class AnggotaBidangController extends Controller
 
         try {
             $anggota = DB::table('anggota')
+                ->leftJoin('unit_kerja', 'unit_kerja.id_unit_kerja', '=', 'anggota.id_unit_kerja')
                 ->where('anggota.id_bidang', $idBidangSaya)
                 ->whereNull('anggota.dihapus_pada')
                 ->select(
                     'anggota.id_anggota',
                     'anggota.nama_lengkap',
                     'anggota.jabatan_bidang',
-                    'anggota.nomor_telepon'
+                    'unit_kerja.nama_unit_kerja',
+                    'anggota.keahlian'
                 )
                 // Ketua, lalu wakil ketua, lalu anggota lain berdasarkan nama.
                 ->orderByRaw("CASE anggota.jabatan_bidang WHEN 'ketua' THEN 0 WHEN 'wakil_ketua' THEN 1 ELSE 2 END")

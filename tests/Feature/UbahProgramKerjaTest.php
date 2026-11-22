@@ -190,17 +190,17 @@ class UbahProgramKerjaTest extends TestCase
         $this->ubah($pimpinan, $id, [
             'nama_program'    => 'Program Minimal',
             'tujuan'          => 'Uji kolom opsional.',
+            'sasaran_peserta' => 'Anggota DWP',
+            'metode'          => 'Pelatihan luring',
             'tanggal_mulai'   => '2026-12-01',
             'tanggal_selesai' => '2026-12-10',
+            'tempat'          => 'Aula Kemenkeu',
+            'anggaran'        => 1000000,
         ])->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('program_kerja', [
             'id_program_kerja' => $id,
             'nama_program'     => 'Program Minimal',
-            'sasaran_peserta'  => null,
-            'metode'           => null,
-            'tempat'           => null,
-            'anggaran'         => null,
             'keterangan'       => null,
         ]);
     }
