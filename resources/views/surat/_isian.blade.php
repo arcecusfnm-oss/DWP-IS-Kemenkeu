@@ -36,6 +36,7 @@
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{!! $ikon[$m['ikon']] !!}</svg>
             @else
                 <input type="{{ $tipe }}" id="{{ $n }}" name="{{ $n }}" value="{{ $nilaiIni }}"
+                       @if ($m['wajib'] ?? false) required @endif
                        @if ($tipe !== 'date') maxlength="{{ $m['maks'] ?? 255 }}" @endif
                        aria-describedby="{{ $desc }}" @if ($ada) aria-invalid="true" @endif>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{!! $ikon[$m['ikon']] !!}</svg>
