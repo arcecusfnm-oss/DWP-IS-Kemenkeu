@@ -68,10 +68,10 @@ class CatatSuratMasukTest extends TestCase
             'asal_surat'        => 'Sekretariat Jenderal Kemenkeu',
             'tanggal_surat'     => '2032-01-10',
             'tanggal_diterima'  => '2032-01-12',
-            'lampiran'           => '2 berkas undangan PDF',
+            'lampiran'          => '2 berkas undangan PDF',
             'perihal'           => 'Undangan Rapat Koordinasi DWP',
             'disposisi'         => 'Diteruskan ke Ketua Bidang Pendidikan',
-            'tanggal_disposisi' => $tanggalDiterima,
+            'tanggal_disposisi' => '2032-01-12',
             'keterangan'        => 'Harap ditindaklanjuti sebelum Jumat',
         ], $override);
 
@@ -92,7 +92,7 @@ class CatatSuratMasukTest extends TestCase
             ->assertSee('required', false)
             ->assertSee('maxlength="255"', false)
             ->assertSee('Keterangan jumlah/jenis lampiran (isi - jika tidak ada)')
-            ->assertSee('Lampiran wajib diisi (isi - jika tidak ada).')
+            ->assertSee('Lampiran wajib diisi keterangan jumlah/jenis (isi - jika tidak ada).')
             ->assertDontSee('enctype="multipart/form-data"', false);
     }
 
@@ -131,14 +131,13 @@ class CatatSuratMasukTest extends TestCase
         $this->assertSame('Biro Umum Kemenkeu', $tersimpan->asal_surat);
         $this->assertSame('2032-01-05', $tersimpan->tanggal_surat);
         $this->assertSame('2032-01-06', $tersimpan->tanggal_diterima);
-        $this->assertSame('2 lembar', $tersimpan->lampiran);
+        $this->assertSame('1 undangan PDF dan 1 lembar agenda', $tersimpan->lampiran);
         $this->assertSame('Permohonan Peserta Seminar Nasional', $tersimpan->perihal);
         $this->assertSame('Koordinasikan dengan Bidang Sosial Budaya', $tersimpan->disposisi);
         $this->assertSame('2032-01-07', $tersimpan->tanggal_disposisi);
         $this->assertSame('Arsip penting', $tersimpan->keterangan);
-        $this->assertSame('1 undangan PDF dan 1 lembar agenda', $tersimpan->lampiran);
         $this->assertSame($sekretariat->id_pengguna, (int) $tersimpan->dibuat_oleh);
-        
+
         // Cek tampil di daftar surat masuk
         $this->actingAs($sekretariat)
             ->get(route('surat.index', ['jenis' => 'masuk']))
@@ -171,7 +170,7 @@ class CatatSuratMasukTest extends TestCase
             'disposisi'         => null,
             'tanggal_disposisi' => null,
             'keterangan'        => null,
-            'lampiran'           => 'Tidak ada lampiran',
+            'lampiran'          => '-',
         ]);
     }
 

@@ -30,7 +30,7 @@
          'opsi' => ['' => 'Pilih bidang'] + $bidang->mapWithKeys(fn ($b) => [$b->id_bidang => $b->nama_bidang])->all(),
          'hint' => 'Pilih bidang yang terkait dengan surat ini'],
         ['nama' => 'status_terkirim', 'label' => 'Status Terkirim', 'wajib' => true, 'tipe' => 'select',
-         'opsi' => ['' => 'Pilih status', 'sudah' => 'Sudah terkirim', 'belum' => 'Belum terkirim', 'batal' => 'Dibatalkan'],
+         'opsi' => ['' => 'Pilih status', 'sudah' => 'Sudah', 'belum' => 'Belum', 'batal' => 'Batal'],
          'hint' => 'Pilih status pengiriman surat'],
         ['nama' => 'keterangan', 'label' => 'Keterangan', 'wajib' => false, 'tipe' => 'textarea', 'penuh' => true, 'maks' => 2000, 'baris' => 4,
          'hint' => 'Keterangan tambahan (opsional)'],

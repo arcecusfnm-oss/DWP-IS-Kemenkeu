@@ -130,6 +130,34 @@ class UbahProgramKerjaTest extends TestCase
         $this->assertSame(1, DB::table('program_kerja')->count());
     }
 
+    public function test_program_perlu_revisi_berubah_menjadi_diajukan_setelah_diperbarui(): void
+    {
+        $bidang   = $this->buatBidang('Sosial Budaya');
+        $pimpinan = $this->buatPimpinan($bidang);
+        $id       = $this->buatProgram($bidang, $pimpinan->id_pengguna, [
+            'nama_program' => 'Program Revisi Awal',
+            'status'       => 'Perlu Revisi',
+        ]);
+
+        $this->actingAs($pimpinan)
+            ->get(route('program-kerja.edit', ['id' => $id]))
+            ->assertOk()
+            ->assertSee('Perlu Revisi')
+            ->assertSee('Simpan & Ajukan Kembali');
+
+        $this->ubah($pimpinan, $id, $this->dataValid([
+            'nama_program' => 'Program Setelah Revisi',
+        ]))
+            ->assertRedirect(route('program-kerja.bidang-saya'))
+            ->assertSessionHas('sukses', 'Program kerja berhasil diperbaiki dan diajukan kembali.');
+
+        $this->assertDatabaseHas('program_kerja', [
+            'id_program_kerja' => $id,
+            'nama_program'     => 'Program Setelah Revisi',
+            'status'           => 'Diajukan',
+        ]);
+    }
+
     public function test_perubahan_memperbarui_updated_at(): void
     {
         $bidang   = $this->buatBidang('Sosial Budaya');
@@ -301,7 +329,7 @@ class UbahProgramKerjaTest extends TestCase
         $this->assertSame('Program Awal', $this->namaProgram($id));
     }
 
-    // ---------- 3. Tanggal terbalik ----------
+    // ---------- 3. Tanggal terbalik & anggaran tidak valid ----------
 
     public function test_tanggal_selesai_sebelum_tanggal_mulai_ditolak(): void
     {
@@ -352,6 +380,21 @@ class UbahProgramKerjaTest extends TestCase
 
         $this->ubah($pimpinan, $id, $this->dataValid(['tanggal_mulai' => '10-12-2026']))
             ->assertSessionHasErrors(['tanggal_mulai' => 'Format tanggal mulai tidak valid']);
+    }
+
+    public function test_anggaran_negatif_atau_bukan_angka_ditolak_saat_ubah(): void
+    {
+        $bidang   = $this->buatBidang('Sosial Budaya');
+        $pimpinan = $this->buatPimpinan($bidang);
+        $id       = $this->buatProgram($bidang, $pimpinan->id_pengguna, ['anggaran' => 2500000]);
+
+        $this->ubah($pimpinan, $id, $this->dataValid(['anggaran' => -1000]))
+            ->assertSessionHasErrors(['anggaran' => 'Anggaran tidak boleh negatif']);
+
+        $this->ubah($pimpinan, $id, $this->dataValid(['anggaran' => 'bukan-angka']))
+            ->assertSessionHasErrors(['anggaran' => 'Anggaran harus berupa angka']);
+
+        $this->assertEquals(2500000, (float) DB::table('program_kerja')->where('id_program_kerja', $id)->value('anggaran'));
     }
 
     // ---------- 4. Kolom wajib kosong ----------
@@ -428,7 +471,29 @@ class UbahProgramKerjaTest extends TestCase
         $this->assertSame('Program Awal', $this->namaProgram($id));
     }
 
-    // ---------- 6. Log ----------
+    // ---------- 6. Log & Keamanan Output ----------
+
+    public function test_perubahan_dengan_tag_skrip_disimpan_dan_tampil_ter_escape(): void
+    {
+        $bidang   = $this->buatBidang('Sosial Budaya');
+        $pimpinan = $this->buatPimpinan($bidang);
+        $id       = $this->buatProgram($bidang, $pimpinan->id_pengguna);
+        $xss      = '<script>alert("xss-ubah")</script>';
+
+        $this->ubah($pimpinan, $id, $this->dataValid(['nama_program' => $xss]))
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('program_kerja', [
+            'id_program_kerja' => $id,
+            'nama_program'     => $xss,
+        ]);
+
+        $this->actingAs($pimpinan)
+            ->get(route('program-kerja.edit', ['id' => $id]))
+            ->assertOk()
+            ->assertDontSee($xss, false)
+            ->assertSee($xss);
+    }
 
     public function test_perubahan_tercatat_di_log_tanpa_data_sensitif(): void
     {

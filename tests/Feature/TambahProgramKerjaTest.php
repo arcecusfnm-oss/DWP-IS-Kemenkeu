@@ -54,7 +54,7 @@ class TambahProgramKerjaTest extends TestCase
         return $this->buatPengguna('Pimpinan Bidang', $idBidang, $username);
     }
 
-        private function buatAnggota(int $idBidang, string $username = 'anggota_uji83'): Pengguna
+    private function buatAnggota(int $idBidang, string $username = 'anggota_uji83'): Pengguna
     {
         return $this->buatPengguna('Anggota Bidang', $idBidang, $username);
     }
@@ -251,7 +251,7 @@ class TambahProgramKerjaTest extends TestCase
             ->assertJsonValidationErrors('nama_program');
     }
 
-    // ---------- 3. Tanggal terbalik ----------
+    // ---------- 3. Tanggal terbalik & anggaran tidak valid ----------
 
     public function test_tanggal_selesai_sebelum_tanggal_mulai_ditolak(): void
     {
@@ -277,6 +277,28 @@ class TambahProgramKerjaTest extends TestCase
         $res = $this->tambah($pimpinan, $this->dataValid(['tanggal_mulai' => '10-12-2026']));
 
         $res->assertSessionHasErrors(['tanggal_mulai' => 'Format tanggal mulai tidak valid']);
+        $this->assertSame(0, $this->jumlahProgram());
+    }
+
+    public function test_anggaran_negatif_ditolak(): void
+    {
+        $bidang   = $this->buatBidang('Sosial Budaya');
+        $pimpinan = $this->buatPimpinan($bidang);
+
+        $res = $this->tambah($pimpinan, $this->dataValid(['anggaran' => -5000]));
+
+        $res->assertSessionHasErrors(['anggaran' => 'Anggaran tidak boleh negatif']);
+        $this->assertSame(0, $this->jumlahProgram());
+    }
+
+    public function test_anggaran_bukan_angka_ditolak(): void
+    {
+        $bidang   = $this->buatBidang('Sosial Budaya');
+        $pimpinan = $this->buatPimpinan($bidang);
+
+        $res = $this->tambah($pimpinan, $this->dataValid(['anggaran' => 'bukan-angka']));
+
+        $res->assertSessionHasErrors(['anggaran' => 'Anggaran harus berupa angka']);
         $this->assertSame(0, $this->jumlahProgram());
     }
 
@@ -363,7 +385,8 @@ class TambahProgramKerjaTest extends TestCase
     }
 
     // ---------- 6. Anggota Bidang ----------
-        public function test_anggota_bidang_berhasil_menambah_program_kerja(): void
+
+    public function test_anggota_bidang_berhasil_menambah_program_kerja(): void
     {
         $bidang  = $this->buatBidang('Sosial Budaya');
         $anggota = $this->buatAnggota($bidang);
@@ -390,7 +413,7 @@ class TambahProgramKerjaTest extends TestCase
         }
     }
 
-        public function test_form_tambah_ditolak_untuk_peran_lain(): void
+    public function test_form_tambah_ditolak_untuk_peran_lain(): void
     {
         $bidang = $this->buatBidang('Sosial Budaya');
 
@@ -425,7 +448,13 @@ class TambahProgramKerjaTest extends TestCase
 
         $res->assertSessionHasNoErrors();
         $this->assertDatabaseHas('program_kerja', ['nama_program' => $teks]);
-        $this->assertSame(1, $this->jumlahProgram()); // tabel masih ada dan terbaca
+        $this->assertSame(1, $this->jumlahProgram());
+
+        $this->actingAs($pimpinan)
+            ->get(route('program-kerja.bidang-saya'))
+            ->assertOk()
+            ->assertDontSee($teks, false)
+            ->assertSee($teks);
     }
 
     // ---------- AC 7: log ----------

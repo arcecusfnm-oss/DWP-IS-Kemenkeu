@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
-use Illuminate\Database\QueryException;
 use Throwable;
 
 class CatatSuratKeluarController extends Controller
@@ -103,7 +103,8 @@ class CatatSuratKeluarController extends Controller
 
             Log::error('Gagal mencatat surat keluar', [
                 'pengguna_id' => Auth::id(),
-                'error' => $e->getMessage(),
+                'kelas_galat' => get_class($e),
+                'kode_galat'  => $e->getCode(),
             ]);
 
             return back()->withInput()->with(
@@ -114,7 +115,8 @@ class CatatSuratKeluarController extends Controller
         } catch (Throwable $e) {
             Log::error('Kesalahan pencatatan surat keluar', [
                 'pengguna_id' => Auth::id(),
-                'error' => $e->getMessage(),
+                'kelas_galat' => get_class($e),
+                'kode_galat'  => $e->getCode(),
             ]);
 
             return back()->withInput()->with(
