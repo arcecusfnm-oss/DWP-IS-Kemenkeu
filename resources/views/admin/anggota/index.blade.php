@@ -494,8 +494,12 @@
             var bidangAsal = '';
 
             function perbaruiSimpan() {
-                tombolSimpan.disabled = !selectBidang.value ||
-                    selectBidang.value === bidangAsal;
+                var tujuan = String(selectBidang.value || '').trim();
+                var asal = String(bidangAsal || '').trim();
+                var bidangSama = tujuan !== '' && tujuan === asal;
+
+                tombolSimpan.disabled = tujuan === '' || bidangSama;
+                tombolSimpan.setAttribute('aria-disabled', tombolSimpan.disabled ? 'true' : 'false');
             }
 
             function bukaModal(button) {
