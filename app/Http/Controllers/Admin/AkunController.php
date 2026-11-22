@@ -430,6 +430,15 @@ class AkunController extends Controller
                 'id_bidang'  => $idBidang,
                 'updated_at' => now(),
             ]);
+
+            DB::table('anggota')
+                ->where('id_pengguna', $id)
+                ->update([
+                    'id_bidang'      => $idBidang,
+                    'jabatan_bidang' => null,
+                    'updated_at'     => now(),
+                ]);
+
         });
 
         return redirect()->route('admin.akun.index')

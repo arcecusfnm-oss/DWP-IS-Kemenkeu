@@ -6,6 +6,7 @@ use App\Models\Bidang;
 use App\Models\Pengguna;
 use App\Models\Peran;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
@@ -89,6 +90,40 @@ class TetapkanBidangTest extends TestCase
         $this->assertDatabaseHas('pengguna', [
             'id_pengguna' => $this->target->id_pengguna,
             'id_bidang'   => $this->idBidang('Pendidikan'),
+        ]);
+    }
+
+    public function test_perubahan_bidang_akun_menyinkronkan_anggota_dan_mereset_jabatan(): void
+    {
+        $bidangAwal = $this->idBidang('Sosial Budaya');
+        $bidangTujuan = $this->idBidang('Pendidikan');
+
+        $idAnggota = DB::table('anggota')->insertGetId([
+            'id_pengguna'    => $this->target->id_pengguna,
+            'nama_lengkap'   => $this->target->nama_lengkap,
+            'nomor_telepon' => '081234567890',
+            'id_bidang'     => $bidangAwal,
+            'jabatan_bidang' => 'ketua',
+            'status'          => 'aktif',
+            'dibuat_oleh'     => $this->admin->id_pengguna,
+            'created_at'     => now(),
+            'updated_at'     => now(),
+        ], 'id_anggota');
+
+        $this->tetapkan($this->target, 'Pendidikan')
+            ->assertRedirect(route('admin.akun.index'))
+            ->assertSessionHas('sukses', 'Bidang akun berhasil diperbarui.');
+
+        $this->assertDatabaseHas('pengguna', [
+            'id_pengguna' => $this->target->id_pengguna,
+            'id_bidang'   => $bidangTujuan,
+        ]);
+
+        $this->assertDatabaseHas('anggota', [
+            'id_anggota'     => $idAnggota,
+            'id_pengguna'    => $this->target->id_pengguna,
+            'id_bidang'      => $bidangTujuan,
+            'jabatan_bidang' => null,
         ]);
     }
 
