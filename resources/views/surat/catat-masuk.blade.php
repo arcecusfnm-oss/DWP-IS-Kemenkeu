@@ -26,7 +26,7 @@
          'hint' => 'Nama instansi atau unit pengirim surat'],
         ['nama' => 'tanggal_surat', 'label' => 'Tanggal Surat', 'wajib' => true, 'tipe' => 'date', 'ikon' => 'kalender',
          'hint' => 'Tanggal yang tercantum pada surat'],
-        ['nama' => 'tanggal_diterima', 'label' => 'Tanggal Diterima', 'wajib' => true, 'tipe' => 'date', 'ikon' => 'surel',
+        ['nama' => 'tanggal_diterima', 'label' => 'Tanggal Diterima', 'wajib' => true, 'tipe' => 'date', 'ikon' => 'kalender',
          'hint' => 'Tanggal surat diterima oleh sekretariat'],
         ['nama' => 'lampiran', 'label' => 'Lampiran', 'wajib' => true, 'tipe' => 'text', 'ikon' => 'klip', 'penuh' => true, 'maks' => 255,
          'hint' => 'Keterangan jumlah/jenis lampiran (isi - jika tidak ada)'],
@@ -48,10 +48,9 @@
 <style>
     .ubs { --ink:#3a2a22; --muted:#877368; --line:#f1d5c7; --fill:#fff1ea; --brand:#8d3812; --aksen:#c2653d; color:var(--ink); }
     .ubs *, .ubs *::before, .ubs *::after { box-sizing:border-box; }
-    .ubs-crumb { display:flex; align-items:center; gap:6px; margin:0 0 8px; font-size:13px; color:var(--muted); }
-    .ubs-crumb a { color:var(--muted); text-decoration:none; }
-    .ubs-crumb a:hover { color:var(--brand); }
-    .ubs-head, .ubs-card { background:#fff; border:1px solid var(--line); border-radius:14px; }
+
+
+.ubs-head, .ubs-card { background:#fff; border:1px solid var(--line); border-radius:14px; }
     .ubs-head { overflow:hidden; margin-bottom:16px; }
     .ubs-garis { height:4px; background:linear-gradient(90deg,#a5471f 0 33.33%,#f58b5e 33.33% 66.66%,#2e5b2a 66.66% 100%); }
     .ubs-head-isi { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:16px; padding:16px 20px; }
@@ -100,6 +99,8 @@
     .ubs-btn-simpan:hover { background:#7a2f0e; }
     .ubs-info { padding:16px; font-size:12.5px; line-height:1.5; color:var(--ink); background:#fff6f1; border:1px solid var(--line); border-radius:14px; }
     .ubs-info strong { display:block; margin-bottom:6px; font-size:13px; }
+    .ubs-info ul { margin:6px 0 0; padding-left:18px; }
+    .ubs-info li + li { margin-top:4px; }
     @media (max-width:1024px) { .ubs-grid { grid-template-columns:1fr; } }
     @media (max-width:640px) {
         .ubs-fields { grid-template-columns:1fr; }
@@ -112,13 +113,7 @@
 
 @section('content')
 <div class="content ubs">
-    <nav class="ubs-crumb" aria-label="Breadcrumb">
-        <a href="{{ route('surat.index', ['jenis' => 'masuk']) }}">Persuratan</a>
-        <span aria-hidden="true">/</span>
-        <span>Catat Surat Masuk</span>
-    </nav>
-
-    <header class="ubs-head">
+<header class="ubs-head">
         <div class="ubs-garis" aria-hidden="true"></div>
         <div class="ubs-head-isi">
             <div>
