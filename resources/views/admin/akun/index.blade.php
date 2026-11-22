@@ -669,7 +669,7 @@
                 daftar.replaceChildren();
 
                 // Reset tombol simpan setiap modal dibuka
-                simpan.disabled = false;
+                simpan.disabled = true;
 
                 // Role yang tidak membutuhkan bidang
                 if (tanpa.includes(peran)) {
@@ -716,6 +716,13 @@
 
                     select.appendChild(option);
                 });
+
+                function perbaruiSimpan() {
+                    simpan.disabled = !select.value || bidangLama.includes(select.value);
+                }
+
+                select.addEventListener('change', perbaruiSimpan);
+                perbaruiSimpan();
 
                 wrap.appendChild(select);
                 daftar.appendChild(wrap);
