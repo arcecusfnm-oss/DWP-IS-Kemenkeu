@@ -44,9 +44,9 @@
             ['nama' => 'tanggal_diterima', 'label' => 'Tanggal Diterima', 'wajib' => true, 'tipe' => 'date', 'ikon' => 'surel',
              'hint' => 'Diterima oleh petugas loket sekretariat DWP'],
             ['nama' => 'lampiran', 'label' => 'Lampiran', 'wajib' => true, 'ikon' => 'klip', 'penuh' => true, 'maks' => 255,
-            'hint' => 'Tuliskan keterangan lampiran, misalnya "1 berkas", atau "-" jika tidak ada'],
+             'hint' => 'Tuliskan keterangan lampiran, misalnya "1 berkas", atau "-" jika tidak ada'],
             ['nama' => 'perihal', 'label' => 'Perihal', 'wajib' => true, 'tipe' => 'textarea', 'penuh' => true, 'maks' => 255, 'hitung' => true,
-            'hint' => 'Ringkasan pokok permasalahan atau urgensi isi surat'],
+             'hint' => 'Ringkasan pokok permasalahan atau urgensi isi surat'],
         ];
     } else {
         $medan = [
@@ -58,9 +58,9 @@
              'hint' => 'Nama instansi atau pihak tujuan surat'],
             ['nama' => 'status_terkirim', 'label' => 'Status Terkirim', 'wajib' => true, 'tipe' => 'select',
              'opsi' => ['sudah' => 'Sudah', 'belum' => 'Belum', 'batal' => 'Batal'], 'hint' => 'Posisi pengiriman surat keluar'],
-            ['nama' => 'id_bidang_terkait', 'label' => 'Bidang Terkait', 'tipe' => 'select',
+            ['nama' => 'id_bidang_terkait', 'label' => 'Bidang Terkait', 'wajib' => true, 'tipe' => 'select',
              'opsi' => $daftarBidang->pluck('nama_bidang', 'id_bidang')->all(),
-             'hint' => 'Opsional: bidang yang berkaitan dengan surat'],
+             'hint' => 'Pilih bidang yang berkaitan dengan surat'],
             ['nama' => 'perihal', 'label' => 'Perihal', 'wajib' => true, 'tipe' => 'textarea', 'penuh' => true, 'maks' => 255, 'hitung' => true,
              'hint' => 'Ringkasan pokok permasalahan atau urgensi isi surat'],
             ['nama' => 'keterangan', 'label' => 'Keterangan', 'tipe' => 'textarea', 'penuh' => true, 'maks' => 2000, 'baris' => 2,
@@ -85,7 +85,7 @@
             ['Penerimaan & Registrasi', 'Dicatat oleh ' . $namaPembuat, $tgl($surat->tanggal_diterima), $adaDisposisi ? 'selesai' : 'aktif'],
             ['Lembar Disposisi', $adaDisposisi ? 'Arahan pimpinan tercatat' : 'Belum ada disposisi', $adaDisposisi ? $tgl($surat->tanggal_disposisi) : null, $adaDisposisi ? 'aktif' : 'tunggu'],
         ];
-        $infoFormat = $surat->lampiran ? 'Berkas digital terlampir' : 'Belum ada berkas digital';
+        $infoFormat = filled($surat->lampiran) && $surat->lampiran !== '-' ? 'Dengan lampiran' : 'Tanpa lampiran';
     } else {
         $labelStatus = ['sudah' => 'Sudah terkirim', 'belum' => 'Belum terkirim', 'batal' => 'Dibatalkan'][$surat->status_terkirim] ?? '-';
         $langkah = [
@@ -288,7 +288,7 @@
                     <div class="ubs-sec">
                         <span class="ubs-no">2</span>
                         <div>
-                            <h2>Instruksi &amp; Alur Disposisi</h2>
+                            <h2>Instruksi & Alur Disposisi</h2>
                             <p>Penetapan arahan pimpinan dan tindak lanjut surat</p>
                         </div>
                     </div>
@@ -301,7 +301,7 @@
 
                     <div class="ubs-chips">
                         <span>Pilihan Cepat:</span>
-                        <button type="button" class="ubs-chip" data-sisip="Tanggapi dan selesaikan.">+ Tanggapi &amp; selesaikan</button>
+                        <button type="button" class="ubs-chip" data-sisip="Tanggapi dan selesaikan.">+ Tanggapi & selesaikan</button>
                         <button type="button" class="ubs-chip" data-sisip="Hadir mewakili.">+ Hadir mewakili</button>
                         <button type="button" class="ubs-chip" data-sisip="Koordinasikan dengan bidang terkait.">+ Koordinasi bidang</button>
                     </div>
@@ -329,12 +329,8 @@
 
             @if ($masuk)
                 <section class="ubs-card">
-                    <h3>Lampiran Berkas Digital</h3>
-                    @if ($surat->lampiran)
-                        <p class="ubs-kosong"><a href="{{ asset('storage/' . $surat->lampiran) }}" target="_blank" rel="noopener"><b>{{ basename($surat->lampiran) }}</b></a></p>
-                    @else
-                        <p class="ubs-kosong">Belum ada berkas digital yang tertaut pada surat ini.</p>
-                    @endif
+                    <h3>Keterangan Lampiran</h3>
+                    <p class="ubs-kosong">{{ $surat->lampiran ?: '-' }}</p>
                 </section>
             @endif
 
@@ -362,7 +358,7 @@
                     Petunjuk Perubahan Surat
                 </strong>
                 Perubahan nomor surat atau asal instansi memerlukan verifikasi ulang naskah fisik asli.
-                Pastikan berkas pindaan (scan) tetap sinkron dengan tanggal penerimaan.
+                Pastikan seluruh rincian surat tetap sinkron dengan dokumen resmi.
             </div>
         </aside>
     </div>

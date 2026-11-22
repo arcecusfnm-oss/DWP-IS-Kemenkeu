@@ -32,15 +32,15 @@ class UbahSuratController extends Controller
 
     private const KOLOM_TANGGAL = ['tanggal_surat', 'tanggal_diterima', 'tanggal', 'tanggal_disposisi'];
 
-    public function edit(string $jenis, int $id)
+    public function edit(string $jenis, int$id)
     {
-        $surat = $this->cari($jenis, $id);
+        $surat =$this->cari($jenis,$id);
 
         if (! $surat) {
             abort(404, 'Surat tidak ditemukan.');
         }
 
-        $daftarBidang = $jenis === 'keluar'
+        $daftarBidang =$jenis === 'keluar'
             ? DB::table('bidang')->orderBy('nama_bidang')->get(['id_bidang', 'nama_bidang'])
             : collect();
 
@@ -57,38 +57,30 @@ class UbahSuratController extends Controller
         ]);
     }
 
-    public function update(Request $request, string $jenis, int $id)
+    public function update(Request $request, string $jenis, int$id)
     {
-        $lama = $this->cari($jenis, $id);
+        $lama =$this->cari($jenis,$id);
 
         if (! $lama) {
             abort(404, 'Surat tidak ditemukan.');
         }
 
-        $data = $request->validate($this->aturan($jenis, $id), $this->pesan());
+        $data =$request->validate($this->aturan($jenis, $id),$this->pesan());
 
         // Catat nama kolom yang berubah saja (tanpa nilainya).
         $berubah = [];
-        foreach (self::KOLOM[$jenis] as $kolom) {
+        foreach (self::KOLOM[$jenis] as$kolom) {
             if ($this->normal($kolom, $lama->{$kolom}) !== $this->normal($kolom, $data[$kolom] ?? null)) {
-                $berubah[] = $kolom;
+                $berubah[] =$kolom;
             }
         }
 
-        if (
-            $jenis === 'masuk'
-            && filled($data['lampiran'] ?? null)
-            && $this->normal('lampiran', $lama->lampiran) !== $this->normal('lampiran', $data['lampiran'])
-        ) {
-            $berubah[] = 'lampiran';
-        }
-
         if ($berubah === []) {
-            return $this->selesai($request, $jenis, $id, 'Tidak ada perubahan pada data surat.');
+            return $this->selesai($request, $jenis,$id, 'Tidak ada perubahan pada data surat.');
         }
 
         $isi = [];
-        foreach ($berubah as $kolom) {
+        foreach ($berubah as$kolom) {
             $isi[$kolom] = $data[$kolom] ?? null;
         }
         $isi['updated_at'] = now();
@@ -112,8 +104,7 @@ class UbahSuratController extends Controller
             $pesan = 'Data surat belum bisa diubah. Silakan coba lagi.';
 
             return $request->expectsJson()
-                ? response()->json(['pesan' => $pesan], 500)
-                : redirect()->back()->withInput()->with('galat', $pesan);
+                ? response()->json(['pesan' => $pesan], 500) : redirect()->back()->withInput()->with('galat',$pesan);
         }
 
         Log::info('Surat diubah', [
@@ -127,44 +118,44 @@ class UbahSuratController extends Controller
             'dicatat_pada'      => now()->toDateTimeString(),
         ]);
 
-        return $this->selesai($request, $jenis, $id, 'Data surat berhasil diubah.');
+        return $this->selesai($request, $jenis,$id, 'Data surat berhasil diubah.');
     }
 
-    private function cari(string $jenis, int $id): ?object
+    private function cari(string $jenis, int$id): ?object
     {
         if (! isset(self::TABEL[$jenis])) {
             return null;
         }
 
-        return DB::table(self::TABEL[$jenis])->where(self::KUNCI[$jenis], $id)->first();
+        return DB::table(self::TABEL[$jenis])->where(self::KUNCI[$jenis],$id)->first();
     }
 
-    private function normal(string $kolom, mixed $nilai): string
+    private function normal(string $kolom, mixed$nilai): string
     {
         $teks = (string) ($nilai ?? '');
 
-        return in_array($kolom, self::KOLOM_TANGGAL, true) ? substr($teks, 0, 10) : $teks;
+        return in_array($kolom, self::KOLOM_TANGGAL, true) ? substr($teks, 0, 10) :$teks;
     }
 
-    private function selesai(Request $request, string $jenis, int $id, string $pesan)
+    private function selesai(Request $request, string$jenis, int $id, string$pesan)
     {
         if ($request->expectsJson()) {
-            return response()->json(['pesan' => $pesan, 'jenis' => $jenis, 'id_surat' => $id]);
+            return response()->json(['pesan' => $pesan, 'jenis' => $jenis, 'id_surat' =>$id]);
         }
 
-        return redirect()->route('surat.index', ['jenis' => $jenis])->with('sukses', $pesan);
+        return redirect()->route('surat.index', ['jenis' => $jenis])->with('sukses',$pesan);
     }
 
-    private function gagalValidasi(Request $request, string $kolom, string $pesan)
+    private function gagalValidasi(Request $request, string $kolom, string$pesan)
     {
         if ($request->expectsJson()) {
             return response()->json(['message' => $pesan, 'errors' => [$kolom => [$pesan]]], 422);
         }
 
-        return redirect()->back()->withInput()->withErrors([$kolom => $pesan]);
+        return redirect()->back()->withInput()->withErrors([$kolom =>$pesan]);
     }
 
-    private function aturan(string $jenis, int $id): array
+    private function aturan(string $jenis, int$id): array
     {
         // Jenis hanya dari URL; mengirim 'jenis' lewat request ditolak.
         $umum = ['jenis' => ['prohibited']];
@@ -198,36 +189,36 @@ class UbahSuratController extends Controller
 
     private function pesan(): array
     {
-return [
-    'jenis.prohibited'                   => 'Jenis surat tidak dapat diubah',
-    'nomor_surat.required'               => 'Nomor surat wajib diisi',
-    'nomor_surat.max'                    => 'Nomor surat maksimal 100 karakter',
-    'nomor_surat.unique'                 => 'Nomor surat sudah tercatat',
-    'asal_surat.required'                => 'Asal surat wajib diisi',
-    'asal_surat.max'                     => 'Asal surat maksimal 255 karakter',
-    'tanggal_surat.required'              => 'Tanggal surat wajib diisi',
-    'tanggal_surat.date_format'           => 'Format tanggal surat tidak valid',
-    'tanggal_diterima.required'           => 'Tanggal diterima wajib diisi',
-    'tanggal_diterima.date_format'        => 'Format tanggal diterima tidak valid',
-    'tanggal_diterima.after_or_equal'     => 'Tanggal diterima tidak boleh sebelum tanggal surat',
-    'lampiran.required'                   => 'Lampiran wajib diisi',
-    'lampiran.string'                     => 'Lampiran harus berupa teks',
-    'lampiran.max'                        => 'Lampiran maksimal 255 karakter',
-    'tanggal.required'                     => 'Tanggal surat wajib diisi',
-    'tanggal.date_format'                  => 'Format tanggal surat tidak valid',
-    'tujuan.required'                     => 'Tujuan wajib diisi',
-    'tujuan.max'                          => 'Tujuan maksimal 255 karakter',
-    'perihal.required'                    => 'Perihal wajib diisi',
-    'perihal.max'                         => 'Perihal maksimal 255 karakter',
-    'status_terkirim.required'             => 'Status terkirim wajib dipilih',
-    'status_terkirim.in'                  => 'Status terkirim tidak valid',
-    'id_bidang_terkait.required'          => 'Bidang terkait wajib dipilih',
-    'id_bidang_terkait.integer'           => 'Bidang terkait tidak valid',
-    'id_bidang_terkait.exists'            => 'Bidang terkait tidak tersedia',
-    'keterangan.max'                       => 'Keterangan maksimal 2000 karakter',
-    'disposisi.max'                       => 'Arahan disposisi maksimal 2000 karakter',
-    'tanggal_disposisi.date_format'        => 'Format tanggal disposisi tidak valid',
-    'tanggal_disposisi.after_or_equal'     => 'Tanggal disposisi tidak boleh lebih awal dari tanggal diterima',
-];
+        return [
+            'jenis.prohibited'                   => 'Jenis surat tidak dapat diubah',
+            'nomor_surat.required'               => 'Nomor surat wajib diisi',
+            'nomor_surat.max'                    => 'Nomor surat maksimal 100 karakter',
+            'nomor_surat.unique'                 => 'Nomor surat sudah tercatat',
+            'asal_surat.required'                => 'Asal surat wajib diisi',
+            'asal_surat.max'                     => 'Asal surat maksimal 255 karakter',
+            'tanggal_surat.required'             => 'Tanggal surat wajib diisi',
+            'tanggal_surat.date_format'          => 'Format tanggal surat tidak valid',
+            'tanggal_diterima.required'          => 'Tanggal diterima wajib diisi',
+            'tanggal_diterima.date_format'       => 'Format tanggal diterima tidak valid',
+            'tanggal_diterima.after_or_equal'    => 'Tanggal diterima tidak boleh sebelum tanggal surat',
+            'lampiran.required'                  => 'Lampiran wajib diisi',
+            'lampiran.string'                    => 'Lampiran harus berupa teks',
+            'lampiran.max'                       => 'Lampiran maksimal 255 karakter',
+            'tanggal.required'                   => 'Tanggal surat wajib diisi',
+            'tanggal.date_format'                => 'Format tanggal surat tidak valid',
+            'tujuan.required'                    => 'Tujuan wajib diisi',
+            'tujuan.max'                         => 'Tujuan maksimal 255 karakter',
+            'perihal.required'                   => 'Perihal wajib diisi',
+            'perihal.max'                        => 'Perihal maksimal 255 karakter',
+            'status_terkirim.required'           => 'Status terkirim wajib dipilih',
+            'status_terkirim.in'                 => 'Status terkirim tidak valid',
+            'id_bidang_terkait.required'         => 'Bidang terkait wajib dipilih',
+            'id_bidang_terkait.integer'          => 'Bidang terkait tidak valid',
+            'id_bidang_terkait.exists'           => 'Bidang terkait tidak tersedia',
+            'keterangan.max'                     => 'Keterangan maksimal 2000 karakter',
+            'disposisi.max'                      => 'Arahan disposisi maksimal 2000 karakter',
+            'tanggal_disposisi.date_format'      => 'Format tanggal disposisi tidak valid',
+            'tanggal_disposisi.after_or_equal'   => 'Tanggal disposisi tidak boleh lebih awal dari tanggal diterima',
+        ];
     }
 }

@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 use Illuminate\Support\Facades\Log;
+use App\Support\LogKeamanan;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 class NonaktifkanAkunTest extends TestCase
@@ -136,5 +137,45 @@ class NonaktifkanAkunTest extends TestCase
             'id_pengguna' => $target->id_pengguna,
             'status' => 'nonaktif',
         ]);
+    }
+
+    public function test_tanpa_sesi_ditolak_menonaktifkan_akun(): void
+    {
+        $target = $this->buatAkun('Anggota', 'target_guest');
+
+        $this->post(route('admin.akun.nonaktifkan', $target->id_pengguna))
+            ->assertRedirect(route('login'));
+
+        $this->assertDatabaseHas('pengguna', [
+            'id_pengguna' => $target->id_pengguna,
+            'status'      => 'aktif',
+        ]);
+    }
+
+    public function test_penonaktifan_akun_tercatat_di_log_tanpa_data_sensitif(): void
+    {
+        Log::spy();
+
+        $admin  = $this->buatAkun('Admin', 'admin_log');
+        $target = $this->buatAkun('Anggota', 'RAHASIA_USERNAME_TARGET');
+
+        $this->actingAs($admin)
+            ->post(route('admin.akun.nonaktifkan', $target->id_pengguna))
+            ->assertSessionHas('sukses');
+
+        Log::shouldHaveReceived('info')
+            ->withArgs(function ($pesan, $konteks = []) use ($admin, $target) {
+                $json = json_encode($konteks);
+
+                return $pesan === 'keamanan'
+                    && $konteks['aksi'] === 'nonaktifkan_akun'
+                    && $konteks['hasil'] === 'berhasil'
+                    && $konteks['pengguna'] === LogKeamanan::idAnonim($admin->id_pengguna)
+                    && $konteks['akun'] === LogKeamanan::idAnonim($target->id_pengguna)
+                    && ! empty($konteks['waktu'])
+                    && ! str_contains($json, 'RAHASIA_USERNAME_TARGET')
+                    && ! str_contains($json, 'password123');
+            })
+            ->once();
     }
 }

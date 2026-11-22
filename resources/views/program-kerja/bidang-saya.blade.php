@@ -6,7 +6,7 @@
     @php
         $bolehKelola   = \App\Support\PeranProgramKerja::bolehKelolaProgram(auth()->user());
         $bolehKegiatan = \App\Support\PeranProgramKerja::bolehKelolaKegiatan(auth()->user());
-        $adaAksi       = $bolehKelola || $bolehKegiatan;
+        $adaAksi       = ($bolehKelola or $bolehKegiatan);
 
         $tahunAktif = (int) ($tahunAnggaran ?? now()->year);
         $totalAnggaranTahun = isset($totalAnggaran)
@@ -93,9 +93,9 @@
                     </thead>
 
                     <tbody>
-                        @forelse ($programKerja as $index => $program)
+                        @forelse ($programKerja as $index =>$program)
                             <tr>
-                                <td>{{ $programKerja->firstItem() + $index }}</td>
+                                <td>{{ $programKerja->firstItem() +$index }}</td>
                                 <td>
                                     <strong>{{ $program->nama_program }}</strong>
                                 </td>
@@ -136,7 +136,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="{{ $adaAksi ? 8 : 7 }}" class="bidang-kosong">
+                                <td colspan="{{ $adaAksi ? 9 : 8 }}" class="bidang-kosong">
                                     @if (request('cari'))
                                         Program kerja tidak ditemukan.
                                     @else
@@ -155,9 +155,10 @@
                     <tfoot>
                         <tr>
                             <td colspan="6"><strong>TOTAL ANGGARAN ({{ $tahunAktif }})</strong></td>
-                            <td colspan="{{ $adaAksi ? 2 : 1 }}">
+                            <td>
                                 <strong>Rp {{ number_format($totalAnggaranTahun, 0, ',', '.') }}</strong>
                             </td>
+                            <td colspan="{{ $adaAksi ? 2 : 1 }}"></td>
                         </tr>
                     </tfoot>
                 </table>
@@ -166,7 +167,7 @@
             @if ($programKerja->hasPages())
                 <div class="program-pagination">
                     <span>
-                        Menampilkan {{ $programKerja->firstItem() }}–{{ $programKerja->lastItem() }}
+                        Menampilkan {{ $programKerja->firstItem() }}–{{$programKerja->lastItem() }}
                         dari {{ $programKerja->total() }} program
                     </span>
 
