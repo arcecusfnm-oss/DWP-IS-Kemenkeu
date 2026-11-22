@@ -87,7 +87,7 @@ class PencarianSuratController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        $pesan = $surat->total() === 0 ? 'Tidak ada surat yang sesuai' : null;
+        $pesan = $surat->total() === 0 ? 'Data tidak ditemukan' : null;
 
         // T-76: Statistik dashboard persuratan (tidak mengikuti filter tabel).
         $jumlahJenis = [
