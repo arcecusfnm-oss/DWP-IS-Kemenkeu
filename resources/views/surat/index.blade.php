@@ -409,7 +409,7 @@
                 </div>
 
                 @if ($sedangFilter)
-                    <h3>Surat tidak ditemukan</h3>
+                    <h3>Data tidak ditemukan</h3>
                     <p>Tidak ada surat yang cocok dengan kata pencarian atau rentang tanggal yang Anda pilih. Coba ubah filter atau atur ulang pencarian.</p>
                     <div class="srt-empty-aksi">
                         <a href="{{ $urlReset }}" class="srt-empty-btn">
