@@ -20,8 +20,8 @@
         ],
         [
             'label' => 'Program Kerja',
-            'angka' => '24',
-            'satuan' => 'Aktif',
+            'angka' => number_format($totalProgramKerja ?? 0, 0, ',', '.'),
+            'satuan' => 'Program',
             'icon' => 'calendar',
             'badge' => 'Diperiksa Berkala',
             'badgeIcon' => 'trend',
@@ -30,8 +30,8 @@
         ],
         [
             'label' => 'Surat Masuk',
-            'angka' => '12',
-            'satuan' => 'Baru',
+            'angka' => number_format($totalSuratMasuk ?? 0, 0, ',', '.'),
+            'satuan' => 'Surat',
             'icon' => 'mail',
             'badge' => 'Diajukan',
             'badgeIcon' => 'send',

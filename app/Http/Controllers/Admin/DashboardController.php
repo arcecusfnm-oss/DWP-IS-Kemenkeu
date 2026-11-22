@@ -16,6 +16,15 @@ class DashboardController extends Controller
 
         $totalAnggota = DB::table('pengguna')->whereNull('dihapus_pada')->count();
 
-        return view('admin.dashboard', compact('namaUser', 'peranUser', 'totalAnggota'));
+        // Sama dengan daftar di halaman Program Kerja (seluruhBidang): join ke bidang, tanpa filter status.
+        $totalProgramKerja = DB::table('program_kerja')
+            ->join('bidang', 'bidang.id_bidang', '=', 'program_kerja.id_bidang')
+            ->count();
+
+        $totalSuratMasuk = DB::table('surat_masuk')->count();
+
+        return view('admin.dashboard', compact(
+            'namaUser', 'peranUser', 'totalAnggota', 'totalProgramKerja', 'totalSuratMasuk'
+        ));
     }
 }
