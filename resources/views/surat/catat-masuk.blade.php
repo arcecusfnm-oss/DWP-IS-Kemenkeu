@@ -28,8 +28,8 @@
          'hint' => 'Tanggal yang tercantum pada surat'],
         ['nama' => 'tanggal_diterima', 'label' => 'Tanggal Diterima', 'wajib' => true, 'tipe' => 'date', 'ikon' => 'surel',
          'hint' => 'Tanggal surat diterima oleh sekretariat'],
-        ['nama' => 'lampiran', 'label' => 'Lampiran Digital', 'tipe' => 'file', 'ikon' => 'klip', 'penuh' => true,
-         'hint' => 'Opsional. PDF, JPG, PNG, DOC, DOCX, XLS, XLSX. Maksimal 5 MB'],
+        ['nama' => 'lampiran', 'label' => 'Lampiran', 'wajib' => true, 'tipe' => 'text', 'ikon' => 'klip', 'penuh' => true, 'maks' => 255,
+         'hint' => 'Keterangan jumlah/jenis lampiran (isi - jika tidak ada)'],
         ['nama' => 'perihal', 'label' => 'Perihal', 'wajib' => true, 'tipe' => 'textarea', 'penuh' => true, 'maks' => 255, 'hitung' => true,
          'hint' => 'Ringkasan pokok isi surat'],
     ];
@@ -139,7 +139,7 @@
                 </div>
             @endif
 
-            <form action="{{ route('surat.simpan-masuk') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('surat.simpan-masuk') }}" method="POST">
                 @csrf
 
                 <div class="ubs-sec">
@@ -194,7 +194,7 @@
                         <li>Nomor surat dan asal surat wajib diisi.</li>
                         <li>Tanggal surat tidak boleh melewati tanggal diterima.</li>
                         <li>Nomor surat yang sama tidak dapat dicatat dua kali.</li>
-                        <li>Lampiran bersifat opsional, maksimal 5 MB.</li>
+                        <li>Lampiran wajib diisi keterangan jumlah/jenis (isi - jika tidak ada).</li>
                     </ul>
                 </div>
             </section>

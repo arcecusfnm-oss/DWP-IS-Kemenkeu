@@ -41,6 +41,14 @@
             </div>
         @endif
 
+        {{-- REKAP ANGGARAN TAHUN BERJALAN --}}
+        <div class="bidang-card" style="margin-bottom: 20px; padding: 20px;">
+            <h2 style="margin: 0 0 8px;">Total Anggaran {{ $tahunAnggaran ?? now()->year }}</h2>
+            <p style="font-size: 1.5rem; font-weight: 700; margin: 0;">
+                Rp {{ number_format($totalAnggaran ?? 0, 0, ',', '.') }}
+            </p>
+        </div>
+
         {{-- DAFTAR PROGRAM --}}
         <div class="bidang-card program-daftar-card">
 
@@ -69,6 +77,7 @@
                             <th>Tanggal Mulai</th>
                             <th>Tanggal Selesai</th>
                             <th>Anggaran</th>
+                            <th>Jumlah Kegiatan</th>
                             @if ($adaAksi)
                                 <th class="program-col-aksi">Aksi</th>
                             @endif
@@ -96,6 +105,7 @@
                                 <td>
                                     {{ $program->anggaran !== null ? 'Rp ' . number_format($program->anggaran, 0, ',', '.') : '-' }}
                                 </td>
+                                <td>{{ $program->jumlah_kegiatan ?? 0 }}</td>
                                 @if ($adaAksi)
                                     <td class="program-col-aksi">
                                         <div class="program-aksi-group">
@@ -113,8 +123,17 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="{{ $adaAksi ? 7 : 6 }}" class="bidang-kosong">
-                                    {{ request('cari') ? 'Program kerja tidak ditemukan.' : $pesan ?? 'Belum ada program kerja untuk bidang ini.' }}
+                                <td colspan="{{ $adaAksi ? 8 : 7 }}" class="bidang-kosong">
+                                    @if (request('cari'))
+                                        Program kerja tidak ditemukan.
+                                    @else
+                                        <div>Belum ada program kerja untuk bidang ini.</div>
+                                        @if ($bolehKelola)
+                                            <a href="{{ route('program-kerja.create') }}" class="bidang-btn-tambah" style="display: inline-flex; margin-top: 12px;">
+                                                + Tambah Program Kerja
+                                            </a>
+                                        @endif
+                                    @endif
                                 </td>
                             </tr>
                         @endforelse

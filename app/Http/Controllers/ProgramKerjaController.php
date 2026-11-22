@@ -325,6 +325,12 @@ class ProgramKerjaController extends Controller
                     'tanggal_selesai',
                     'anggaran',
                 ])
+                ->selectSub(
+                    DB::table('kegiatan')
+                        ->selectRaw('COUNT(*)')
+                        ->whereColumn('kegiatan.id_program_kerja', 'program_kerja.id_program_kerja'),
+                    'jumlah_kegiatan'
+                )
                 ->orderByDesc('tanggal_mulai')
                 ->orderByDesc('id_program_kerja')
                 ->paginate(10)
@@ -344,6 +350,13 @@ class ProgramKerjaController extends Controller
             ->where('id_bidang', $idBidangSaya)
             ->value('nama_bidang');
 
+        // Rekap anggaran program kerja bidang untuk tahun berjalan.
+        $tahunAnggaran = now()->year;
+        $totalAnggaran = DB::table('program_kerja')
+            ->where('id_bidang', $idBidangSaya)
+            ->whereYear('tanggal_mulai', $tahunAnggaran)
+            ->sum('anggaran');
+
         $pesan = $program->total() === 0
             ? 'Belum ada program kerja untuk bidang ini.'
             : null;
@@ -353,15 +366,19 @@ class ProgramKerjaController extends Controller
                 'bidang'  => $namaBidang,
                 'data'    => $program->items(),
                 'total'   => $program->total(),
-                'halaman' => $program->currentPage(),
-                'pesan'   => $pesan,
+                'halaman'       => $program->currentPage(),
+                'pesan'         => $pesan,
+                'totalAnggaran' => $totalAnggaran,
+                'tahunAnggaran' => $tahunAnggaran,
             ]);
         }
 
         return view('program-kerja.bidang-saya', [
             'programKerja' => $program,
             'namaBidang'   => $namaBidang,
-            'pesan'        => $pesan,
+            'pesan'         => $pesan,
+            'totalAnggaran' => $totalAnggaran,
+            'tahunAnggaran' => $tahunAnggaran,
         ]);
     }
 

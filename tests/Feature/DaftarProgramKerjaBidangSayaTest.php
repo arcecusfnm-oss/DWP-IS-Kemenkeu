@@ -43,15 +43,19 @@ class DaftarProgramKerjaBidangSayaTest extends TestCase
         ]);
     }
 
-    private function buatProgram(int $idBidang, int $pembuat, string $nama): void
+    private function buatProgram(int $idBidang, int $pembuat, string $nama): int
     {
-        DB::table('program_kerja')->insert([
+        return DB::table('program_kerja')->insertGetId([
             'id_bidang'       => $idBidang,
-            'nama_program'    => $nama,
-            'tujuan'          => 'Tujuan pengujian',
-            'tanggal_mulai'   => '2026-12-01',
-            'tanggal_selesai' => '2026-12-10',
-            'dibuat_oleh'     => $pembuat,
+            'nama_program'     => $nama,
+            'tujuan'             => 'Tujuan pengujian',
+            'sasaran_peserta'    => 'Anggota bidang',
+            'metode'             => 'Workshop',
+            'tanggal_mulai'      => now()->startOfYear()->format('Y-m-d'),
+            'tanggal_selesai'    => now()->startOfYear()->addDays(9)->format('Y-m-d'),
+            'tempat'              => 'Kantor',
+            'anggaran'             => 1500000,
+            'dibuat_oleh'         => $pembuat,
             'created_at'      => now(),
             'updated_at'      => now(),
         ]);
@@ -101,7 +105,8 @@ class DaftarProgramKerjaBidangSayaTest extends TestCase
             ->assertOk()
             ->assertViewIs('program-kerja.bidang-saya')
             ->assertViewHas('pesan', 'Belum ada program kerja untuk bidang ini.')
-            ->assertSee('Belum ada program kerja untuk bidang ini.');
+            ->assertSee('Belum ada program kerja untuk bidang ini.')
+            ->assertSee('Tambah Program Kerja');
     }
 
     public function test_anggota_bidang_bisa_melihat_program_kerja_bidangnya(): void
@@ -120,6 +125,57 @@ class DaftarProgramKerjaBidangSayaTest extends TestCase
             ->get(route('program-kerja.bidang-saya'))
             ->assertOk()
             ->assertSee('Program Milik Bidang');
+    }
+
+    public function test_jumlah_kegiatan_dan_rekap_anggaran_bidang_saya_sesuai(): void
+    {
+        $bidangSaya = $this->buatBidang('Sosial Budaya');
+        $bidangLain = $this->buatBidang('Ekonomi');
+
+        $pimpinan = $this->buatPengguna(
+            'Pimpinan Bidang',
+            $bidangSaya,
+            'pimpinan_rekap101'
+        );
+
+        $idProgram = $this->buatProgram(
+            $bidangSaya,
+            $pimpinan->id_pengguna,
+            'Program Rekap'
+        );
+
+        $pimpinanLain = $this->buatPengguna(
+            'Pimpinan Bidang',
+            $bidangLain,
+            'pimpinan_rekaplain101'
+        );
+
+        $this->buatProgram(
+            $bidangLain,
+            $pimpinanLain->id_pengguna,
+            'Program Bidang Lain'
+        );
+
+        foreach ([1, 2] as $nomor) {
+            DB::table('kegiatan')->insert([
+                'id_program_kerja' => $idProgram,
+                'nama_kegiatan'     => 'Kegiatan ' . $nomor,
+                'tanggal_mulai'     => now()->startOfYear()->format('Y-m-d'),
+                'tanggal_selesai'  => now()->startOfYear()->addDays(1)->format('Y-m-d'),
+                'deskripsi'         => 'Deskripsi pengujian',
+                'dibuat_oleh'      => $pimpinan->id_pengguna,
+                'created_at'        => now(),
+                'updated_at'        => now(),
+            ]);
+        }
+
+        $this->actingAs($pimpinan)
+            ->get(route('program-kerja.bidang-saya'))
+            ->assertOk()
+            ->assertViewHas('totalAnggaran', 1500000)
+            ->assertViewHas('tahunAnggaran', now()->year)
+            ->assertSee('Program Rekap')
+            ->assertSee('2');
     }
 
     public function test_program_kerja_bidang_lain_ditolak(): void

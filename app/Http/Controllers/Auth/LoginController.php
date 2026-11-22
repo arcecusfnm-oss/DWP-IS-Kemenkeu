@@ -178,7 +178,7 @@ class LoginController extends Controller
             );
 
             throw ValidationException::withMessages([
-                'login' => 'Nama pengguna atau kata sandi salah.',
+                'login' => 'Akun tidak aktif',
             ]);
         }
 

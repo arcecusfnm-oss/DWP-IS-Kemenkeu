@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Database\QueryException;
 use Throwable;
@@ -38,14 +37,13 @@ class CatatSuratMasukController extends Controller
                 'bail', 'required', 'date_format:Y-m-d',
                 'after_or_equal:tanggal_surat',
             ],
-            'lampiran' => [
-                'nullable', 'file',
-                'mimes:pdf,jpg,jpeg,png,doc,docx,xls,xlsx',
-                'max:5120',
-            ],
+            'lampiran' => ['required', 'string', 'max:255'],
             'perihal' => ['required', 'string', 'max:255'],
             'disposisi' => ['nullable', 'string', 'max:2000'],
-            'tanggal_disposisi' => ['nullable', 'date_format:Y-m-d'],
+            'tanggal_disposisi' => [
+                'nullable', 'date_format:Y-m-d',
+                'after_or_equal:tanggal_diterima',
+            ],
             'keterangan' => ['nullable', 'string', 'max:2000'],
         ], [
             'nomor_surat.required' => 'Nomor surat wajib diisi',
@@ -54,27 +52,20 @@ class CatatSuratMasukController extends Controller
             'tanggal_surat.required' => 'Tanggal surat wajib diisi',
             'tanggal_diterima.required' => 'Tanggal diterima wajib diisi',
             'tanggal_diterima.after_or_equal' => 'Tanggal diterima tidak boleh sebelum tanggal surat',
+            'tanggal_disposisi.after_or_equal' => 'Tanggal disposisi tidak boleh lebih awal dari tanggal diterima.',
             'perihal.required' => 'Perihal wajib diisi',
-            'lampiran.mimes' => 'Format lampiran tidak didukung',
-            'lampiran.max' => 'Ukuran lampiran maksimal 5 MB',
+            'lampiran.required' => 'Lampiran wajib diisi',
         ]);
-
-        $path = null;
-
-        if ($request->hasFile('lampiran')) {
-            $path = $request->file('lampiran')->store('lampiran', 'public');
-        }
 
         $tanggal = \Carbon\Carbon::parse($data['tanggal_diterima']);
         $bulan = (int) $tanggal->format('m');
         $tahun = (int) $tanggal->format('Y');
         $romawi = self::BULAN_ROMAWI[$bulan];
 
-        // Lock berbeda untuk setiap bulan/tahun.
-        $lockName = "agenda_surat_masuk_{$tahun}_{$bulan}";
+        // Lock nomor agenda per tahun agar urutannya berlanjut lintas bulan.
+        $lockName = "agenda_surat_masuk_{$tahun}";
         $lockAcquired = false;
 
-        $data['lampiran'] = $path;
         $data['dibuat_oleh'] = Auth::id();
         $data['created_at'] = now();
         $data['updated_at'] = now();
@@ -86,10 +77,6 @@ class CatatSuratMasukController extends Controller
             );
 
             if (! $lock || (int) $lock->acquired !== 1) {
-                if ($path) {
-                    Storage::disk('public')->delete($path);
-                }
-
                 return back()->withInput()->with(
                     'galat',
                     'Pencatatan sedang sibuk. Silakan coba kembali.'
@@ -98,9 +85,9 @@ class CatatSuratMasukController extends Controller
 
             $lockAcquired = true;
 
-            $id = DB::transaction(function () use (&$data, $romawi, $tahun) {
+            $id = DB::transaction(function () use (&$data, $tahun, $romawi) {
                 $agendaLama = DB::table('surat_masuk')
-                    ->where('nomor_agenda', 'like', '%/' . $romawi . '/' . $tahun)
+                    ->where('nomor_agenda', 'like', '%/' . $tahun)
                     ->pluck('nomor_agenda');
 
                 $nomorTerbesar = 0;
@@ -110,7 +97,6 @@ class CatatSuratMasukController extends Controller
 
                     if (
                         count($bagian) === 3
-                        && $bagian[1] === $romawi
                         && $bagian[2] === (string) $tahun
                         && ctype_digit($bagian[0])
                     ) {
@@ -122,7 +108,7 @@ class CatatSuratMasukController extends Controller
                 }
 
                 $data['nomor_agenda'] = sprintf(
-                    '%03d/%s/%d',
+                    '%d/%s/%d',
                     $nomorTerbesar + 1,
                     $romawi,
                     $tahun
@@ -135,10 +121,6 @@ class CatatSuratMasukController extends Controller
             });
 
         } catch (QueryException $e) {
-            if ($path) {
-                Storage::disk('public')->delete($path);
-            }
-
             $nomorSudahAda = DB::table('surat_masuk')
                 ->where('nomor_surat', $data['nomor_surat'])
                 ->exists();
@@ -161,10 +143,6 @@ class CatatSuratMasukController extends Controller
             );
 
         } catch (Throwable $e) {
-            if ($path) {
-                Storage::disk('public')->delete($path);
-            }
-
             Log::error('Kesalahan pencatatan surat masuk', [
                 'pengguna_id' => Auth::id(),
                 'kelas_galat' => get_class($e),

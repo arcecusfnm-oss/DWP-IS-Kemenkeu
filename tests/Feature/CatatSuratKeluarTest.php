@@ -58,6 +58,9 @@ class CatatSuratKeluarTest extends TestCase
             'tanggal_surat' => '2031-11-20',
             'tujuan' => 'Kantor Pengujian',
             'perihal' => 'Undangan rapat pengujian',
+            'id_bidang_terkait' => $this->bidang('Sekretariat')->id_bidang,
+            'status_terkirim' => 'belum',
+            'keterangan' => null,
         ], $override);
     }
 
