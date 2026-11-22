@@ -45,26 +45,27 @@ class CatatSuratMasukController extends Controller
                 'after_or_equal:tanggal_diterima',
             ],
             'keterangan' => ['nullable', 'string', 'max:2000'],
-        ], [
-            'nomor_surat.required' => 'Nomor surat wajib diisi',
-            'nomor_surat.unique' => 'Nomor surat sudah tercatat',
-            'asal_surat.required' => 'Asal surat wajib diisi',
-            'tanggal_surat.required' => 'Tanggal surat wajib diisi',
-            'tanggal_diterima.required' => 'Tanggal diterima wajib diisi',
-            'tanggal_diterima.after_or_equal' => 'Tanggal diterima tidak boleh sebelum tanggal surat',
-            'lampiran.required' => 'Lampiran wajib diisi',
-            'lampiran.string' => 'Lampiran harus berupa teks',
-            'lampiran.max' => 'Lampiran maksimal 255 karakter',
-            'perihal.required' => 'Perihal wajib diisi',
-            'tanggal_disposisi.after_or_equal' => 'Tanggal disposisi tidak boleh lebih awal dari tanggal diterima',
-        ]);
+], [
+    'nomor_surat.required' => 'Nomor surat wajib diisi',
+    'nomor_surat.unique' => 'Nomor surat sudah tercatat',
+    'asal_surat.required' => 'Asal surat wajib diisi',
+    'tanggal_surat.required' => 'Tanggal surat wajib diisi',
+    'tanggal_diterima.required' => 'Tanggal diterima wajib diisi',
+    'tanggal_diterima.after_or_equal' => 'Tanggal diterima tidak boleh sebelum tanggal surat',
+    'tanggal_disposisi.after_or_equal' => 'Tanggal disposisi tidak boleh lebih awal dari tanggal diterima',
+    'perihal.required' => 'Perihal wajib diisi',
+    'lampiran.required' => 'Lampiran wajib diisi',
+    'lampiran.string' => 'Lampiran harus berupa teks',
+    'lampiran.max' => 'Lampiran maksimal 255 karakter',
+]);
 
         $tanggal = \Carbon\Carbon::parse($data['tanggal_diterima']);
         $bulan = (int) $tanggal->format('m');
         $tahun = (int) $tanggal->format('Y');
         $romawi = self::BULAN_ROMAWI[$bulan];
 
-        $lockName = "agenda_surat_masuk_{$tahun}_{$bulan}";
+        // Lock nomor agenda per tahun agar urutannya berlanjut lintas bulan.
+        $lockName = "agenda_surat_masuk_{$tahun}";
         $lockAcquired = false;
 
         $data['dibuat_oleh'] = Auth::id();
@@ -86,9 +87,9 @@ class CatatSuratMasukController extends Controller
 
             $lockAcquired = true;
 
-            $id = DB::transaction(function () use (&$data, $romawi, $tahun) {
+            $id = DB::transaction(function () use (&$data, $tahun, $romawi) {
                 $agendaLama = DB::table('surat_masuk')
-                    ->where('nomor_agenda', 'like', '%/' . $romawi . '/' . $tahun)
+                    ->where('nomor_agenda', 'like', '%/' . $tahun)
                     ->pluck('nomor_agenda');
 
                 $nomorTerbesar = 0;
@@ -98,7 +99,6 @@ class CatatSuratMasukController extends Controller
 
                     if (
                         count($bagian) === 3
-                        && $bagian[1] === $romawi
                         && $bagian[2] === (string) $tahun
                         && ctype_digit($bagian[0])
                     ) {
@@ -110,7 +110,7 @@ class CatatSuratMasukController extends Controller
                 }
 
                 $data['nomor_agenda'] = sprintf(
-                    '%03d/%s/%d',
+                    '%d/%s/%d',
                     $nomorTerbesar + 1,
                     $romawi,
                     $tahun

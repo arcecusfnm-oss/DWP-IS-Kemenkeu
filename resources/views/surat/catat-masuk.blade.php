@@ -194,7 +194,7 @@
                         <li>Nomor surat dan asal surat wajib diisi.</li>
                         <li>Tanggal surat tidak boleh melewati tanggal diterima.</li>
                         <li>Nomor surat yang sama tidak dapat dicatat dua kali.</li>
-                        <li>Lampiran wajib diisi (isi - jika tidak ada).</li>
+                        <li>Lampiran wajib diisi keterangan jumlah/jenis (isi - jika tidak ada).</li>
                     </ul>
                 </div>
             </section>

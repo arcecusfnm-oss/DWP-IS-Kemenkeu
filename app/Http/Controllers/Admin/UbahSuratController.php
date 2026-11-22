@@ -75,6 +75,14 @@ class UbahSuratController extends Controller
             }
         }
 
+        if (
+            $jenis === 'masuk'
+            && filled($data['lampiran'] ?? null)
+            && $this->normal('lampiran', $lama->lampiran) !== $this->normal('lampiran', $data['lampiran'])
+        ) {
+            $berubah[] = 'lampiran';
+        }
+
         if ($berubah === []) {
             return $this->selesai($request, $jenis, $id, 'Tidak ada perubahan pada data surat.');
         }
@@ -190,36 +198,36 @@ class UbahSuratController extends Controller
 
     private function pesan(): array
     {
-        return [
-            'jenis.prohibited'                   => 'Jenis surat tidak dapat diubah',
-            'nomor_surat.required'               => 'Nomor surat wajib diisi',
-            'nomor_surat.max'                    => 'Nomor surat maksimal 100 karakter',
-            'nomor_surat.unique'                 => 'Nomor surat sudah tercatat',
-            'asal_surat.required'                => 'Asal surat wajib diisi',
-            'asal_surat.max'                     => 'Asal surat maksimal 255 karakter',
-            'tanggal_surat.required'             => 'Tanggal surat wajib diisi',
-            'tanggal_surat.date_format'          => 'Format tanggal surat tidak valid',
-            'tanggal_diterima.required'          => 'Tanggal diterima wajib diisi',
-            'tanggal_diterima.date_format'       => 'Format tanggal diterima tidak valid',
-            'tanggal_diterima.after_or_equal'    => 'Tanggal diterima tidak boleh sebelum tanggal surat',
-            'lampiran.required'                  => 'Lampiran wajib diisi',
-            'lampiran.string'                    => 'Lampiran harus berupa teks',
-            'lampiran.max'                       => 'Lampiran maksimal 255 karakter',
-            'tanggal.required'                   => 'Tanggal surat wajib diisi',
-            'tanggal.date_format'                => 'Format tanggal surat tidak valid',
-            'tujuan.required'                    => 'Tujuan wajib diisi',
-            'tujuan.max'                         => 'Tujuan maksimal 255 karakter',
-            'perihal.required'                   => 'Perihal wajib diisi',
-            'perihal.max'                        => 'Perihal maksimal 255 karakter',
-            'status_terkirim.required'           => 'Status terkirim wajib dipilih',
-            'status_terkirim.in'                 => 'Status terkirim tidak valid',
-            'id_bidang_terkait.required'         => 'Bidang terkait wajib dipilih',
-            'id_bidang_terkait.integer'          => 'Bidang terkait tidak valid',
-            'id_bidang_terkait.exists'           => 'Bidang terkait tidak tersedia',
-            'keterangan.max'                     => 'Keterangan maksimal 2000 karakter',
-            'disposisi.max'                      => 'Arahan disposisi maksimal 2000 karakter',
-            'tanggal_disposisi.date_format'      => 'Format tanggal disposisi tidak valid',
-            'tanggal_disposisi.after_or_equal'   => 'Tanggal disposisi tidak boleh lebih awal dari tanggal diterima',
-        ];
+return [
+    'jenis.prohibited'                   => 'Jenis surat tidak dapat diubah',
+    'nomor_surat.required'               => 'Nomor surat wajib diisi',
+    'nomor_surat.max'                    => 'Nomor surat maksimal 100 karakter',
+    'nomor_surat.unique'                 => 'Nomor surat sudah tercatat',
+    'asal_surat.required'                => 'Asal surat wajib diisi',
+    'asal_surat.max'                     => 'Asal surat maksimal 255 karakter',
+    'tanggal_surat.required'              => 'Tanggal surat wajib diisi',
+    'tanggal_surat.date_format'           => 'Format tanggal surat tidak valid',
+    'tanggal_diterima.required'           => 'Tanggal diterima wajib diisi',
+    'tanggal_diterima.date_format'        => 'Format tanggal diterima tidak valid',
+    'tanggal_diterima.after_or_equal'     => 'Tanggal diterima tidak boleh sebelum tanggal surat',
+    'lampiran.required'                   => 'Lampiran wajib diisi',
+    'lampiran.string'                     => 'Lampiran harus berupa teks',
+    'lampiran.max'                        => 'Lampiran maksimal 255 karakter',
+    'tanggal.required'                     => 'Tanggal surat wajib diisi',
+    'tanggal.date_format'                  => 'Format tanggal surat tidak valid',
+    'tujuan.required'                     => 'Tujuan wajib diisi',
+    'tujuan.max'                          => 'Tujuan maksimal 255 karakter',
+    'perihal.required'                    => 'Perihal wajib diisi',
+    'perihal.max'                         => 'Perihal maksimal 255 karakter',
+    'status_terkirim.required'             => 'Status terkirim wajib dipilih',
+    'status_terkirim.in'                  => 'Status terkirim tidak valid',
+    'id_bidang_terkait.required'          => 'Bidang terkait wajib dipilih',
+    'id_bidang_terkait.integer'           => 'Bidang terkait tidak valid',
+    'id_bidang_terkait.exists'            => 'Bidang terkait tidak tersedia',
+    'keterangan.max'                       => 'Keterangan maksimal 2000 karakter',
+    'disposisi.max'                       => 'Arahan disposisi maksimal 2000 karakter',
+    'tanggal_disposisi.date_format'        => 'Format tanggal disposisi tidak valid',
+    'tanggal_disposisi.after_or_equal'     => 'Tanggal disposisi tidak boleh lebih awal dari tanggal diterima',
+];
     }
 }
