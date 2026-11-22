@@ -520,23 +520,29 @@ class ProgramKerjaController extends Controller
     {
         $request->validate([
             'bidang' => ['nullable', 'integer', 'exists:bidang,id_bidang'],
+            'status' => ['nullable', 'string', 'max:30'],
         ], [
             'bidang.integer' => 'Bidang tidak tersedia.',
             'bidang.exists'  => 'Bidang tidak tersedia.',
+            'status.string'  => 'Status tidak valid.',
+            'status.max'     => 'Status tidak valid.',
         ]);
 
         $idBidang = $request->filled('bidang') ? $request->integer('bidang') : null;
+        $statusDipilih = $request->filled('status') ? $request->input('status') : null;
 
         try {
             $program = DB::table('program_kerja')
                 ->join('bidang', 'bidang.id_bidang', '=', 'program_kerja.id_bidang')
                 ->when($idBidang, fn ($q) => $q->where('program_kerja.id_bidang', $idBidang))
+                ->when($statusDipilih, fn ($q) => $q->where('program_kerja.status', $statusDipilih))
                 ->select([
                     'program_kerja.id_program_kerja',
                     'program_kerja.nama_program',
                     'program_kerja.tujuan',
                     'program_kerja.tanggal_mulai',
                     'program_kerja.tanggal_selesai',
+                    'program_kerja.status',
                     'bidang.id_bidang',
                     'bidang.nama_bidang',
                 ])
@@ -566,6 +572,7 @@ class ProgramKerjaController extends Controller
                 'total'   => $program->total(),
                 'halaman' => $program->currentPage(),
                 'bidang'  => $idBidang,
+                'status'  => $statusDipilih,
                 'pesan'   => $program->total() === 0 ? 'Belum ada program kerja' : null,
             ]);
         }
@@ -575,6 +582,7 @@ class ProgramKerjaController extends Controller
             'programKerja'  => $program,
             'daftarBidang'  => $daftarBidang,
             'bidangDipilih' => $idBidang,
+            'statusDipilih' => $statusDipilih,
         ]);
     }
 }
