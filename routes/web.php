@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\CatatSuratMasukController;
 use App\Http\Controllers\Admin\CatatSuratKeluarController;
 use App\Http\Controllers\KegiatanController;
 use App\Http\Controllers\Admin\WakilKetuaBidangController;
+use App\Http\Controllers\UbahKegiatanController;
 
 // Halaman utama (publik)
 Route::view('/', 'landing')
@@ -143,6 +144,10 @@ Route::middleware(['auth', PeranProgramKerja::middleware(PeranProgramKerja::KELO
             ->name('kegiatan.create');
         Route::post('/kegiatan', [KegiatanController::class, 'storeDariSidebar'])
             ->name('kegiatan.store');
+        
+        Route::match(['put', 'patch'], '/kegiatan/{id}', [UbahKegiatanController::class, 'update'])
+            ->whereNumber('id')
+            ->name('kegiatan.update');
 
         // Jalur tambah dari baris tabel Program Kerja (program kerja terkunci)
         Route::prefix('program-kerja')
