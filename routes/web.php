@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\CatatSuratKeluarController;
 use App\Http\Controllers\KegiatanController;
 use App\Http\Controllers\Admin\WakilKetuaBidangController;
 use App\Http\Controllers\UbahKegiatanController;
+use App\Http\Controllers\HapusKegiatanController;
 
 // Halaman utama (publik)
 Route::view('/', 'landing')
@@ -148,6 +149,10 @@ Route::middleware(['auth', PeranProgramKerja::middleware(PeranProgramKerja::KELO
         Route::match(['put', 'patch'], '/kegiatan/{id}', [UbahKegiatanController::class, 'update'])
             ->whereNumber('id')
             ->name('kegiatan.update');
+        
+        Route::delete('/kegiatan/{id}', [HapusKegiatanController::class, 'destroy'])
+            ->whereNumber('id')
+            ->name('kegiatan.destroy');
 
         // Jalur tambah dari baris tabel Program Kerja (program kerja terkunci)
         Route::prefix('program-kerja')
