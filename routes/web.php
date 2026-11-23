@@ -253,7 +253,12 @@ Route::middleware(['auth', AksesPersuratan::class, NoCache::class])
             ->name('update');
     });
 
-    // Pengujian error 500 khusus lingkungan lokal
+// Statistik jumlah anggota aktif per bidang (B-026, T-019)
+Route::get('/api/statistik/anggota-per-bidang', [\App\Http\Controllers\StatistikAnggotaController::class, 'jumlahPerBidang'])
+    ->middleware(['auth', 'role:Admin,Penasehat', NoCache::class])
+    ->name('api.statistik.anggota-per-bidang');
+
+// Pengujian error 500 khusus lingkungan lokal
 if (app()->environment(['local', 'testing'])) {
     Route::get('/_test-error-500', function () {
         throw new \RuntimeException('RAHASIA_UJI_ERROR_500');
