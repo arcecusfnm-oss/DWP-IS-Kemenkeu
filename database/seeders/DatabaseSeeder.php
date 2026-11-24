@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
             BidangSeeder::class,
             PenggunaSeeder::class,
             UnitKerjaSeeder::class,
+            JabatanDwpSeeder::class,
         ]);
     }
 }

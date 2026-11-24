@@ -103,7 +103,7 @@ class PencarianKeahlianTest extends TestCase
 
     public function test_penasihat_dapat_mengakses_pencarian_keahlian(): void
     {
-        $penasihat = $this->buatPengguna('Penasehat');
+        $penasihat = $this->buatPengguna('Penasihat');
 
         $this->actingAs($penasihat)
             ->getJson(route('api.anggota.cari-keahlian', ['q' => 'Desain']))

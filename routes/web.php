@@ -22,6 +22,9 @@ use App\Http\Controllers\KegiatanController;
 use App\Http\Controllers\Admin\WakilKetuaBidangController;
 use App\Http\Controllers\UbahKegiatanController;
 use App\Http\Controllers\HapusKegiatanController;
+use App\Http\Controllers\Admin\PenanggungJawabController;
+use App\Http\Controllers\StrukturOrganisasiController;
+use App\Http\Controllers\ProfilSayaController;
 
 // Halaman utama (publik)
 Route::view('/', 'landing')
@@ -56,7 +59,8 @@ Route::middleware(['auth', 'role:Admin', NoCache::class])
         Route::get('/', [BidangController::class, 'index'])->name('index');
         Route::get('/tambah', [BidangController::class, 'create'])->name('create');
         Route::post('/', [BidangController::class, 'store'])->name('store');
-        Route::get('/{id}/edit', [BidangController::class, 'edit'])->name('edit');
+        Route::get('/{id}/edit', [BidangController::class, 'edit'])->whereNumber('id')->name('edit');
+        Route::put('/{id}', [BidangController::class, 'update'])->whereNumber('id')->name('update');
         Route::delete('/{id}', [BidangController::class, 'destroy'])->name('destroy');
         Route::put('/{id}/ketua', [KetuaBidangController::class, 'update'])
             ->whereNumber('id')
@@ -64,6 +68,9 @@ Route::middleware(['auth', 'role:Admin', NoCache::class])
         Route::put('/{id}/wakil-ketua', [WakilKetuaBidangController::class, 'update'])
             ->whereNumber('id')
             ->name('wakil-ketua.update');
+        Route::put('/{id}/penanggung-jawab-sistem', [PenanggungJawabController::class, 'update'])
+            ->whereNumber('id')
+            ->name('penanggung-jawab-sistem.update');
     });
 
 // Halaman profil admin (tambahan)
@@ -75,6 +82,20 @@ Route::view('/admin/profil', 'admin.profil')
 Route::post('/ubah-kata-sandi', [ChangePasswordController::class, 'update'])
     ->middleware(['auth', NoCache::class])
     ->name('password.update');
+
+// Profil Saya: semua peran yang login, tanpa parameter ID (B-031, T-045)
+Route::get('/profil-saya', [ProfilSayaController::class, 'index'])
+    ->middleware(['auth', NoCache::class])
+    ->name('profil-saya');
+
+// Foto Profil Saya: upload dan tampil milik sendiri, tanpa parameter ID
+Route::post('/profil-saya/foto', [ProfilSayaController::class, 'simpanFoto'])
+    ->middleware(['auth', NoCache::class])
+    ->name('profil-saya.foto.simpan');
+
+Route::get('/profil-saya/foto', [ProfilSayaController::class, 'foto'])
+    ->middleware(['auth', NoCache::class])
+    ->name('profil-saya.foto');
 
 // Layar wajib ganti kata sandi (setelah reset), untuk semua peran
 Route::view('/ganti-kata-sandi', 'auth.ganti-kata-sandi')
@@ -265,7 +286,7 @@ Route::middleware(['auth', AksesPersuratan::class, NoCache::class])
 
 // Statistik jumlah anggota aktif per bidang (B-026, T-019)
 Route::get('/api/statistik/anggota-per-bidang', [\App\Http\Controllers\StatistikAnggotaController::class, 'jumlahPerBidang'])
-    ->middleware(['auth', 'role:Admin,Penasehat', NoCache::class])
+    ->middleware(['auth', 'role:Admin,Penasihat', NoCache::class])
     ->name('api.statistik.anggota-per-bidang');
 
 // Pengujian error 500 khusus lingkungan lokal
@@ -277,10 +298,15 @@ if (app()->environment(['local', 'testing'])) {
 
 // Pencarian anggota berdasarkan keahlian (B-033, T-055)
 Route::get('/api/anggota/cari-keahlian', [\App\Http\Controllers\PencarianKeahlianController::class, 'cari'])
-    ->middleware(['auth', 'role:Admin,Penasehat', NoCache::class])
+    ->middleware(['auth', 'role:Admin,Penasihat', NoCache::class])
     ->name('api.anggota.cari-keahlian');
 
 // Daftar ringkas anggota seluruh bidang (B-030, T-040)
 Route::get('/api/anggota/ringkas-seluruh-bidang', [\App\Http\Controllers\AnggotaRingkasController::class, 'index'])
-    ->middleware(['auth', 'role:Admin,Penasehat', NoCache::class])
+    ->middleware(['auth', 'role:Admin,Penasihat', NoCache::class])
     ->name('api.anggota.ringkas-seluruh-bidang');
+
+// Hierarki struktur organisasi, semua peran yang login (B-018, T-003)
+Route::get('/api/struktur-organisasi', [StrukturOrganisasiController::class, 'index'])
+    ->middleware(['auth', NoCache::class])
+    ->name('api.struktur-organisasi');

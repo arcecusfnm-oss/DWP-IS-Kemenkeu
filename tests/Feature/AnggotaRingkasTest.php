@@ -69,7 +69,7 @@ class AnggotaRingkasTest extends TestCase
 
     public function test_penasihat_dapat_mengakses_daftar_ringkas(): void
     {
-        $penasihat = $this->buatPengguna('Penasehat');
+        $penasihat = $this->buatPengguna('Penasihat');
 
         $this->actingAs($penasihat)
             ->getJson(route('api.anggota.ringkas-seluruh-bidang'))
