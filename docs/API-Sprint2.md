@@ -371,7 +371,7 @@ Contoh pesan standar: "Anda tidak memiliki akses." / "Data tidak ditemukan." / "
 
 ### 7.2 Catatan implementasi
 
-- Nama peran pada seeder Sprint 1 adalah `Penasihat` (dengan "i"); lembar Backlog menulis "Penasehat". Samakan penulisan sebelum dipakai di middleware.
+- Nama peran pada seeder Sprint 1 adalah `Penasihat` (dengan "i"); lembar Backlog menulis "Penasihat". Samakan penulisan sebelum dipakai di middleware.
 - Akses persuratan berbasis **bidang** (Sekretariat), sedangkan `role:` Sprint 1 berbasis peran. Perlu middleware atau policy tambahan. Sesuai Sprint Review, Admin otomatis berbidang Sekretariat.
 
 ## 8. Pengujian

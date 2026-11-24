@@ -154,7 +154,7 @@ class DaftarAnggotaTest extends TestCase
 
     public function test_peran_selain_admin_ditolak(): void
     {
-        foreach (['Pimpinan Bidang', 'Anggota Bidang', 'Penasehat'] as $i => $peran) {
+        foreach (['Pimpinan Bidang', 'Anggota Bidang', 'Penasihat'] as $i => $peran) {
             $akun = $this->buatPengguna($peran, 'akun.uji.' . $i);
 
             $this->actingAs($akun)

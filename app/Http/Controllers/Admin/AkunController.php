@@ -211,6 +211,7 @@ class AkunController extends Controller
         DB::table('pengguna_bidang')->where('id_pengguna', $idPengguna)->delete();
 
         if (BidangSesuaiPeran::tanpaBidang($peran) || empty($namaBidang)) {
+            $this->lepasPjSistem($idPengguna, []);
             return null;
         }
 
@@ -218,6 +219,9 @@ class AkunController extends Controller
             ->whereIn('nama_bidang', $namaBidang)
             ->orderBy('id_bidang')
             ->pluck('id_bidang');
+
+        // B-024 AC5: lepas jabatan PJ sistem di bidang yang tidak lagi dipegang
+        $this->lepasPjSistem($idPengguna, $ids->all());
 
         if (BidangSesuaiPeran::multiBidang($peran)) {
             DB::table('pengguna_bidang')->insert(
@@ -227,6 +231,15 @@ class AkunController extends Controller
         }
 
         return $ids->first();
+    }
+
+    /** B-024 AC5: kosongkan PJ sistem di bidang yang tidak termasuk $idBidangBaru. */
+    private function lepasPjSistem(int $idPengguna, array $idBidangBaru): void
+    {
+        DB::table('bidang')
+            ->where('id_penanggung_jawab_sistem', $idPengguna)
+            ->when($idBidangBaru, fn($q) => $q->whereNotIn('id_bidang', $idBidangBaru))
+            ->update(['id_penanggung_jawab_sistem' => null, 'updated_at' => now()]);
     }
 
     /** Daftar nama bidang suatu akun (pivot dulu, kalau kosong pakai kolom id_bidang). */
@@ -659,6 +672,8 @@ class AkunController extends Controller
             ->first(['id_pengguna', 'nama_pengguna']);
 
         abort_if(!$akun, 404);
+
+        $this->lepasPjSistem((int) $id, []);
 
         DB::table('pengguna')->where('id_pengguna', $id)->update([
             'dihapus_pada' => now(),

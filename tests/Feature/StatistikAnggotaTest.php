@@ -64,7 +64,7 @@ class StatistikAnggotaTest extends TestCase
 
     public function test_penasihat_dapat_mengakses_statistik_anggota(): void
     {
-        $penasihat = $this->buatPengguna('Penasehat', 'penasihat.statistik');
+        $penasihat = $this->buatPengguna('Penasihat', 'penasihat.statistik');
 
         $this->actingAs($penasihat)
             ->getJson(route('api.statistik.anggota-per-bidang'))
