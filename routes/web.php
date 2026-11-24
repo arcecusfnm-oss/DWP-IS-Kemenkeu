@@ -274,3 +274,13 @@ if (app()->environment(['local', 'testing'])) {
         throw new \RuntimeException('RAHASIA_UJI_ERROR_500');
     });
 }
+
+// Pencarian anggota berdasarkan keahlian (B-033, T-055)
+Route::get('/api/anggota/cari-keahlian', [\App\Http\Controllers\PencarianKeahlianController::class, 'cari'])
+    ->middleware(['auth', 'role:Admin,Penasehat', NoCache::class])
+    ->name('api.anggota.cari-keahlian');
+
+// Daftar ringkas anggota seluruh bidang (B-030, T-040)
+Route::get('/api/anggota/ringkas-seluruh-bidang', [\App\Http\Controllers\AnggotaRingkasController::class, 'index'])
+    ->middleware(['auth', 'role:Admin,Penasehat', NoCache::class])
+    ->name('api.anggota.ringkas-seluruh-bidang');
