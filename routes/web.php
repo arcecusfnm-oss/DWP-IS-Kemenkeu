@@ -27,6 +27,7 @@ use App\Http\Controllers\StrukturOrganisasiController;
 use App\Http\Controllers\ProfilSayaController;
 use App\Http\Controllers\LaporanKegiatanController;
 use App\Http\Controllers\TemplatLaporanController;
+use App\Http\Controllers\Admin\TautanSuratProgramController;
 
 // Halaman utama (publik)
 Route::view('/', 'landing')
@@ -334,4 +335,19 @@ Route::middleware(['auth', 'role:Admin', NoCache::class])
     ->group(function () {
         Route::get('/', [TemplatLaporanController::class, 'show'])->name('show');
         Route::put('/', [TemplatLaporanController::class, 'update'])->name('update');
+    });
+
+// Tautan surat masuk ke program kerja (B-040, T-068): Admin dan Sekretariat
+Route::middleware(['auth', AksesPersuratan::class, NoCache::class])
+    ->prefix('api')
+    ->name('api.tautan-surat-program.')
+    ->group(function () {
+        Route::get('/surat-masuk/program-kerja-pilihan', [TautanSuratProgramController::class, 'pilihan'])
+            ->name('pilihan');
+        Route::get('/program-kerja/{idProgram}/surat-terkait', [TautanSuratProgramController::class, 'suratTerkait'])
+            ->whereNumber('idProgram')->name('terkait');
+        Route::put('/surat-masuk/{id}/program-kerja', [TautanSuratProgramController::class, 'tautkan'])
+            ->whereNumber('id')->name('tautkan');
+        Route::delete('/surat-masuk/{id}/program-kerja', [TautanSuratProgramController::class, 'lepas'])
+            ->whereNumber('id')->name('lepas');
     });
