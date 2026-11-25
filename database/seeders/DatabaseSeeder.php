@@ -15,5 +15,6 @@ class DatabaseSeeder extends Seeder
             UnitKerjaSeeder::class,
             JabatanDwpSeeder::class,
         ]);
+        $this->call(TemplatLaporanSeeder::class);
     }
 }
