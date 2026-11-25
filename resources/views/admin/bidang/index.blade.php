@@ -51,7 +51,8 @@
                             <th>NAMA BIDANG</th>
                             <th>KETUA</th>
                             <th>WAKIL KETUA</th>
-                            <th style="width: 380px; text-align: center;">AKSI</th>
+                            <th>PJ SISTEM</th>
+                            <th style="width: 460px; text-align: center;">AKSI</th>
                         </tr>
                     </thead>
 
@@ -72,6 +73,13 @@
                                 <td>
                                     @if (isset($wakilKetuaBidang[$bidang->id_bidang]))
                                         {{ $wakilKetuaBidang[$bidang->id_bidang] }}
+                                    @else
+                                        <span class="ketua-belum">Belum ditetapkan</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if (!empty($pjSistemBidang[$bidang->id_bidang]))
+                                        {{ $pjSistemBidang[$bidang->id_bidang] }}
                                     @else
                                         <span class="ketua-belum">Belum ditetapkan</span>
                                     @endif
@@ -107,6 +115,22 @@
                                             </svg>
                                             Tetapkan Wakil
                                         </button>
+                                        {{-- Tombol Tetapkan PJ Sistem --}}
+                                        <button type="button" class="pj-btn"
+                                            data-bidang-id="{{ $bidang->id_bidang }}"
+                                            data-bidang-nama="{{ $bidang->nama_bidang }}"
+                                            data-url="{{ route('admin.bidang.penanggung-jawab-sistem.update', $bidang->id_bidang) }}"
+                                            style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: 13px;">
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                stroke-linejoin="round">
+                                                <path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11z" />
+                                                <circle cx="12" cy="9" r="2.5" />
+                                                <path d="M7.5 16a4.5 4.5 0 0 1 9 0" />
+                                            </svg>
+                                            Tetapkan PJ
+                                        </button>
+
                                         {{-- Tombol Edit --}}
                                         <a href="{{ route('admin.bidang.edit', $bidang->id_bidang) }}"
                                             aria-label="Edit bidang"
@@ -143,7 +167,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="bidang-kosong">
+                                <td colspan="6" class="bidang-kosong">
                                     Belum ada data bidang.
                                 </td>
                             </tr>
@@ -219,6 +243,39 @@
 
     <div id="wakilData" hidden data-anggota='@json($anggotaBidang)' data-buka='@json(old('bidang_asal_wakil'))'
         data-lama='@json(old('id_anggota'))'></div>
+
+    {{-- Dialog tetapkan PJ Sistem --}}
+    <div class="ketua-overlay" id="pjOverlay" hidden>
+        <div class="ketua-dialog" role="dialog" aria-modal="true" aria-labelledby="pjJudul">
+            <h3 id="pjJudul">Tetapkan Penanggung Jawab Sistem</h3>
+            <p>Bidang <b id="pjBidangNama"></b></p>
+
+            @if ($errors->has('id_pengguna'))
+                <div class="pesan pesan-error" role="alert">{{ $errors->first('id_pengguna') }}</div>
+            @endif
+
+            <form method="POST" id="pjForm" action="">
+                @csrf
+                @method('PUT')
+                <input type="hidden" name="bidang_asal_pj" id="pjBidangAsal" value="">
+
+                <label for="pjSelect" class="ketua-label">Penanggung Jawab Sistem <span>*</span></label>
+                <select id="pjSelect" name="id_pengguna" class="ketua-select"></select>
+
+                <p class="ketua-kosong" id="pjKosong" hidden>
+                    Belum ada akun Penanggung Jawab aktif yang terhubung dengan bidang ini.
+                </p>
+
+                <div class="ketua-aksi">
+                    <button type="button" class="ketua-batal" id="pjBatal">Batal</button>
+                    <button type="submit" class="ketua-simpan" id="pjSimpan">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="pjData" hidden data-kandidat='@json($kandidatPjSistem)'
+        data-buka='@json(old('bidang_asal_pj'))' data-lama='@json(old('id_pengguna'))'></div>
 @endsection
 
 @push('styles')
@@ -497,6 +554,93 @@
             if (bukaId) {
                 const btn = document.querySelector(
                     '.wakil-btn[data-bidang-id="' + bukaId + '"]'
+                );
+
+                if (btn) bukaModal(btn, lamaId);
+            }
+        })();
+    </script>
+    <script>
+        (function() {
+            const elemenData = document.getElementById('pjData');
+            if (!elemenData) return;
+
+            const d = elemenData.dataset;
+            const kandidatPj = JSON.parse(d.kandidat);
+            const bukaId = JSON.parse(d.buka);
+            const lamaId = JSON.parse(d.lama);
+
+            const overlay = document.getElementById('pjOverlay');
+            const form = document.getElementById('pjForm');
+            const select = document.getElementById('pjSelect');
+            const nama = document.getElementById('pjBidangNama');
+            const asal = document.getElementById('pjBidangAsal');
+            const kosong = document.getElementById('pjKosong');
+            const simpan = document.getElementById('pjSimpan');
+
+            if (!overlay) return;
+
+            function bukaModal(btn, pilih) {
+                const id = btn.dataset.bidangId;
+                const daftar = kandidatPj[id] || [];
+
+                form.action = btn.dataset.url;
+                nama.textContent = btn.dataset.bidangNama;
+                asal.value = id;
+
+                select.replaceChildren();
+
+                const awal = document.createElement('option');
+                awal.value = '';
+                awal.textContent = 'Pilih Penanggung Jawab Sistem';
+                select.appendChild(awal);
+
+                daftar.forEach(function(a) {
+                    const o = document.createElement('option');
+                    o.value = a.id;
+                    o.textContent = a.pj ? a.nama + ' (PJ saat ini)' : a.nama;
+
+                    if (pilih !== null && pilih !== undefined) {
+                        o.selected = String(pilih) === String(a.id);
+                    } else {
+                        o.selected = !!a.pj;
+                    }
+
+                    select.appendChild(o);
+                });
+
+                const adaKandidat = daftar.length > 0;
+                kosong.hidden = adaKandidat;
+                select.disabled = !adaKandidat;
+                simpan.disabled = !adaKandidat;
+
+                overlay.hidden = false;
+            }
+
+            function tutup() {
+                overlay.hidden = true;
+            }
+
+            document.querySelectorAll('.pj-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    bukaModal(btn, null);
+                });
+            });
+
+            document.getElementById('pjBatal').addEventListener('click', tutup);
+
+            overlay.addEventListener('click', function(e) {
+                if (e.target === overlay) tutup();
+            });
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') tutup();
+            });
+
+            // Jika validasi gagal, buka kembali modal bidang sebelumnya.
+            if (bukaId) {
+                const btn = document.querySelector(
+                    '.pj-btn[data-bidang-id="' + bukaId + '"]'
                 );
 
                 if (btn) bukaModal(btn, lamaId);
