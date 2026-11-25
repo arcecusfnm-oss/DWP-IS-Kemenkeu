@@ -58,11 +58,47 @@ class BidangController extends Controller
             ])->values())
             ->all();
 
+        // T-011 (B-024): nama PJ Sistem dan kandidat akun per bidang.
+        $pjSistemBidang = [];
+        $kandidatPjSistem = [];
+
+        foreach ($bidangs as $bidang) {
+            $pjSistemBidang[$bidang->id_bidang] = DB::table('pengguna')
+                ->where('id_pengguna', $bidang->id_penanggung_jawab_sistem)
+                ->value('nama_lengkap');
+
+            $kandidat = DB::table('pengguna')
+                ->join('peran', 'peran.id_peran', '=', 'pengguna.id_peran')
+                ->whereIn('peran.nama_peran', config('dwp.peran_multi_bidang', []))
+                ->where('pengguna.status', 'aktif')
+                ->whereNull('pengguna.dihapus_pada')
+                ->where(function ($w) use ($bidang) {
+                    $w->where('pengguna.id_bidang', $bidang->id_bidang)
+                        ->orWhereExists(function ($s) use ($bidang) {
+                            $s->select(DB::raw(1))
+                                ->from('pengguna_bidang as pb')
+                                ->whereColumn('pb.id_pengguna', 'pengguna.id_pengguna')
+                                ->where('pb.id_bidang', $bidang->id_bidang);
+                        });
+                })
+                ->orderBy('pengguna.nama_lengkap')
+                ->distinct()
+                ->get(['pengguna.id_pengguna', 'pengguna.nama_lengkap']);
+
+            $kandidatPjSistem[$bidang->id_bidang] = $kandidat->map(fn ($akun) => [
+                'id' => $akun->id_pengguna,
+                'nama' => $akun->nama_lengkap,
+                'pj' => (int) $akun->id_pengguna === (int) $bidang->id_penanggung_jawab_sistem,
+            ])->values()->all();
+        }
+
         return view('admin.bidang.index', compact(
             'bidangs',
             'ketuaBidang',
             'wakilKetuaBidang',
-            'anggotaBidang'
+            'anggotaBidang',
+            'pjSistemBidang',
+            'kandidatPjSistem'
         ));
     }
 
