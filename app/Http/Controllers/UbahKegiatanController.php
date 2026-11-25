@@ -33,6 +33,7 @@ class UbahKegiatanController extends Controller
         try {
             $kegiatan = DB::table('kegiatan')
                 ->where('id_kegiatan', $id)
+                ->whereNull('dihapus_pada')
                 ->first([
                     'id_kegiatan',
                     'id_program_kerja',

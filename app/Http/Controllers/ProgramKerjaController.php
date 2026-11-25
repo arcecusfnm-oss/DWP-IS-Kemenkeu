@@ -347,7 +347,8 @@ class ProgramKerjaController extends Controller
                 ->selectSub(
                     DB::table('kegiatan')
                         ->selectRaw('COUNT(*)')
-                        ->whereColumn('kegiatan.id_program_kerja', 'program_kerja.id_program_kerja'),
+                        ->whereColumn('kegiatan.id_program_kerja', 'program_kerja.id_program_kerja')
+                        ->whereNull('kegiatan.dihapus_pada'),
                     'jumlah_kegiatan'
                 )
                 ->orderByDesc('tanggal_mulai')
