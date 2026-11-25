@@ -9,37 +9,18 @@ class TemplatLaporanSeeder extends Seeder
 {
     public function run(): void
     {
-        // Idempoten: aman dijalankan ulang, templat tunggal tidak dobel.
-        if (DB::table('templat_laporan')->exists()) {
+        // Idempoten: template singleton, tidak dobel bila dijalankan ulang.
+        if (DB::table('template_laporan')->exists()) {
             return;
         }
 
-        DB::transaction(function () {
-            $id = DB::table('templat_laporan')->insertGetId([
-                'nama_templat' => 'Templat Laporan Kegiatan',
-                'aktif'        => true,
-                'created_at'   => now(),
-                'updated_at'   => now(),
-            ], 'id_templat_laporan');
-
-            $kolom = [
-                ['judul_kegiatan', 'Judul Kegiatan', true],
-                ['tanggal_kegiatan', 'Tanggal Kegiatan', true],
-                ['penjelasan_singkat', 'Penjelasan Singkat', true],
-                ['dokumentasi', 'Dokumentasi', false],
-            ];
-
-            foreach ($kolom as $i => [$kunci, $label, $wajib]) {
-                DB::table('kolom_templat_laporan')->insert([
-                    'id_templat_laporan' => $id,
-                    'kunci'              => $kunci,
-                    'label'              => $label,
-                    'wajib'              => $wajib,
-                    'urutan'             => $i + 1,
-                    'created_at'         => now(),
-                    'updated_at'         => now(),
-                ]);
-            }
-        });
+        DB::table('template_laporan')->insert([
+            'label_judul_kegiatan'     => 'Judul Kegiatan',
+            'label_tanggal_kegiatan'   => 'Tanggal Kegiatan',
+            'label_penjelasan_singkat' => 'Penjelasan Singkat',
+            'label_dokumentasi'        => 'Dokumentasi',
+            'created_at'               => now(),
+            'updated_at'               => now(),
+        ]);
     }
 }

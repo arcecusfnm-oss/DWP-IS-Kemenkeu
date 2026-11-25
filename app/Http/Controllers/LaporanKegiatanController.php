@@ -40,28 +40,22 @@ class LaporanKegiatanController extends Controller
         }
 
         try {
-            $templat = DB::table('templat_laporan')
-                ->where('aktif', true)
-                ->orderBy('id_templat_laporan')
+            $templat = DB::table('template_laporan')
+                ->orderBy('id_template_laporan')
                 ->first();
 
             if (! $templat) {
-                return response()->json(['pesan' => 'Templat laporan kegiatan belum tersedia.'], 404);
+                return response()->json(['pesan' => 'Template laporan kegiatan belum tersedia.'], 404);
             }
 
-            $kolom = DB::table('kolom_templat_laporan')
-                ->where('id_templat_laporan', $templat->id_templat_laporan)
-                ->orderBy('urutan')
-                ->get(['kunci', 'label', 'wajib', 'urutan'])
-                ->map(fn ($k) => [
-                    'kunci'    => $k->kunci,
-                    'label'    => $k->label,
-                    'wajib'    => (bool) $k->wajib,
-                    'urutan'   => (int) $k->urutan,
-                    // slot dokumentasi disiapkan, belum bisa diisi (B-058)
-                    'tersedia' => $k->kunci !== 'dokumentasi',
-                ])
-                ->all();
+            // Judul, Tanggal, dan Penjelasan selalu wajib; slot dokumentasi disiapkan
+            // dan belum bisa diisi (B-058).
+            $kolom = [
+                ['kunci' => 'judul_kegiatan', 'label' => $templat->label_judul_kegiatan, 'wajib' => true, 'urutan' => 1, 'tersedia' => true],
+                ['kunci' => 'tanggal_kegiatan', 'label' => $templat->label_tanggal_kegiatan, 'wajib' => true, 'urutan' => 2, 'tersedia' => true],
+                ['kunci' => 'penjelasan_singkat', 'label' => $templat->label_penjelasan_singkat, 'wajib' => true, 'urutan' => 3, 'tersedia' => true],
+                ['kunci' => 'dokumentasi', 'label' => $templat->label_dokumentasi, 'wajib' => false, 'urutan' => 4, 'tersedia' => false],
+            ];
 
             $kegiatan = DB::table('kegiatan')
                 ->join('program_kerja', 'program_kerja.id_program_kerja', '=', 'kegiatan.id_program_kerja')
@@ -86,14 +80,13 @@ class LaporanKegiatanController extends Controller
         }
 
         return response()->json([
-            'id_templat'       => $templat->id_templat_laporan,
-            'kolom'            => $kolom,
-            'kegiatan'         => $kegiatan,
-            'batas_penjelasan' => self::MAKS_PENJELASAN,
-            'tanggal_maks'     => now()->toDateString(),
+            'id_template_laporan' => $templat->id_template_laporan,
+            'kolom'               => $kolom,
+            'kegiatan'            => $kegiatan,
+            'batas_penjelasan'    => self::MAKS_PENJELASAN,
+            'tanggal_maks'        => now()->toDateString(),
         ]);
     }
-
     /**
      * Daftar laporan bidang saya. Filter opsional: ?status=Draf
      */
