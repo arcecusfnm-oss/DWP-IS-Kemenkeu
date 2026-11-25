@@ -60,6 +60,7 @@ class LaporanKegiatanController extends Controller
             $kegiatan = DB::table('kegiatan')
                 ->join('program_kerja', 'program_kerja.id_program_kerja', '=', 'kegiatan.id_program_kerja')
                 ->where('program_kerja.id_bidang', $idBidang)
+                ->whereNull('kegiatan.dihapus_pada')
                 ->orderByDesc('kegiatan.tanggal_mulai')
                 ->orderByDesc('kegiatan.id_kegiatan')
                 ->get([

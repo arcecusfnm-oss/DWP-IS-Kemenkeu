@@ -17,6 +17,8 @@ return new class extends Migration
             $table->date('tanggal_selesai');
             $table->text('deskripsi');
             $table->unsignedBigInteger('dibuat_oleh');
+            $table->timestamp('dihapus_pada')->nullable();
+            $table->index('dihapus_pada');
 
             $table->timestamps();
 
