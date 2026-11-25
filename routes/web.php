@@ -26,6 +26,7 @@ use App\Http\Controllers\Admin\PenanggungJawabController;
 use App\Http\Controllers\StrukturOrganisasiController;
 use App\Http\Controllers\ProfilSayaController;
 use App\Http\Controllers\LaporanKegiatanController;
+use App\Http\Controllers\TemplatLaporanController;
 
 // Halaman utama (publik)
 Route::view('/', 'landing')
@@ -320,4 +321,17 @@ Route::middleware(['auth', 'role:Pimpinan Bidang,Anggota Bidang', NoCache::class
         Route::get('/formulir', [LaporanKegiatanController::class, 'formulir'])->name('formulir');
         Route::get('/', [LaporanKegiatanController::class, 'index'])->name('index');
         Route::post('/', [LaporanKegiatanController::class, 'store'])->name('store');
+    });
+
+// Template laporan kegiatan (B-052, T-131), mengikuti DESAIN-SPRINT3 bagian 5
+Route::get('/template-laporan', [TemplatLaporanController::class, 'show'])
+    ->middleware(['auth', NoCache::class])
+    ->name('template-laporan.show');
+
+Route::middleware(['auth', 'role:Admin', NoCache::class])
+    ->prefix('admin/template-laporan')
+    ->name('admin.template-laporan.')
+    ->group(function () {
+        Route::get('/', [TemplatLaporanController::class, 'show'])->name('show');
+        Route::put('/', [TemplatLaporanController::class, 'update'])->name('update');
     });
