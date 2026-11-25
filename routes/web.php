@@ -25,6 +25,7 @@ use App\Http\Controllers\HapusKegiatanController;
 use App\Http\Controllers\Admin\PenanggungJawabController;
 use App\Http\Controllers\StrukturOrganisasiController;
 use App\Http\Controllers\ProfilSayaController;
+use App\Http\Controllers\LaporanKegiatanController;
 
 // Halaman utama (publik)
 Route::view('/', 'landing')
@@ -310,3 +311,13 @@ Route::get('/api/anggota/ringkas-seluruh-bidang', [\App\Http\Controllers\Anggota
 Route::get('/api/struktur-organisasi', [StrukturOrganisasiController::class, 'index'])
     ->middleware(['auth', NoCache::class])
     ->name('api.struktur-organisasi');
+
+// Isi laporan kegiatan: Pimpinan Bidang dan Anggota Bidang pemilik bidang (B-053, T-154)
+Route::middleware(['auth', 'role:Pimpinan Bidang,Anggota Bidang', NoCache::class])
+    ->prefix('api/laporan-kegiatan')
+    ->name('api.laporan-kegiatan.')
+    ->group(function () {
+        Route::get('/formulir', [LaporanKegiatanController::class, 'formulir'])->name('formulir');
+        Route::get('/', [LaporanKegiatanController::class, 'index'])->name('index');
+        Route::post('/', [LaporanKegiatanController::class, 'store'])->name('store');
+    });
