@@ -42,6 +42,7 @@ class KegiatanController extends Controller
             $kegiatan = DB::table('kegiatan')
                 ->join('program_kerja', 'program_kerja.id_program_kerja', '=', 'kegiatan.id_program_kerja')
                 ->where('program_kerja.id_bidang', $idBidang)
+                ->whereNull('kegiatan.dihapus_pada')
                 ->when($idProgram, fn ($q) => $q->where('kegiatan.id_program_kerja', $idProgram))
                 ->when($cari !== '', function ($q) use ($cari) {
                     $aman = str_replace(['\\', '%', '_'], ['\\\\', '\%', '\_'], $cari);
