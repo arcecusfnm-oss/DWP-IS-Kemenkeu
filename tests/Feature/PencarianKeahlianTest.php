@@ -168,4 +168,50 @@ class PencarianKeahlianTest extends TestCase
             ->assertOk()
             ->assertExactJson(['hasil' => []]);
     }
+
+    public function test_pencarian_tidak_peka_huruf_besar_kecil(): void
+    {
+        $admin = $this->buatPengguna('Admin');
+        $this->buatAnggota($admin->id_pengguna, 'Ani', 'Desain Grafis');
+
+        foreach (['grafis', 'GRAFIS', 'GrAfIs'] as $kata) {
+            $nama = collect(
+                $this->actingAs($admin)
+                    ->getJson(route('api.anggota.cari-keahlian', ['q' => $kata]))
+                    ->assertOk()
+                    ->json('hasil')
+            )->pluck('nama_lengkap')->all();
+
+            $this->assertSame(['Ani'], $nama, "Kata kunci '$kata' harus menemukan Ani");
+        }
+    }
+
+    public function test_karakter_khusus_aman_dan_dicari_apa_adanya(): void
+    {
+        $admin = $this->buatPengguna('Admin');
+        $this->buatAnggota($admin->id_pengguna, 'Ani', 'Desain Grafis');
+        $this->buatAnggota($admin->id_pengguna, 'Budi', 'C++ dan Excel (diskon 100%)');
+
+        // Karakter khusus yang valid dicari apa adanya
+        foreach (['C++' => 'Budi', '(diskon' => 'Budi'] as $kata => $diharapkan) {
+            $nama = collect(
+                $this->actingAs($admin)
+                    ->getJson(route('api.anggota.cari-keahlian', ['q' => $kata]))
+                    ->assertOk()
+                    ->json('hasil')
+            )->pluck('nama_lengkap')->all();
+
+            $this->assertSame([$diharapkan], $nama, "Kata kunci '$kata'");
+        }
+
+        // Upaya injeksi: tidak error, tidak ada hasil, tabel tetap utuh
+        foreach (["' OR '1'='1", "'; DROP TABLE anggota; --", '<script>alert(1)</script>'] as $payload) {
+            $this->actingAs($admin)
+                ->getJson(route('api.anggota.cari-keahlian', ['q' => $payload]))
+                ->assertOk()
+                ->assertExactJson(['hasil' => []]);
+        }
+
+        $this->assertSame(2, DB::table('anggota')->count());
+    }
 }
