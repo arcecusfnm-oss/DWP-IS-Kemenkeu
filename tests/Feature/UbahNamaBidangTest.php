@@ -202,4 +202,49 @@ class UbahNamaBidangTest extends TestCase
                 && ! array_key_exists('kata_sandi_hash', $konteks);
         })->once();
     }
+
+    public function test_nama_baru_tampil_di_daftar_akun(): void
+    {
+        // admin_uji dari setUp() terhubung ke bidangA
+        $this->actingAs($this->admin);
+        $this->ubah($this->bidangA, 'Bidang Baru');
+
+        $this->get(route('admin.akun.index'))
+            ->assertOk()
+            ->assertSee('Bidang Baru')
+            ->assertDontSee('Bidang Uji A');
+    }
+
+    public function test_nama_baru_tampil_di_bagan_struktur(): void
+    {
+        $this->actingAs($this->admin);
+        $this->ubah($this->bidangA, 'Bidang Baru');
+
+        $this->getJson(route('api.struktur-organisasi'))
+            ->assertOk()
+            ->assertSee('Bidang Baru')
+            ->assertDontSee('Bidang Uji A');
+    }
+
+    public function test_nama_baru_tampil_di_daftar_anggota(): void
+    {
+        DB::table('anggota')->insert([
+            'nama_lengkap'  => 'Anggota Uji',
+            'nomor_telepon' => '081234567890',
+            'id_bidang'     => $this->bidangA->id_bidang,
+            'status'        => 'aktif',
+            'dibuat_oleh'   => $this->admin->id_pengguna,
+            'dihapus_pada'  => null,
+            'created_at'    => now(),
+            'updated_at'    => now(),
+        ]);
+
+        $this->actingAs($this->admin);
+        $this->ubah($this->bidangA, 'Bidang Baru');
+
+        $this->getJson(route('admin.anggota.index'))
+            ->assertOk()
+            ->assertSee('Bidang Baru')
+            ->assertDontSee('Bidang Uji A');
+    }
 }
