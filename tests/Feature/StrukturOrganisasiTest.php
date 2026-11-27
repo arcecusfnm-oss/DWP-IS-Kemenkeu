@@ -103,4 +103,67 @@ class StrukturOrganisasiTest extends TestCase
     {
         $this->getJson(route('api.struktur-organisasi'))->assertUnauthorized();
     }
+
+    /**
+     * B-018 T-004: feature test endpoint struktur organisasi. Self-contained.
+     */
+    public function test_semua_peran_dapat_melihat_struktur(): void
+    {
+        foreach (config('dwp.peran') as $i => $namaPeran) {
+            $akun = $this->buatAkun($namaPeran, 'peran_uji_' . $i);
+
+            $this->actingAs($akun)
+                ->getJson(route('api.struktur-organisasi'))
+                ->assertOk()
+                ->assertJsonPath('data.ketua_dwp.jabatan', 'Ketua DWP');
+        }
+    }
+
+    private function buatPejabat(string $nama, string $status = 'aktif', bool $dihapus = false): int
+    {
+        return DB::table('anggota')->insertGetId([
+            'nama_lengkap'  => $nama,
+            'nomor_telepon' => '081234567890',
+            'id_bidang'     => null,
+            'status'        => $status,
+            'dibuat_oleh'   => $this->admin->id_pengguna,
+            'dihapus_pada'  => $dihapus ? now() : null,
+            'created_at'    => now(),
+            'updated_at'    => now(),
+        ], 'id_anggota');
+    }
+
+    public function test_nama_pejabat_tampil_saat_jabatan_terisi(): void
+    {
+        $ketua = $this->buatPejabat('Bu Ketua');
+        $wakil = $this->buatPejabat('Bu Wakil Satu');
+
+        DB::table('jabatan_dwp')->where('nama_jabatan', 'Ketua DWP')->update(['id_anggota' => $ketua]);
+        DB::table('jabatan_dwp')->where('nama_jabatan', 'Wakil Ketua I')->update(['id_anggota' => $wakil]);
+
+        $this->actingAs($this->admin)
+            ->getJson(route('api.struktur-organisasi'))
+            ->assertOk()
+            ->assertJsonPath('data.ketua_dwp.nama', 'Bu Ketua')
+            ->assertJsonPath('data.wakil_ketua_dwp.0.nama', 'Bu Wakil Satu')
+            ->assertJsonPath('data.wakil_ketua_dwp.1.nama', null); // Wakil Ketua II masih kosong
+    }
+
+    public function test_pejabat_nonaktif_atau_terhapus_tampil_sebagai_kosong(): void
+    {
+        $nonaktif = $this->buatPejabat('Bu Nonaktif', 'nonaktif');
+        $terhapus = $this->buatPejabat('Bu Terhapus', 'aktif', true);
+
+        DB::table('jabatan_dwp')->where('nama_jabatan', 'Ketua DWP')->update(['id_anggota' => $nonaktif]);
+        DB::table('jabatan_dwp')->where('nama_jabatan', 'Wakil Ketua I')->update(['id_anggota' => $terhapus]);
+
+        $respons = $this->actingAs($this->admin)
+            ->getJson(route('api.struktur-organisasi'))
+            ->assertOk()
+            ->assertJsonPath('data.ketua_dwp.nama', null)
+            ->assertJsonPath('data.wakil_ketua_dwp.0.nama', null);
+
+        $this->assertStringNotContainsString('Bu Nonaktif', json_encode($respons->json()));
+        $this->assertStringNotContainsString('Bu Terhapus', json_encode($respons->json()));
+    }
 }
