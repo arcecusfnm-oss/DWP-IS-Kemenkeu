@@ -28,6 +28,7 @@ use App\Http\Controllers\ProfilSayaController;
 use App\Http\Controllers\LaporanKegiatanController;
 use App\Http\Controllers\TemplatLaporanController;
 use App\Http\Controllers\Admin\TautanSuratProgramController;
+use App\Http\Controllers\Admin\SuratKeputusanController;
 
 // Halaman utama (publik)
 Route::view('/', 'landing')
@@ -285,6 +286,15 @@ Route::middleware(['auth', AksesPersuratan::class, NoCache::class])
             ->whereIn('jenis', ['masuk', 'keluar'])
             ->whereNumber('id')
             ->name('update');
+    });
+
+// Catat dan daftar surat keputusan (Admin) - B-128, T-075
+Route::middleware(['auth', 'role:Admin', NoCache::class])
+    ->prefix('api/surat-keputusan')
+    ->name('api.surat-keputusan.')
+    ->group(function () {
+        Route::get('/', [SuratKeputusanController::class, 'index'])->name('index');
+        Route::post('/', [SuratKeputusanController::class, 'store'])->name('store');
     });
 
 // Statistik jumlah anggota aktif per bidang (B-026, T-019)
