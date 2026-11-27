@@ -324,6 +324,11 @@ Route::middleware(['auth', 'role:Pimpinan Bidang,Anggota Bidang', NoCache::class
         Route::post('/', [LaporanKegiatanController::class, 'store'])->name('store');
     });
 
+// Halaman pengelolaan templat laporan kegiatan Admin (T-135)
+Route::view('/admin/laporan-kegiatan', 'admin.template-laporan.index')
+    ->middleware(['auth', 'role:Admin', NoCache::class])
+    ->name('admin.laporan.templat');
+
 // Template laporan kegiatan (B-052, T-131), mengikuti DESAIN-SPRINT3 bagian 5
 Route::get('/template-laporan', [TemplatLaporanController::class, 'show'])
     ->middleware(['auth', NoCache::class])
