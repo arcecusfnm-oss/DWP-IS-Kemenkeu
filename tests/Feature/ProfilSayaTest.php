@@ -117,7 +117,7 @@ class ProfilSayaTest extends TestCase
         $this->buatAnggota($saya, ['nama_lengkap' => 'Ibu Saya']);
         $idLain = $this->buatAnggota($lain, ['nama_lengkap' => 'Ibu Orang Lain']);
 
-        $r = $this->profil($saya, '/profil-saya?id=' . $idLain . '&id_anggota=' . $idLain)
+        $r = $this->profil($saya, '/profil-saya?id=' . $idLain . '&id_anggota=' . $idLain . '&id_pengguna=' . $lain->id_pengguna . '&anggota_id=' . $idLain . '&pengguna_id=' . $lain->id_pengguna)
             ->assertOk()
             ->assertSee('Ibu Saya')
             ->assertDontSee('Ibu Orang Lain');
