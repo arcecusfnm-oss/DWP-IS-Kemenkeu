@@ -214,7 +214,11 @@ Route::middleware(['auth', 'role:Admin', NoCache::class])
 
         Route::put('/{id}/pindah-bidang', [AnggotaController::class, 'pindahBidang'])
             ->name('pindah-bidang');
-    });
+        // Hapus anggota (B-027, T-023/T-024)
+        Route::delete('/{id}', [AnggotaController::class, 'destroy'])
+            ->whereNumber('id')
+            ->name('destroy');
+            });
 
 // Daftar program kerja seluruh bidang (hanya baca) - T-93
 // Admin: /admin/program-kerja
