@@ -510,6 +510,54 @@ class AnggotaController extends Controller
             ->with('success', 'Bidang anggota berhasil dipindahkan.');
     }
 
+    public function destroy($id)
+    {
+        try {
+            $hasil = DB::transaction(function () use ($id) {
+                $anggota = DB::table('anggota')
+                    ->where('id_anggota', $id)
+                    ->whereNull('dihapus_pada')
+                    ->lockForUpdate()
+                    ->first();
+
+                if (! $anggota) {
+                    return null;
+                }
+
+                // Hapus lunak: hanya menandai baris anggota.
+                // Akun (pengguna), riwayat perpindahan, dan program kerja tidak disentuh.
+                DB::table('anggota')
+                    ->where('id_anggota', $id)
+                    ->update([
+                        'dihapus_pada' => now(),
+                        'updated_at'   => now(),
+                    ]);
+
+                return ['nama_anggota' => $anggota->nama_lengkap];
+            });
+        } catch (QueryException $e) {
+            report($e); // detail hanya masuk log server
+
+            return back()->with('error', 'Data anggota gagal dihapus. Silakan coba lagi.');
+        }
+
+        if ($hasil === null) {
+            return back()->with('error', 'Data anggota tidak ditemukan.');
+        }
+
+        Log::info('Admin menghapus data anggota', [
+            'admin_id'       => Auth::id(),
+            'admin_username' => Auth::user()->nama_pengguna,
+            'anggota_id'     => $id,
+            'nama_anggota'   => $hasil['nama_anggota'],
+            'dicatat_pada'   => now()->toDateTimeString(),
+        ]);
+
+        return redirect()
+            ->route('admin.anggota.index')
+            ->with('success', 'Data anggota berhasil dihapus.');
+    }
+
     // Akun yang bisa dihubungkan ke data anggota (satu akun hanya satu anggota, sesuai UK).
     private function akunTersedia()
     {

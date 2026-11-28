@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Filesystem\FilesystemAdapter;
+use Illuminate\Validation\Rule;
 
 /**
  * B-031 T-045: Profil Saya (read-only).
@@ -22,6 +23,12 @@ class ProfilSayaController extends Controller
         1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
         'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
     ];
+    private const TINGKAT_PENDIDIKAN = [
+        'SMA/SMK', 'D3', 'D4', 'S1 (Sarjana)', 'S2 (Magister)', 'S3 (Doktoral)',
+    ];
+
+    // Sama dengan AnggotaController: tolak < > dan karakter kontrol
+    private const POLA_TEKS = '/^[^<>\x00-\x08\x0B\x0C\x0E-\x1F\x7F]*$/u';
 
     public function index()
     {
@@ -133,6 +140,147 @@ class ProfilSayaController extends Controller
         ]);
 
         return redirect()->route('profil-saya')->with('success', 'Foto berhasil disimpan.');
+    }
+
+    public function update(Request $request)
+    {
+        $teks = 'regex:' . self::POLA_TEKS;
+
+        // Hanya kolom yang boleh diubah sendiri. Bidang, posisi, nama asli, nomor telepon,
+        // dan id apa pun yang dikirim manual tidak ikut di validated() (AC 3 dan 4).
+        $data = $request->validate([
+            'nama_suami'         => ['nullable', 'string', 'max:255', $teks],
+            'nama_panggilan'     => ['nullable', 'string', 'max:255', $teks],
+            'alamat_lengkap'     => ['nullable', 'string', 'max:1000', $teks],
+            'email'              => ['nullable', 'email', 'max:255'],
+            'tingkat_pendidikan' => ['nullable', Rule::in(self::TINGKAT_PENDIDIKAN)],
+            'bidang_pendidikan'  => ['nullable', 'string', 'max:255', $teks],
+            'keahlian'           => ['nullable', 'string', 'max:1000', $teks],
+            'bidang_usaha'       => ['nullable', 'string', 'max:255', $teks],
+            'bekerja'            => ['nullable', Rule::in(['Ya', 'Tidak'])],
+            'instansi_kerja'     => ['nullable', 'string', 'max:255', $teks],
+            'foto'               => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+        ], $this->pesanUbah());
+
+        unset($data['foto']);
+
+        if (array_key_exists('nama_panggilan', $data)) {
+            $data['nama_panggilan'] = $this->rapikanPanggilan($data['nama_panggilan']);
+        }
+
+        // Tidak bekerja: instansi dikosongkan di server
+        if (($data['bekerja'] ?? null) === 'Tidak') {
+            $data['instansi_kerja'] = null;
+        }
+
+        $fotoBaru = $request->hasFile('foto')
+            ? $request->file('foto')->store('foto-anggota', 'local')
+            : null;
+
+        try {
+            $hasil = DB::transaction(function () use ($data, $fotoBaru) {
+                // Anggota selalu dari akun yang masuk, bukan dari request
+                $anggota = DB::table('anggota')
+                    ->where('id_pengguna', Auth::id())
+                    ->whereNull('dihapus_pada')
+                    ->lockForUpdate()
+                    ->first();
+
+                if (! $anggota) {
+                    return null;
+                }
+
+                $perubahan = [];
+                foreach ($data as $kolom => $baru) {
+                    if ((string) ($anggota->{$kolom} ?? '') !== (string) ($baru ?? '')) {
+                        $perubahan[] = $kolom;
+                    }
+                }
+
+                $isi = $data;
+                if ($fotoBaru) {
+                    $isi['foto_path'] = $fotoBaru;
+                    $perubahan[] = 'foto';
+                }
+
+                if (! empty($perubahan)) {
+                    DB::table('anggota')
+                        ->where('id_anggota', $anggota->id_anggota)
+                        ->update(array_merge($isi, ['updated_at' => now()]));
+                }
+
+                return [
+                    'id_anggota' => $anggota->id_anggota,
+                    'foto_lama'  => $anggota->foto_path,
+                    'perubahan'  => $perubahan,
+                ];
+            });
+        } catch (QueryException $e) {
+            report($e); // detail hanya masuk log server
+            if ($fotoBaru) {
+                Storage::disk('local')->delete($fotoBaru);
+            }
+
+            return back()->withInput()
+                ->with('error', 'Profil gagal diperbarui. Silakan coba lagi.');
+        }
+
+        if ($hasil === null) {
+            if ($fotoBaru) {
+                Storage::disk('local')->delete($fotoBaru);
+            }
+
+            return back()->with('error', 'Data anggota belum tersedia, hubungi Admin');
+        }
+
+        // Foto lama dihapus setelah update berhasil
+        if ($fotoBaru && $hasil['foto_lama']) {
+            Storage::disk('local')->delete($hasil['foto_lama']);
+        }
+
+        // AC 5: waktu, pelaku, daftar kolom saja, tanpa isi data
+        if (! empty($hasil['perubahan'])) {
+            Log::info('Anggota mengubah profil sendiri', [
+                'pengguna_id'  => Auth::id(),
+                'anggota_id'   => $hasil['id_anggota'],
+                'kolom_diubah' => $hasil['perubahan'],
+                'dicatat_pada' => now()->toDateTimeString(),
+            ]);
+        }
+
+        return redirect()->route('profil-saya')->with('success', 'Profil berhasil diperbarui.');
+    }
+
+    // Sama dengan AnggotaController: nama panggilan selalu berawalan "Ny."
+    private function rapikanPanggilan(?string $nama): ?string
+    {
+        $nama = trim((string) preg_replace('/\s+/u', ' ', (string) $nama));
+        $nama = preg_replace('/^(nyonya|ny)(\.\s*|\s+)/iu', '', $nama);
+
+        return $nama === '' ? null : 'Ny. ' . $nama;
+    }
+
+    private function pesanUbah(): array
+    {
+        $pesanTeks = 'Mengandung karakter yang tidak diperbolehkan.';
+
+        return [
+            'email.email'             => 'Format email tidak valid.',
+            'tingkat_pendidikan.in'   => 'Tingkat pendidikan tidak valid.',
+            'bekerja.in'              => 'Pilihan bekerja harus Ya atau Tidak.',
+            'foto.file'               => 'Foto tidak valid.',
+            'foto.image'              => 'Berkas harus berupa gambar.',
+            'foto.mimes'              => 'Foto harus berformat JPG atau PNG.',
+            'foto.max'                => 'Ukuran foto maksimal 2 MB.',
+            'foto.uploaded'           => 'Foto gagal diunggah. Silakan coba lagi.',
+            'nama_suami.regex'        => $pesanTeks,
+            'nama_panggilan.regex'    => $pesanTeks,
+            'alamat_lengkap.regex'    => $pesanTeks,
+            'bidang_pendidikan.regex' => $pesanTeks,
+            'keahlian.regex'          => $pesanTeks,
+            'bidang_usaha.regex'      => $pesanTeks,
+            'instansi_kerja.regex'    => $pesanTeks,
+        ];
     }
 
     public function foto()

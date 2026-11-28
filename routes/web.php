@@ -100,6 +100,10 @@ Route::post('/profil-saya/foto', [ProfilSayaController::class, 'simpanFoto'])
 Route::get('/profil-saya/foto', [ProfilSayaController::class, 'foto'])
     ->middleware(['auth', NoCache::class])
     ->name('profil-saya.foto');
+    
+Route::put('/profil-saya', [ProfilSayaController::class, 'update'])
+    ->middleware(['auth', NoCache::class])
+    ->name('profil-saya.update');
 
 // Layar wajib ganti kata sandi (setelah reset), untuk semua peran
 Route::view('/ganti-kata-sandi', 'auth.ganti-kata-sandi')
@@ -214,7 +218,11 @@ Route::middleware(['auth', 'role:Admin', NoCache::class])
 
         Route::put('/{id}/pindah-bidang', [AnggotaController::class, 'pindahBidang'])
             ->name('pindah-bidang');
-    });
+        // Hapus anggota (B-027, T-023/T-024)
+        Route::delete('/{id}', [AnggotaController::class, 'destroy'])
+            ->whereNumber('id')
+            ->name('destroy');
+            });
 
 // Daftar program kerja seluruh bidang (hanya baca) - T-93
 // Admin: /admin/program-kerja

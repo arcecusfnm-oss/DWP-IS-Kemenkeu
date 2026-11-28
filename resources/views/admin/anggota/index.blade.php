@@ -2,6 +2,7 @@
     resources/views/admin/anggota/index.blade.php
     Tampilan daftar anggota sesuai Figma "Kelola Anggota - Daftar Anggota".
     T-43 (B-020): filter bidang/peran, pencarian, dan paginasi dibaca dari AnggotaController::index().
+    T-24 (B-027): dialog konfirmasi hapus anggota (DELETE admin.anggota.destroy).
 
     Variabel yang dipakai:
       $anggota       : paginator. Tiap item: nama_lengkap, nama_panggilan, nomor_telepon,
@@ -37,6 +38,7 @@
             align-items: center;
             justify-content: center;
             gap: 10px;
+            white-space: nowrap;
         }
 
         .agl-aksi a {
@@ -59,7 +61,8 @@
             outline-offset: 2px;
         }
 
-        .agl-aksi button.agl-btn-pindah {
+        .agl-aksi button.agl-btn-pindah,
+        .agl-aksi button.agl-btn-hapus {
             width: 32px;
             height: 32px;
             display: grid;
@@ -74,6 +77,11 @@
         .agl-aksi button.agl-btn-pindah:hover {
             background: #fdf1ea;
             color: var(--coklat-tua);
+        }
+
+        .agl-aksi button.agl-btn-hapus:hover {
+            background: #fdecea;
+            color: #b42318;
         }
 
         .agl-aksi a:focus-visible,
@@ -150,6 +158,7 @@
 
         .agl-modal-aksi {
             display: flex;
+            flex-wrap: wrap;
             justify-content: flex-end;
             gap: 10px;
         }
@@ -175,9 +184,20 @@
             color: #fff;
         }
 
+        .agl-modal-simpan.agl-modal-hapus {
+            background: #b42318;
+            color: #fff;
+        }
+
         .agl-modal-simpan:disabled {
             opacity: .4;
             cursor: not-allowed;
+        }
+
+        .agl-modal-batal:focus-visible,
+        .agl-modal-simpan:focus-visible {
+            outline: 2px solid #c2653d;
+            outline-offset: 2px;
         }
 
         .agl-belum {
@@ -245,7 +265,7 @@
             </div>
         @endif
 
-        {{-- Pesan gagal pindah bidang --}}
+        {{-- Pesan gagal (pindah bidang, hapus, dll.) --}}
         @if (session('error'))
             <div class="akun-alert akun-alert-galat" role="alert" id="agl-galat">
                 <strong>{{ session('error') }}</strong>
@@ -387,6 +407,20 @@
                                                 <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z" />
                                             </svg>
                                         </a>
+
+                                        <button type="button" class="agl-btn-hapus"
+                                            data-url="{{ route('admin.anggota.destroy', $a->id_anggota) }}"
+                                            data-nama="{{ $a->nama_lengkap }}"
+                                            aria-label="Hapus data {{ $a->nama_lengkap }}" title="Hapus anggota">
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                stroke-linejoin="round" aria-hidden="true">
+                                                <path d="M3 6h18" />
+                                                <path d="M8 6V4h8v2" />
+                                                <path d="M19 6l-1 14H6L5 6" />
+                                                <path d="M10 11v6M14 11v6" />
+                                            </svg>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -428,6 +462,7 @@
             </div>
         </div>
     </div>
+
     {{-- Modal pindah bidang anggota --}}
     <div class="agl-modal-overlay" id="agl-modal-overlay" hidden>
         <div class="agl-modal" role="dialog" aria-modal="true" aria-labelledby="agl-modal-title">
@@ -454,6 +489,29 @@
                     <button type="button" class="agl-modal-batal" id="agl-modal-batal">Batal</button>
                     <button type="submit" class="agl-modal-simpan" id="agl-modal-simpan" disabled>
                         Simpan Perubahan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- Dialog konfirmasi hapus anggota (B-027, T-024) --}}
+    <div class="agl-modal-overlay" id="agl-hapus-overlay" hidden>
+        <div class="agl-modal" role="alertdialog" aria-modal="true"
+            aria-labelledby="agl-hapus-judul" aria-describedby="agl-hapus-isi">
+            <h2 id="agl-hapus-judul">Hapus Data Anggota?</h2>
+            <p class="agl-modal-deskripsi" id="agl-hapus-isi">
+                Data anggota <strong id="agl-hapus-nama"></strong> akan dihapus dari daftar anggota.
+                Pastikan data yang dipilih sudah benar.
+            </p>
+
+            <form id="agl-form-hapus" method="POST">
+                @csrf
+                @method('DELETE')
+                <div class="agl-modal-aksi">
+                    <button type="button" class="agl-modal-batal" id="agl-hapus-batal">Batal</button>
+                    <button type="submit" class="agl-modal-simpan agl-modal-hapus" id="agl-hapus-konfirmasi">
+                        Ya, Hapus
                     </button>
                 </div>
             </form>
@@ -544,6 +602,49 @@
                     event.preventDefault();
                     perbaruiSimpan();
                 }
+            });
+
+            // Dialog konfirmasi hapus anggota (B-027, T-024)
+            var hapusOverlay = document.getElementById('agl-hapus-overlay');
+            var formHapus = document.getElementById('agl-form-hapus');
+            var hapusNama = document.getElementById('agl-hapus-nama');
+            var hapusBatal = document.getElementById('agl-hapus-batal');
+            var hapusKonfirmasi = document.getElementById('agl-hapus-konfirmasi');
+            var pemicuHapus = null;
+
+            function bukaHapus(button) {
+                pemicuHapus = button;
+                formHapus.action = button.dataset.url;
+                hapusNama.textContent = button.dataset.nama;
+                hapusKonfirmasi.disabled = false;
+                hapusOverlay.hidden = false;
+                hapusBatal.focus(); // fokus awal ke Batal supaya tidak terhapus tak sengaja
+            }
+
+            function tutupHapus() {
+                hapusOverlay.hidden = true;
+                formHapus.action = '';
+                if (pemicuHapus) pemicuHapus.focus();
+            }
+
+            document.querySelectorAll('.agl-btn-hapus').forEach(function(b) {
+                b.addEventListener('click', function() {
+                    bukaHapus(b);
+                });
+            });
+
+            hapusBatal.addEventListener('click', tutupHapus);
+
+            hapusOverlay.addEventListener('click', function(e) {
+                if (e.target === hapusOverlay) tutupHapus();
+            });
+
+            document.addEventListener('keydown', function(e) {
+                if (!hapusOverlay.hidden && e.key === 'Escape') tutupHapus();
+            });
+
+            formHapus.addEventListener('submit', function() {
+                hapusKonfirmasi.disabled = true; // cegah klik ganda
             });
         })();
     </script>
