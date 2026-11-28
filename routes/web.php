@@ -100,6 +100,10 @@ Route::post('/profil-saya/foto', [ProfilSayaController::class, 'simpanFoto'])
 Route::get('/profil-saya/foto', [ProfilSayaController::class, 'foto'])
     ->middleware(['auth', NoCache::class])
     ->name('profil-saya.foto');
+    
+Route::put('/profil-saya', [ProfilSayaController::class, 'update'])
+    ->middleware(['auth', NoCache::class])
+    ->name('profil-saya.update');
 
 // Layar wajib ganti kata sandi (setelah reset), untuk semua peran
 Route::view('/ganti-kata-sandi', 'auth.ganti-kata-sandi')
